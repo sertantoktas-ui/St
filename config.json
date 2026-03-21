@@ -1,0 +1,32 @@
+{
+  "application": {
+    "name": "Teknik Servis Takip ve Planlama Programı",
+    "version": "1.0",
+    "language": "tr",
+    "theme": "default"
+  },
+  "database": {
+    "name": "service_tracking.db",
+    "type": "sqlite3",
+    "auto_backup": true,
+    "backup_interval_days": 7
+  },
+  "ui": {
+    "window_width": 1200,
+    "window_height": 800,
+    "show_startup_dialog": false,
+    "confirm_delete": true
+  },
+  "features": {
+    "enable_statistics": true,
+    "enable_reports": true,
+    "enable_notifications": false,
+    "enable_email_integration": false
+  },
+  "defaults": {
+    "priority_levels": ["Düşük", "Orta", "Yüksek", "Acil"],
+    "status_options": ["Açık", "Atandı", "İnceleme Altında", "Tamamlandı"],
+    "date_format": "%d.%m.%Y",
+    "time_format": "%H:%M"
+  }
+}
