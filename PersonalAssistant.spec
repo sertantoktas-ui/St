@@ -2,11 +2,11 @@
 
 
 a = Analysis(
-    ['full_featured_assistant.py'],
+    ['streamlit_app.py'],
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=['anthropic'],
+    hiddenimports=['anthropic', 'streamlit', 'PIL', 'reportlab', 'weasyprint'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -29,7 +29,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
