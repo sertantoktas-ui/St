@@ -6,11 +6,11 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=['anthropic', 'dotenv', 'tkinter'],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['cryptography'],
+    excludes=[],
     noarchive=False,
     optimize=0,
 )
