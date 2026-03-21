@@ -1,0 +1,64 @@
+🤖 KİŞİSEL ASISTAN - WINDOWS EXE KURULUM
+
+═══════════════════════════════════════════════════════════
+
+📋 ADIM 1: API KEY EKLE
+
+1. .env dosyasını Notepad ile aç
+2. ANTHROPIC_API_KEY=YOUR_KEY_HERE yazısını bulun
+3. YOUR_KEY_HERE yerine Claude API key'inizi yapıştırın
+4. Dosyayı kaydedin
+
+Claude API Key nasıl alınır:
+https://console.anthropic.com/account/keys
+
+═══════════════════════════════════════════════════════════
+
+📧 ADIM 2: EMAIL AYARLA (İSTEĞE BAĞLI)
+
+Gmail kullanıyorsanız:
+1. .env dosyasında bulun: GMAIL_EMAIL=
+2. E-mail adresinizi yazın
+3. GMAIL_PASSWORD= bölümüne uygulama şifresi yazın
+
+Gmail Uygulama Şifresi:
+myaccount.google.com → Güvenlik → Uygulama Şifreleri
+
+═══════════════════════════════════════════════════════════
+
+▶️ ADIM 3: PROGRAMI ÇALIŞTIR
+
+PersonalAssistant.exe dosyasına çift tıkla!
+
+═══════════════════════════════════════════════════════════
+
+💬 KOMUTLAR
+
+- "merhaba" - Sohbet başlat
+- "not ekle: [metin]" - Not kaydet
+- "notlarımı listele" - Tüm notları göster
+- "email gönder" - Email yazı yaz
+- "pdf oluştur" - Rapor oluştur
+- "çık" - Programı kapat
+
+═══════════════════════════════════════════════════════════
+
+⚠️ ÖNEMLİ NOTLAR
+
+✓ PersonalAssistant.exe ve .env aynı klasörde olmalı
+✓ .env dosyasını silmeyin
+✓ İlk başta internete bağlı olun (API key doğrulama için)
+✓ Notlar ve veritabanı otomatik kaydedilir
+
+═══════════════════════════════════════════════════════════
+
+❓ SORUN mu var?
+
+1. API Key'i kontrol et
+2. .env dosyasını kontrol et
+3. İnternet bağlantısını kontrol et
+4. Antivirus izin verdi mi kontrol et
+
+═══════════════════════════════════════════════════════════
+
+✨ Keyifli kullanımlar! 🎉
