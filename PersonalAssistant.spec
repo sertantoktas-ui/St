@@ -2,15 +2,15 @@
 
 
 a = Analysis(
-    ['streamlit_app.py'],
+    ['desktop_app.py'],
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=['anthropic', 'streamlit', 'PIL', 'reportlab', 'weasyprint'],
+    hiddenimports=['anthropic', 'dotenv', 'tkinter'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=['cryptography'],
     noarchive=False,
     optimize=0,
 )
@@ -29,7 +29,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
