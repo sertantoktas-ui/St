@@ -1,6 +1,5 @@
 import streamlit as st
-from datetime import datetime
-from zoneinfo import ZoneInfo
+import streamlit.components.v1 as components
 
 st.set_page_config(
     page_title="Dünya Saati",
@@ -8,7 +7,6 @@ st.set_page_config(
     layout="centered",
 )
 
-# Ülke -> Timezone eşlemeleri
 ULKELER = {
     "Türkiye": "Europe/Istanbul",
     "Amerika Birleşik Devletleri (New York)": "America/New_York",
@@ -62,112 +60,162 @@ ULKELER = {
 }
 
 st.title("🕐 Dünya Saati")
-st.markdown("Ülke seçerek o ülkedeki güncel saati görün.")
 
-col1, col2 = st.columns([2, 1])
-
-with col1:
-    secilen_ulke = st.selectbox(
-        "Ülke Seçin",
-        options=list(ULKELER.keys()),
-        index=0,
-    )
-
-with col2:
-    st.markdown("<br>", unsafe_allow_html=True)
-    yenile = st.button("Yenile", use_container_width=True)
+secilen_ulke = st.selectbox(
+    "Ülke Seçin",
+    options=list(ULKELER.keys()),
+    index=0,
+)
 
 timezone_str = ULKELER[secilen_ulke]
-tz = ZoneInfo(timezone_str)
-simdi = datetime.now(tz)
 
-tarih_str = simdi.strftime("%d %B %Y")
-saat_str = simdi.strftime("%H:%M:%S")
-gun_str = simdi.strftime("%A")
-
-GUN_TR = {
-    "Monday": "Pazartesi",
-    "Tuesday": "Salı",
-    "Wednesday": "Çarşamba",
-    "Thursday": "Perşembe",
-    "Friday": "Cuma",
-    "Saturday": "Cumartesi",
-    "Sunday": "Pazar",
-}
-
-AY_TR = {
-    "January": "Ocak", "February": "Şubat", "March": "Mart",
-    "April": "Nisan", "May": "Mayıs", "June": "Haziran",
-    "July": "Temmuz", "August": "Ağustos", "September": "Eylül",
-    "October": "Ekim", "November": "Kasım", "December": "Aralık",
-}
-
-gun_tr = GUN_TR.get(gun_str, gun_str)
-for en, tr in AY_TR.items():
-    tarih_str = tarih_str.replace(en, tr)
-
-utc_offset = simdi.strftime("%z")
-utc_str = f"UTC{utc_offset[:3]}:{utc_offset[3:]}" if utc_offset else ""
-
-st.markdown(f"""
+# Canlı saat — JavaScript ile her saniye güncellenir
+saat_html = f"""
 <div style="
     background: linear-gradient(135deg, #1a1a2e, #16213e);
     border-radius: 20px;
     padding: 40px;
     text-align: center;
-    margin: 20px 0;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    font-family: sans-serif;
 ">
-    <div style="color: #a0a0c0; font-size: 1.1rem; margin-bottom: 8px;">
+    <div style="color: #a0a0c0; font-size: 1.1rem; margin-bottom: 6px;">
         📍 {secilen_ulke}
     </div>
-    <div style="color: #e0e0ff; font-size: 1rem; margin-bottom: 16px; opacity: 0.7;">
-        {timezone_str} &nbsp;|&nbsp; {utc_str}
+    <div id="utc-label" style="color: #e0e0ff; font-size: 0.9rem; margin-bottom: 16px; opacity: 0.6;"></div>
+    <div id="saat" style="color: #00d4ff; font-size: 4rem; font-weight: bold; letter-spacing: 6px; font-family: monospace;">
+        --:--:--
     </div>
-    <div style="color: #00d4ff; font-size: 4rem; font-weight: bold; letter-spacing: 4px; font-family: monospace;">
-        {saat_str}
-    </div>
-    <div style="color: #c0c0e0; font-size: 1.2rem; margin-top: 12px;">
-        {gun_tr}, {tarih_str}
+    <div id="tarih" style="color: #c0c0e0; font-size: 1.1rem; margin-top: 14px;">
+        &nbsp;
     </div>
 </div>
-""", unsafe_allow_html=True)
 
+<script>
+const tz = "{timezone_str}";
+
+const GUNLER = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
+const AYLAR = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran",
+               "Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+
+function guncelle() {{
+    const simdi = new Date();
+
+    const saatFmt = new Intl.DateTimeFormat("tr-TR", {{
+        timeZone: tz,
+        hour: "2-digit", minute: "2-digit", second: "2-digit",
+        hour12: false
+    }});
+    const tarihFmt = new Intl.DateTimeFormat("tr-TR", {{
+        timeZone: tz,
+        weekday: "long", day: "numeric", month: "long", year: "numeric"
+    }});
+    const offsetFmt = new Intl.DateTimeFormat("en", {{
+        timeZone: tz,
+        timeZoneName: "shortOffset"
+    }});
+
+    document.getElementById("saat").textContent = saatFmt.format(simdi);
+    document.getElementById("tarih").textContent = tarihFmt.format(simdi);
+
+    // UTC offset
+    const parts = offsetFmt.formatToParts(simdi);
+    const tzName = parts.find(p => p.type === "timeZoneName");
+    document.getElementById("utc-label").textContent = tz + (tzName ? "  |  " + tzName.value : "");
+}}
+
+guncelle();
+setInterval(guncelle, 1000);
+</script>
+"""
+
+components.html(saat_html, height=240)
+
+# Karşılaştırma bölümü
 st.markdown("---")
 st.subheader("Birden Fazla Ülkeyi Karşılaştır")
 
 karsilastir = st.multiselect(
-    "Karşılaştırmak istediğiniz ülkeleri seçin",
+    "Ülke seçin",
     options=list(ULKELER.keys()),
     default=["Türkiye", "İngiltere", "Japonya"],
 )
 
 if karsilastir:
-    cols = st.columns(len(karsilastir))
-    for idx, ulke in enumerate(karsilastir):
-        tz_k = ZoneInfo(ULKELER[ulke])
-        simdi_k = datetime.now(tz_k)
-        saat_k = simdi_k.strftime("%H:%M")
-        tarih_k = simdi_k.strftime("%d/%m/%Y")
-        gun_k = GUN_TR.get(simdi_k.strftime("%A"), simdi_k.strftime("%A"))
-        with cols[idx]:
-            st.markdown(f"""
-<div style="
-    background: #1e1e3a;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    border: 1px solid #3a3a6a;
-">
-    <div style="color: #a0a0c0; font-size: 0.85rem; margin-bottom: 6px;">📍 {ulke}</div>
-    <div style="color: #00d4ff; font-size: 2rem; font-weight: bold; font-family: monospace;">{saat_k}</div>
-    <div style="color: #8080b0; font-size: 0.8rem; margin-top: 4px;">{gun_k}</div>
-    <div style="color: #8080b0; font-size: 0.8rem;">{tarih_k}</div>
-</div>
-""", unsafe_allow_html=True)
+    kart_js = ""
+    for ulke in karsilastir:
+        tz_k = ULKELER[ulke]
+        kart_js += f"""
+        {{
+            label: "{ulke}",
+            tz: "{tz_k}"
+        }},"""
 
-st.markdown("""
-<div style="text-align:center; color: #606080; font-size: 0.8rem; margin-top: 20px;">
-    Saati güncellemek için sayfayı yenileyin veya Yenile butonuna basın.
-</div>
-""", unsafe_allow_html=True)
+    karsilastir_html = f"""
+<style>
+  .kart-grid {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }}
+  .kart {{
+    background: #1e1e3a;
+    border: 1px solid #3a3a6a;
+    border-radius: 12px;
+    padding: 18px 24px;
+    text-align: center;
+    min-width: 130px;
+    font-family: sans-serif;
+  }}
+  .kart-ulke {{ color: #a0a0c0; font-size: 0.82rem; margin-bottom: 8px; }}
+  .kart-saat {{ color: #00d4ff; font-size: 1.8rem; font-weight: bold; font-family: monospace; }}
+  .kart-tarih {{ color: #8080b0; font-size: 0.75rem; margin-top: 6px; }}
+</style>
+
+<div class="kart-grid" id="kart-grid"></div>
+
+<script>
+const ulkeler = [{kart_js}];
+
+const GUNLER_TR = ["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"];
+
+function kartlariGuncelle() {{
+    const grid = document.getElementById("kart-grid");
+    if (!grid) return;
+
+    ulkeler.forEach((u, i) => {{
+        const simdi = new Date();
+        const saatFmt = new Intl.DateTimeFormat("tr-TR", {{
+            timeZone: u.tz, hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+        }});
+        const tarihFmt = new Intl.DateTimeFormat("tr-TR", {{
+            timeZone: u.tz, day: "2-digit", month: "2-digit", year: "numeric"
+        }});
+        const gunFmt = new Intl.DateTimeFormat("tr-TR", {{
+            timeZone: u.tz, weekday: "short"
+        }});
+
+        let kart = document.getElementById("kart-" + i);
+        if (!kart) {{
+            kart = document.createElement("div");
+            kart.className = "kart";
+            kart.id = "kart-" + i;
+            kart.innerHTML = `
+                <div class="kart-ulke">📍 ${{u.label}}</div>
+                <div class="kart-saat" id="ks-${{i}}">--:--</div>
+                <div class="kart-tarih" id="kt-${{i}}">&nbsp;</div>
+            `;
+            grid.appendChild(kart);
+        }}
+        document.getElementById("ks-" + i).textContent = saatFmt.format(simdi);
+        document.getElementById("kt-" + i).textContent =
+            gunFmt.format(simdi) + "  " + tarihFmt.format(simdi);
+    }});
+}}
+
+kartlariGuncelle();
+setInterval(kartlariGuncelle, 1000);
+</script>
+"""
+    components.html(karsilastir_html, height=max(160, 80 + (len(karsilastir) // 4 + 1) * 140))
