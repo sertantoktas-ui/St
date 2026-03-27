@@ -228,7 +228,7 @@ class TeknikServisDB:
         conn.commit()
         conn.close()
 
-    def is_emirlerini_listele(self, durum=None, musteri_id=None, arama="") -> List[Dict]:
+    def is_emirlerini_listele(self, durum=None, musteri_id=None, arama="", teknisyen=None) -> List[Dict]:
         conn = self._conn()
         base = """
             SELECT ie.*, m.ad||' '||m.soyad AS musteri_adi,
@@ -247,12 +247,25 @@ class TeknikServisDB:
         if arama:
             where.append("(ie.ariza_tanimi LIKE ? OR m.ad||' '||m.soyad LIKE ?)")
             params += [f"%{arama}%", f"%{arama}%"]
+        if teknisyen == "Atanmamış":
+            where.append("(ie.teknisyen IS NULL OR ie.teknisyen='')")
+        elif teknisyen:
+            where.append("ie.teknisyen=?")
+            params.append(teknisyen)
         if where:
             base += " WHERE " + " AND ".join(where)
         base += " ORDER BY ie.created_at DESC"
         rows = conn.execute(base, params).fetchall()
         conn.close()
         return [dict(r) for r in rows]
+
+    def teknisyenleri_listele(self) -> List[str]:
+        conn = self._conn()
+        rows = conn.execute(
+            "SELECT DISTINCT teknisyen FROM is_emirleri WHERE teknisyen IS NOT NULL AND teknisyen != '' ORDER BY teknisyen"
+        ).fetchall()
+        conn.close()
+        return [r[0] for r in rows]
 
     def is_emri_getir(self, iid) -> Optional[Dict]:
         conn = self._conn()

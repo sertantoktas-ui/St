@@ -265,8 +265,8 @@ with st.sidebar:
         notes_count = len(st.session_state.assistant.list_notes())
         st.metric("Toplam Notlar", notes_count)
         st.metric("Sohbet Sayısı", len(st.session_state.chat_history) // 2)
-    except:
-        pass
+    except Exception as e:
+        st.warning(f"İstatistikler yüklenemedi: {e}")
 
     st.divider()
 

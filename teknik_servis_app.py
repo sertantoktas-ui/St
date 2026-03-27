@@ -239,10 +239,13 @@ def sayfa_is_emirleri():
     with tab1:
         col1, col2, col3 = st.columns([2, 2, 3])
         durum_filtre = col1.selectbox("Durum Filtresi", ["Tümü", "Beklemede", "Devam Ediyor", "Tamamlandı", "Teslim Edildi"])
+        teknisyen_listesi = ["Tümü", "Atanmamış"] + db.teknisyenleri_listele()
+        teknisyen_filtre = col2.selectbox("Teknisyen Filtresi", teknisyen_listesi)
         arama = col3.text_input("Arama (arıza, müşteri)")
         durum_param = None if durum_filtre == "Tümü" else durum_filtre
+        teknisyen_param = None if teknisyen_filtre == "Tümü" else teknisyen_filtre
 
-        emirler = db.is_emirlerini_listele(durum=durum_param, arama=arama)
+        emirler = db.is_emirlerini_listele(durum=durum_param, arama=arama, teknisyen=teknisyen_param)
 
         if emirler:
             for ie in emirler:
