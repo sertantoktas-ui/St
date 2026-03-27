@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dünya Saatleri - World Clock</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .clocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .clock-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .clock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .clock-card.highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .country-name {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .clock-card.highlight .country-name {
+            color: white;
+        }
+
+        .city-name {
+            font-size: 0.95em;
+            opacity: 0.7;
+            margin-bottom: 15px;
+            color: #666;
+        }
+
+        .clock-card.highlight .city-name {
+            opacity: 0.9;
+        }
+
+        .digital-time {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            color: #667eea;
+            letter-spacing: 2px;
+        }
+
+        .clock-card.highlight .digital-time {
+            color: #fff;
+        }
+
+        .timezone-info {
+            font-size: 0.85em;
+            opacity: 0.6;
+            color: #999;
+        }
+
+        .clock-card.highlight .timezone-info {
+            opacity: 0.8;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .analog-clock {
+            width: 150px;
+            height: 150px;
+            border: 4px solid #667eea;
+            border-radius: 50%;
+            margin: 20px auto;
+            position: relative;
+            background: #f9f9f9;
+        }
+
+        .clock-card.highlight .analog-clock {
+            border-color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .clock-center {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .clock-card.highlight .clock-center {
+            background: white;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 10px;
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 40px;
+            background: #667eea;
+            margin-left: -3px;
+        }
+
+        .clock-card.highlight .hour-hand {
+            background: white;
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 55px;
+            background: #764ba2;
+            margin-left: -2px;
+            top: 5px;
+        }
+
+        .clock-card.highlight .minute-hand {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .second-hand {
+            width: 2px;
+            height: 60px;
+            background: #ff6b6b;
+            margin-left: -1px;
+            top: 0;
+        }
+
+        .clock-card.highlight .second-hand {
+            background: #ffeb3b;
+        }
+
+        .clock-number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .clock-card.highlight .clock-number {
+            color: white;
+        }
+
+        .number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-timezone {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .add-timezone h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .timezone-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .timezone-input input,
+        .timezone-input select {
+            padding: 10px 15px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+
+        .timezone-input input {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .timezone-input button {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+        }
+
+        .timezone-input button:hover {
+            transform: scale(1.05);
+        }
+
+        .quick-zones {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .quick-zone-btn {
+            padding: 10px 15px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+            transition: all 0.2s ease;
+        }
+
+        .quick-zone-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .current-location {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .clocks-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .digital-time {
+                font-size: 1.8em;
+            }
+
+            .analog-clock {
+                width: 120px;
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="current-location" id="currentLocation"></div>
+
+        <div class="header">
+            <h1>🌍 Dünya Saatleri</h1>
+            <p>World Clock - Saatları İzle / Watch the Times</p>
+        </div>
+
+        <div class="add-timezone">
+            <h3>⏰ Saat Dilimi Ekle / Add Timezone</h3>
+            <div class="timezone-input">
+                <input type="text" id="countryInput" placeholder="Ülke/Country adı (örn: Japonya, Singapur)">
+                <input type="text" id="cityInput" placeholder="Şehir/City adı (isteğe bağlı)">
+                <select id="timezoneSelect">
+                    <option value="">Saat Dilimi Seç / Select Timezone</option>
+                </select>
+                <button onclick="addTimezone()">Ekle / Add</button>
+            </div>
+            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Hızlı Seçimler / Quick Options:</p>
+            <div class="quick-zones" id="quickZones"></div>
+        </div>
+
+        <div class="clocks-grid" id="clocksContainer"></div>
+    </div>
+
+    <script>
+        const timezones = [
+            { country: 'Türkiye', city: 'Istanbul', timezone: 'Europe/Istanbul', highlight: true },
+            { country: 'Çin', city: 'Pekin (Beijing)', timezone: 'Asia/Shanghai', highlight: false },
+            { country: 'Çin', city: 'Hong Kong', timezone: 'Asia/Hong_Kong', highlight: false },
+            { country: 'ABD', city: 'New York', timezone: 'America/New_York', highlight: false },
+            { country: 'ABD', city: 'Los Angeles', timezone: 'America/Los_Angeles', highlight: false },
+            { country: 'İngiltere', city: 'Londra', timezone: 'Europe/London', highlight: false },
+            { country: 'Almanya', city: 'Berlin', timezone: 'Europe/Berlin', highlight: false },
+            { country: 'Fransa', city: 'Paris', timezone: 'Europe/Paris', highlight: false },
+            { country: 'Rusya', city: 'Moskova', timezone: 'Europe/Moscow', highlight: false },
+            { country: 'Hindistan', city: 'Yeni Delhi', timezone: 'Asia/Kolkata', highlight: false },
+            { country: 'Tayland', city: 'Bangkok', timezone: 'Asia/Bangkok', highlight: false },
+            { country: 'Singapur', city: 'Singapur', timezone: 'Asia/Singapore', highlight: false },
+            { country: 'Japonya', city: 'Tokyo', timezone: 'Asia/Tokyo', highlight: false },
+            { country: 'Avustralya', city: 'Sydney', timezone: 'Australia/Sydney', highlight: false },
+            { country: 'Birleşik Arap Emirlikleri', city: 'Dubai', timezone: 'Asia/Dubai', highlight: false },
+            { country: 'Suudi Arabistan', city: 'Riyad', timezone: 'Asia/Riyadh', highlight: false },
+        ];
+
+        const allTimezones = [
+            'Africa/Johannesburg', 'Africa/Cairo', 'Africa/Lagos',
+            'America/New_York', 'America/Los_Angeles', 'America/Chicago', 'America/Denver', 'America/Mexico_City', 'America/Toronto', 'America/Sao_Paulo', 'America/Buenos_Aires',
+            'Asia/Bangkok', 'Asia/Dubai', 'Asia/Hong_Kong', 'Asia/Jakarta', 'Asia/Kolkata', 'Asia/Seoul', 'Asia/Shanghai', 'Asia/Singapore', 'Asia/Tokyo', 'Asia/Riyadh',
+            'Australia/Sydney', 'Australia/Melbourne', 'Australia/Brisbane', 'Australia/Perth',
+            'Europe/Berlin', 'Europe/London', 'Europe/Istanbul', 'Europe/Paris', 'Europe/Rome', 'Europe/Moscow', 'Europe/Athens', 'Europe/Dublin', 'Europe/Zurich',
+            'Pacific/Auckland', 'Pacific/Fiji', 'Pacific/Honolulu'
+        ];
+
+        function initializeTimezoneSelect() {
+            const select = document.getElementById('timezoneSelect');
+            allTimezones.forEach(tz => {
+                const option = document.createElement('option');
+                option.value = tz;
+                option.textContent = tz.replace(/_/g, ' ');
+                select.appendChild(option);
+            });
+        }
+
+        function createClockCard(tzData) {
+            const card = document.createElement('div');
+            card.className = 'clock-card' + (tzData.highlight ? ' highlight' : '');
+            card.innerHTML = `
+                <div class="country-name">${tzData.country}</div>
+                <div class="city-name">${tzData.city}</div>
+                <div class="digital-time" id="time-${tzData.timezone}">--:--:--</div>
+                <div class="analog-clock">
+                    <div class="clock-number">
+                        <div class="number" style="transform: translateY(-60px);">12</div>
+                        <div class="number" style="transform: rotate(90deg) translateY(-60px);">3</div>
+                        <div class="number" style="transform: rotate(180deg) translateY(-60px);">6</div>
+                        <div class="number" style="transform: rotate(270deg) translateY(-60px);">9</div>
+                    </div>
+                    <div class="hand hour-hand" id="hour-${tzData.timezone}"></div>
+                    <div class="hand minute-hand" id="minute-${tzData.timezone}"></div>
+                    <div class="hand second-hand" id="second-${tzData.timezone}"></div>
+                    <div class="clock-center"></div>
+                </div>
+                <div class="timezone-info">${tzData.timezone}</div>
+            `;
+            return card;
+        }
+
+        function updateClock(tzData) {
+            const now = new Date().toLocaleString('tr-TR', { timeZone: tzData.timezone });
+            const date = new Date(now);
+
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const seconds = date.getSeconds();
+
+            const digitalTime = document.getElementById(`time-${tzData.timezone}`);
+            if (digitalTime) {
+                digitalTime.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+
+            const hourHand = document.getElementById(`hour-${tzData.timezone}`);
+            const minuteHand = document.getElementById(`minute-${tzData.timezone}`);
+            const secondHand = document.getElementById(`second-${tzData.timezone}`);
+
+            if (hourHand) {
+                const hourDegrees = (hours % 12) * 30 + minutes * 0.5;
+                hourHand.style.transform = `rotate(${hourDegrees}deg)`;
+            }
+
+            if (minuteHand) {
+                const minuteDegrees = minutes * 6 + seconds * 0.1;
+                minuteHand.style.transform = `rotate(${minuteDegrees}deg)`;
+            }
+
+            if (secondHand) {
+                const secondDegrees = seconds * 6;
+                secondHand.style.transform = `rotate(${secondDegrees}deg)`;
+            }
+        }
+
+        function renderClocks() {
+            const container = document.getElementById('clocksContainer');
+            container.innerHTML = '';
+            timezones.forEach(tzData => {
+                container.appendChild(createClockCard(tzData));
+                updateClock(tzData);
+            });
+        }
+
+        function addTimezone() {
+            const countryInput = document.getElementById('countryInput').value.trim();
+            const cityInput = document.getElementById('cityInput').value.trim();
+            const timezoneSelect = document.getElementById('timezoneSelect').value;
+
+            if (!countryInput || !timezoneSelect) {
+                alert('Lütfen ülke ve saat dilimi seçiniz / Please select country and timezone');
+                return;
+            }
+
+            const newTz = {
+                country: countryInput,
+                city: cityInput || timezoneSelect.split('/')[1].replace(/_/g, ' '),
+                timezone: timezoneSelect,
+                highlight: false
+            };
+
+            if (!timezones.find(t => t.timezone === timezoneSelect)) {
+                timezones.push(newTz);
+                document.getElementById('countryInput').value = '';
+                document.getElementById('cityInput').value = '';
+                document.getElementById('timezoneSelect').value = '';
+                renderClocks();
+            } else {
+                alert('Bu saat dilimi zaten eklenmiş / This timezone is already added');
+            }
+        }
+
+        function populateQuickZones() {
+            const quickZones = document.getElementById('quickZones');
+            const commonZones = [
+                { name: '🇹🇷 Türkiye', tz: 'Europe/Istanbul' },
+                { name: '🇨🇳 Çin (Beijing)', tz: 'Asia/Shanghai' },
+                { name: '🇨🇳 Hong Kong', tz: 'Asia/Hong_Kong' },
+                { name: '🇯🇵 Japonya', tz: 'Asia/Tokyo' },
+                { name: '🇬🇧 İngiltere', tz: 'Europe/London' },
+                { name: '🇺🇸 New York', tz: 'America/New_York' },
+                { name: '🇺🇸 Los Angeles', tz: 'America/Los_Angeles' },
+                { name: '🇦🇺 Sydney', tz: 'Australia/Sydney' },
+            ];
+
+            commonZones.forEach(zone => {
+                if (!timezones.find(t => t.timezone === zone.tz)) {
+                    const btn = document.createElement('button');
+                    btn.className = 'quick-zone-btn';
+                    btn.textContent = zone.name;
+                    btn.onclick = () => {
+                        const parts = zone.tz.split('/');
+                        timezones.push({
+                            country: zone.name.split(' ').slice(1).join(' '),
+                            city: parts[1].replace(/_/g, ' '),
+                            timezone: zone.tz,
+                            highlight: false
+                        });
+                        renderClocks();
+                        this.remove();
+                    };
+                    quickZones.appendChild(btn);
+                }
+            });
+        }
+
+        function updateCurrentLocation() {
+            try {
+                const date = new Date();
+                const turkeyTime = date.toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' });
+                document.getElementById('currentLocation').textContent = `📍 Sunucu Saati (Server Time): ${turkeyTime}`;
+            } catch (e) {
+                // Silent fail
+            }
+        }
+
+        // Initialize
+        initializeTimezoneSelect();
+        renderClocks();
+        populateQuickZones();
+        updateCurrentLocation();
+
+        // Update clocks every second
+        setInterval(() => {
+            timezones.forEach(updateClock);
+            updateCurrentLocation();
+        }, 1000);
+    </script>
+</body>
+</html>
