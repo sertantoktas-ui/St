@@ -54,6 +54,7 @@ def create_app(config_name='development'):
     from routes.invoicing import invoicing_bp
     from routes.inventory import inventory_bp
     from routes.analytics import analytics_bp
+    from routes.world_clock import world_clock_bp
 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(customers_bp, url_prefix='/api/customers')
@@ -62,6 +63,7 @@ def create_app(config_name='development'):
     app.register_blueprint(invoicing_bp, url_prefix='/api/invoicing')
     app.register_blueprint(inventory_bp, url_prefix='/api/inventory')
     app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
+    app.register_blueprint(world_clock_bp, url_prefix='/api/clock')
 
     # Error handlers
     @app.errorhandler(404)
