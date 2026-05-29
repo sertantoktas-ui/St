@@ -75,6 +75,17 @@ class AssistantDatabase:
             )
         """)
 
+        # Direktifler tablosu
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS directives (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
         conn.commit()
         conn.close()
 
@@ -272,6 +283,42 @@ class AssistantDatabase:
             }
             for row in rows
         ]
+
+    # ============ DİREKTİF İŞLEMLERİ ============
+
+    def save_directive(self, name: str, content: str) -> int:
+        """Direktif kaydet veya güncelle"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO directives (name, content)
+            VALUES (?, ?)
+            ON CONFLICT(name) DO UPDATE SET content=excluded.content, updated_at=CURRENT_TIMESTAMP
+        """, (name, content))
+        conn.commit()
+        directive_id = cursor.lastrowid
+        conn.close()
+        return directive_id
+
+    def get_directive(self, name: str) -> Optional[Dict]:
+        """Direktif al"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, name, content, created_at, updated_at FROM directives WHERE name = ?", (name,))
+        row = cursor.fetchone()
+        conn.close()
+        if not row:
+            return None
+        return {"id": row[0], "name": row[1], "content": row[2], "created_at": row[3], "updated_at": row[4]}
+
+    def get_all_directives(self) -> List[Dict]:
+        """Tüm direktifleri listele"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, name, created_at, updated_at FROM directives ORDER BY name")
+        rows = cursor.fetchall()
+        conn.close()
+        return [{"id": r[0], "name": r[1], "created_at": r[2], "updated_at": r[3]} for r in rows]
 
     # ============ İSTATİSTİKLER ============
 
