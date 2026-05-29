@@ -78,5 +78,28 @@ def get_statistics() -> str:
     return execute("get_statistics", {})
 
 
+@mcp.tool()
+def notebooklm_add_source(source: str, source_type: str = "url", title: str = "", notebook_id: str = "") -> str:
+    """NotebookLM not defterine URL veya metin kaynağı ekle. source_type: url | text"""
+    return execute("notebooklm_add_source", {
+        "source": source,
+        "source_type": source_type,
+        "title": title,
+        "notebook_id": notebook_id or None,
+    })
+
+
+@mcp.tool()
+def notebooklm_query(question: str, notebook_id: str = "") -> str:
+    """NotebookLM not defterine soru sor."""
+    return execute("notebooklm_query", {"question": question, "notebook_id": notebook_id or None})
+
+
+@mcp.tool()
+def notebooklm_list() -> str:
+    """NotebookLM'deki tüm not defterlerini listele."""
+    return execute("notebooklm_list", {})
+
+
 if __name__ == "__main__":
     mcp.run(transport="stdio")

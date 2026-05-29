@@ -1,5 +1,10 @@
 # Google NotebookLM MCP Entegrasyonu — SOP
 
+## Varsayılan Notebook
+ID: `4aa95fc5-5f77-4575-afc6-4b9e6766da6f`
+URL: https://notebooklm.google.com/notebook/4aa95fc5-5f77-4575-afc6-4b9e6766da6f
+`.env` ve `.env.example` dosyalarında `NOTEBOOKLM_NOTEBOOK_ID` olarak kayıtlı.
+
 ## Amaç
 NotebookLM'de not defteri oluşturmak, kaynak (PDF, URL, metin) eklemek ve soru sormak.
 

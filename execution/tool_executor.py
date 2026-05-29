@@ -11,6 +11,7 @@ import execution.task_operations as tasks
 import execution.email_operations as emails
 import execution.report_operations as reports
 import execution.search_operations as notes_svc
+import execution.notebooklm_operations as notebooklm
 
 
 def execute(tool_name: str, tool_input: dict) -> str:
@@ -78,6 +79,33 @@ def execute(tool_name: str, tool_input: dict) -> str:
                 f"  Rapor: {s['total_reports']}\n"
                 f"  Not: {len(notes_svc.list_notes())}"
             )
+
+        elif tool_name == "notebooklm_add_source":
+            nb_id = tool_input.get("notebook_id") or None
+            if tool_input["source_type"] == "url":
+                r = notebooklm.add_url_source(tool_input["source"], nb_id)
+            else:
+                r = notebooklm.add_text_source(tool_input["source"], tool_input.get("title", "Metin"), nb_id)
+            status = "eklendi ✅" if r["success"] else f"hata ❌: {r['response'].get('error','')}"
+            return f"📚 NotebookLM kaynağı {status} — Notebook: {r['notebook_id']}"
+
+        elif tool_name == "notebooklm_query":
+            nb_id = tool_input.get("notebook_id") or None
+            r = notebooklm.query_notebook(tool_input["question"], nb_id)
+            if r["success"] and r["answer"]:
+                return f"📖 NotebookLM yanıtı:\n{r['answer']}"
+            return f"❌ NotebookLM sorgu hatası: {r['response'].get('error','')}"
+
+        elif tool_name == "notebooklm_list":
+            r = notebooklm.list_notebooks()
+            if not r["success"]:
+                return f"❌ NotebookLM hata: {r['response'].get('error','')}"
+            if not r["notebooks"]:
+                return "📚 Not defteri bulunamadı."
+            lines = [f"📚 NOT DEFTERLERİ ({len(r['notebooks'])} adet):"]
+            for nb in r["notebooks"]:
+                lines.append(f"  - {nb}")
+            return "\n".join(lines)
 
         else:
             return f"❌ Bilinmeyen araç: {tool_name}"

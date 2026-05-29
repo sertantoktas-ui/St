@@ -90,4 +90,35 @@ TOOLS = [
         "description": "Asistan istatistiklerini göster (görev, email, rapor sayıları)",
         "input_schema": {"type": "object", "properties": {}},
     },
+    {
+        "name": "notebooklm_add_source",
+        "description": "Google NotebookLM not defterine kaynak ekle (URL veya metin)",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "source":      {"type": "string", "description": "URL veya metin içeriği"},
+                "source_type": {"type": "string", "enum": ["url", "text"], "description": "Kaynak türü"},
+                "title":       {"type": "string", "description": "Metin kaynağı için başlık (opsiyonel)"},
+                "notebook_id": {"type": "string", "description": "Notebook ID (boş bırakırsan varsayılan kullanılır)"},
+            },
+            "required": ["source", "source_type"],
+        },
+    },
+    {
+        "name": "notebooklm_query",
+        "description": "Google NotebookLM not defterine soru sor, kaynaklar üzerinden yanıt al",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "question":    {"type": "string", "description": "Sorulacak soru"},
+                "notebook_id": {"type": "string", "description": "Notebook ID (boş bırakırsan varsayılan kullanılır)"},
+            },
+            "required": ["question"],
+        },
+    },
+    {
+        "name": "notebooklm_list",
+        "description": "Google NotebookLM'deki tüm not defterlerini listele",
+        "input_schema": {"type": "object", "properties": {}},
+    },
 ]
