@@ -75,6 +75,15 @@ class AssistantDatabase:
             )
         """)
 
+        # Notlar tablosu
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
         # Direktifler tablosu
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS directives (
@@ -283,6 +292,45 @@ class AssistantDatabase:
             }
             for row in rows
         ]
+
+    # ============ NOT İŞLEMLERİ ============
+
+    def add_note(self, content: str) -> int:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO notes (content) VALUES (?)", (content,))
+        conn.commit()
+        note_id = cursor.lastrowid
+        conn.close()
+        return note_id
+
+    def get_notes(self) -> List[Dict]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, content, created_at FROM notes ORDER BY created_at DESC")
+        rows = cursor.fetchall()
+        conn.close()
+        return [{"id": r[0], "content": r[1], "created_at": r[2]} for r in rows]
+
+    def search_notes(self, query: str) -> List[Dict]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, content, created_at FROM notes WHERE content LIKE ? ORDER BY created_at DESC",
+            (f"%{query}%",)
+        )
+        rows = cursor.fetchall()
+        conn.close()
+        return [{"id": r[0], "content": r[1], "created_at": r[2]} for r in rows]
+
+    def delete_note(self, note_id: int) -> bool:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM notes WHERE id = ?", (note_id,))
+        conn.commit()
+        success = cursor.rowcount > 0
+        conn.close()
+        return success
 
     # ============ DİREKTİF İŞLEMLERİ ============
 
