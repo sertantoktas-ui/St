@@ -7,6 +7,8 @@ import execution.task_operations as tasks
 import execution.email_operations as emails
 import execution.report_operations as reports
 import execution.search_operations as notes_svc
+from execution.tools_config import TOOLS
+from execution.tool_executor import execute as execute_tool
 
 load_dotenv()
 
@@ -80,14 +82,37 @@ with tab1:
             st.session_state.chat_history.append({"role": "user", "content": user_input})
             with st.spinner("🤔 Düşünüyor..."):
                 try:
-                    response = client.messages.create(
-                        model="claude-opus-4-6",
-                        max_tokens=2048,
-                        system="Sen yardımsever bir Türkçe kişisel asistansın.",
-                        messages=st.session_state.chat_history,
-                    )
-                    reply = response.content[0].text
-                    st.session_state.chat_history.append({"role": "assistant", "content": reply})
+                    messages = [m for m in st.session_state.chat_history]
+                    while True:
+                        response = client.messages.create(
+                            model="claude-opus-4-6",
+                            max_tokens=2048,
+                            system="Sen yardımsever bir Türkçe kişisel asistansın. Görev, not, email ve rapor işlemleri için araçları kullan.",
+                            tools=TOOLS,
+                            messages=messages,
+                        )
+
+                        if response.stop_reason == "tool_use":
+                            # Asistan yanıtını geçmişe ekle
+                            messages.append({"role": "assistant", "content": response.content})
+                            # Her tool_use bloğunu çalıştır
+                            tool_results = []
+                            for block in response.content:
+                                if block.type == "tool_use":
+                                    result_text = execute_tool(block.name, block.input)
+                                    tool_results.append({
+                                        "type": "tool_result",
+                                        "tool_use_id": block.id,
+                                        "content": result_text,
+                                    })
+                            messages.append({"role": "user", "content": tool_results})
+                            # Sonuç için tekrar döngü
+                        else:
+                            reply = next((b.text for b in response.content if hasattr(b, "text")), "")
+                            st.session_state.chat_history = messages
+                            st.session_state.chat_history.append({"role": "assistant", "content": reply})
+                            break
+
                     st.rerun()
                 except Exception as e:
                     st.error(f"❌ Hata: {e}")

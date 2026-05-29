@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "kisisel-asistan": {
+      "command": "python",
+      "args": ["execution/mcp_server.py"],
+      "cwd": ".",
+      "description": "Kişisel Asistan — görev, not, email, rapor araçları"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "description": "Yerel dosya sistemi erişimi (okuma/yazma)"
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "description": "Web sayfası çekme (URL→metin)"
+    }
+  }
+}
