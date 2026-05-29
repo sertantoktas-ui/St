@@ -15,6 +15,12 @@
       "command": "uvx",
       "args": ["mcp-server-fetch"],
       "description": "Web sayfası çekme (URL→metin)"
+    },
+    "notebooklm": {
+      "command": "npx",
+      "args": ["-y", "notebooklm-mcp-server", "server"],
+      "description": "Google NotebookLM — not defteri oluştur, kaynak ekle, soru sor",
+      "note": "İlk kullanımdan önce: npx notebooklm-mcp-server auth"
     }
   }
 }
