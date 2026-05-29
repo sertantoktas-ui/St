@@ -1,0 +1,26 @@
+🚀 AXTEA CNC HMI — Vercel'e Deploy
+
+1. https://vercel.com/new → Git Hub login
+   
+2. Search: sertantoktas-ui/St
+   
+3. Click: IMPORT
+   
+4. Settings:
+   - Project Name: axtea-hmi
+   - Framework: Other
+   - Root: (blank)
+   
+5. DEPLOY → Wait 30 sec
+   
+6. You get live link:
+   https://axtea-hmi.vercel.app/hmi/
+   
+✅ No installation needed!
+✅ Works on all devices
+✅ Auto-updates on git push
+
+---
+
+Stuck? Go to:
+https://github.com/sertantoktas-ui/St/VERCEL_DEPLOY.md
