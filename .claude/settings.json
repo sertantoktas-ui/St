@@ -1,0 +1,17 @@
+{
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "kisisel-asistan",
+    "notebooklm",
+    "filesystem",
+    "fetch"
+  ],
+  "permissions": {
+    "allow": [
+      "mcp__kisisel-asistan__*",
+      "mcp__notebooklm__*",
+      "mcp__filesystem__*",
+      "mcp__fetch__fetch"
+    ]
+  }
+}
