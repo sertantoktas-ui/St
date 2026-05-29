@@ -1,0 +1,10 @@
+{
+  "buildCommand": "mkdir -p public && cp hmi/index.html public/index.html",
+  "outputDirectory": "public",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
