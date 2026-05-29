@@ -1,5 +1,6 @@
 {
   "enableAllProjectMcpServers": true,
+  "enableWorkflows": true,
   "enabledMcpjsonServers": [
     "kisisel-asistan",
     "notebooklm",
