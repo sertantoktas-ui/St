@@ -1,0 +1,77 @@
+{
+  "name": "axtea-cnc-hmi",
+  "version": "1.0.0",
+  "description": "AXTEA CNC HMI – 3-Axis Desktop Application",
+  "main": "main.js",
+  "author": "AXTEA Integrated Woodworking Solutions",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start":         "electron .",
+    "dev":           "electron . --dev",
+    "build:win":     "electron-builder --win --x64",
+    "build:mac":     "electron-builder --mac --universal",
+    "build:all":     "electron-builder --win --mac --x64",
+    "pack":          "electron-builder --dir"
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.7"
+  },
+  "devDependencies": {
+    "electron":         "^29.3.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId":       "com.axtea.cnc-hmi",
+    "productName": "AXTEA CNC HMI",
+    "copyright":   "Copyright © 2025 AXTEA",
+    "asar":        true,
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "build/**"
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis",     "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "AXTEA-CNC-HMI-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick":           false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName":       "AXTEA CNC HMI",
+      "installerIcon":      "build/icon.ico",
+      "uninstallerIcon":    "build/icon.ico"
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg",    "arch": ["universal"] },
+        { "target": "zip",    "arch": ["universal"] }
+      ],
+      "icon":     "build/icon.icns",
+      "category": "public.app-category.productivity",
+      "artifactName": "AXTEA-CNC-HMI-${version}-mac.${ext}",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "title":   "AXTEA CNC HMI ${version}",
+      "icon":    "build/icon.icns",
+      "window":  { "width": 540, "height": 380 }
+    },
+    "linux": {
+      "target": ["AppImage","deb"],
+      "icon":   "build/icon.png",
+      "category": "Utility"
+    },
+    "extraMetadata": {
+      "main": "main.js"
+    }
+  }
+}

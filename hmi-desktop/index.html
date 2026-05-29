@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXTEA CNC HMI</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ── Reset & Base ───────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D1117;
+  --surface:#141E23;
+  --surface2:#1A2730;
+  --border:#232F38;
+  --primary:#535DDC;
+  --primary-dim:#3A44B0;
+  --primary-light:#E3E6FF;
+  --accent:#00B581;
+  --warn:#F5A623;
+  --error:#E84040;
+  --text:#FFFFFF;
+  --text-dim:#8899AA;
+  --text-muted:#4A5A6A;
+  --wood:#D8AD7D;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── Top Bar ────────────────────────────────────────────────────────── */
+#topbar{
+  display:flex;align-items:center;gap:0;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  height:62px;padding:0 16px;flex-shrink:0;
+}
+.logo{display:flex;align-items:center;gap:8px;width:165px;flex-shrink:0}
+.logo-sym{color:var(--primary);font-size:22px;font-weight:900;line-height:1}
+.logo-name{color:var(--text);font-size:20px;font-weight:900;letter-spacing:3px}
+.logo-sub{color:var(--text-dim);font-size:8px;letter-spacing:1.5px;margin-top:2px}
+
+/* ── Nav ────────────────────────────────────────────────────────────── */
+#nav{display:flex;gap:2px;margin-left:12px}
+.nav-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:90px;height:62px;cursor:pointer;border:none;background:transparent;
+  color:var(--text-dim);gap:2px;position:relative;transition:color .2s;
+}
+.nav-btn:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-btn.active{color:var(--primary)}
+.nav-btn.active::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:var(--primary);border-radius:2px 2px 0 0;
+}
+.nav-btn .nav-icon{font-size:18px;line-height:1}
+.nav-btn .nav-label{font-size:9px;letter-spacing:.5px;font-weight:600}
+
+#topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.status-chip{font-size:11px;font-weight:600;white-space:nowrap}
+.status-chip.connected{color:var(--accent)}
+.status-chip.disconnected{color:var(--error)}
+.status-chip.running{color:var(--primary)}
+.status-chip.paused{color:var(--warn)}
+.status-chip.alarm{color:var(--error)}
+.status-chip.homing{color:var(--primary)}
+
+select.lang-sel{
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;width:110px;
+}
+select.lang-sel option{background:var(--surface)}
+
+.btn{
+  background:var(--surface2);color:var(--text);border:1px solid var(--border);
+  border-radius:8px;padding:7px 14px;cursor:pointer;font-size:12px;
+  transition:background .15s,border-color .15s;white-space:nowrap;
+}
+.btn:hover{background:var(--primary-dim);border-color:var(--primary)}
+.btn.primary{background:var(--primary);border-color:transparent;font-weight:700}
+.btn.primary:hover{background:var(--primary-dim)}
+.btn.success{background:var(--accent);border-color:transparent;font-weight:700;color:#fff}
+.btn.danger{background:var(--error);border-color:transparent;font-weight:700}
+.btn.warn{background:var(--warn);border-color:transparent;font-weight:700;color:#111}
+
+#clock{color:var(--text-dim);font-family:'Consolas',monospace;font-size:12px;min-width:72px;text-align:right}
+
+/* ── Content ────────────────────────────────────────────────────────── */
+#screens{flex:1;overflow:hidden;position:relative}
+.screen{position:absolute;inset:0;overflow:hidden;display:none}
+.screen.active{display:flex}
+
+/* ── Cards ──────────────────────────────────────────────────────────── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:14px 16px;
+}
+.card-title{
+  color:var(--text-dim);font-size:10px;font-weight:600;
+  letter-spacing:2px;margin-bottom:10px;text-transform:uppercase;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   HOME SCREEN
+══════════════════════════════════════════════════════════════════════ */
+#screen-home{
+  display:grid;
+  grid-template-columns:200px 1fr 185px;
+  grid-template-rows:1fr;
+  gap:10px;padding:10px;
+}
+
+/* LEFT col */
+#col-left{display:flex;flex-direction:column;gap:8px;overflow:hidden}
+
+/* Axis cards */
+.axis-card{padding:10px 14px}
+.axis-letter{font-size:22px;font-weight:900;line-height:1;margin-bottom:4px}
+.axis-machine{font-family:'Consolas',monospace;font-size:26px;font-weight:700;line-height:1;letter-spacing:-1px}
+.axis-sep{height:1px;background:var(--border);margin:6px 0}
+.axis-work{font-family:'Consolas',monospace;font-size:14px;color:var(--text-dim)}
+
+/* Load bars */
+.load-row{display:flex;align-items:center;gap:8px;height:28px}
+.load-label{width:16px;font-size:10px;color:var(--text-dim);font-weight:600;flex-shrink:0}
+.load-track{flex:1;height:7px;background:var(--border);border-radius:4px;overflow:hidden}
+.load-fill{height:100%;border-radius:4px;transition:width .3s ease}
+.load-val{width:36px;font-family:'Consolas',monospace;font-size:10px;text-align:right;flex-shrink:0}
+
+/* Gauge row */
+.gauge-row{display:flex;justify-content:space-around;align-items:center;padding:8px 4px}
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
+.gauge-val{font-family:'Consolas',monospace;font-size:13px;font-weight:700;text-align:center}
+.gauge-unit{font-size:9px;color:var(--text-dim);text-align:center}
+canvas.gauge-arc{display:block}
+
+/* CENTER col */
+#col-center{display:flex;flex-direction:column;gap:8px;overflow:hidden}
+
+/* Notes */
+#notes-header{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#notes-header h3{font-size:13px;font-weight:700}
+#add-note-btn{width:28px;height:28px;border-radius:6px;padding:0;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center}
+#notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-shrink:0}
+.note-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;position:relative;border-left-width:3px;
+}
+.note-ts{font-size:9px;color:var(--text-muted);margin-bottom:4px}
+.note-body{font-size:11px;line-height:1.4;margin-bottom:4px}
+.note-author{font-size:9px;color:var(--text-dim)}
+.note-del{
+  position:absolute;top:6px;right:6px;background:transparent;border:none;
+  color:var(--text-muted);cursor:pointer;font-size:11px;line-height:1;padding:2px 4px;
+}
+.note-del:hover{color:var(--error)}
+
+/* Monitoring */
+#mon-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex-shrink:0}
+.mon-card{padding:10px 12px}
+.mon-icon{font-size:10px;color:var(--text-dim);margin-bottom:4px}
+.mon-val{font-family:'Consolas',monospace;font-size:22px;font-weight:700;line-height:1}
+.mon-delta{font-size:11px;font-weight:600;margin:2px 0}
+.mon-sub{font-size:9px;color:var(--text-muted)}
+
+/* Energy chart */
+#energy-wrap{flex:1;min-height:0;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+#energy-canvas-wrap{flex:1;min-height:0}
+
+/* RIGHT col */
+#col-right{display:flex;flex-direction:column;gap:8px;overflow-y:auto;overflow-x:hidden}
+
+/* Smart links */
+.smart-link{
+  display:flex;align-items:center;gap:10px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:8px 12px;cursor:pointer;font-size:12px;color:var(--text);
+  transition:border-color .15s,color .15s;white-space:nowrap;
+  text-decoration:none;
+}
+.smart-link:hover{border-color:var(--primary);color:var(--primary)}
+.smart-link-icon{font-size:14px;width:18px;text-align:center}
+
+/* Override sliders */
+.ovr-label{font-size:10px;color:var(--text-dim);margin-bottom:2px}
+.ovr-val{font-family:'Consolas',monospace;font-size:14px;font-weight:700;margin-bottom:6px}
+input[type=range]{
+  width:100%;accent-color:var(--primary);cursor:pointer;height:4px;
+}
+
+/* Tool info */
+.tool-num{font-size:18px;font-weight:700;color:var(--text);letter-spacing:1px}
+
+/* ══════════════════════════════════════════════════════════════════════
+   WORK SCREEN
+══════════════════════════════════════════════════════════════════════ */
+#screen-work{flex-direction:column;padding:12px;gap:10px}
+
+#prog-card{display:flex;flex-direction:column;gap:8px}
+#prog-name{font-size:18px;font-weight:700}
+#prog-bar{height:10px;background:var(--border);border-radius:5px;overflow:hidden}
+#prog-bar-fill{height:100%;background:var(--primary);border-radius:5px;width:0%;transition:width .5s}
+#prog-line{font-size:11px;color:var(--text-dim)}
+
+#ctrl-row{display:flex;gap:10px}
+#ctrl-row .btn{flex:1;height:52px;font-size:13px;font-weight:700;border-radius:10px}
+
+#work-lower{display:grid;grid-template-columns:2fr 1fr;gap:10px;flex:1;min-height:0}
+#state-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+#state-big{font-size:40px;font-weight:900;letter-spacing:4px;transition:color .3s}
+#tool-info{font-size:12px;color:var(--text-dim);text-align:center}
+#ax-card{display:flex;flex-direction:column;gap:8px;padding:16px}
+.ax-row{display:flex;align-items:baseline;gap:10px}
+.ax-ltr{font-size:16px;font-weight:800;min-width:20px}
+.ax-v{font-family:'Consolas',monospace;font-size:22px;font-weight:600;flex:1}
+.ax-mm{font-size:11px;color:var(--text-dim)}
+
+/* ══════════════════════════════════════════════════════════════════════
+   INSPECT SCREEN
+══════════════════════════════════════════════════════════════════════ */
+#screen-inspect{flex-direction:column;padding:16px;gap:10px}
+#alarm-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.alarm-item{
+  background:var(--surface);border:1px solid var(--error);border-radius:8px;
+  padding:10px 14px;color:var(--error);font-size:13px;
+}
+.no-alarm{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--accent);gap:10px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   ANALYZE SCREEN
+══════════════════════════════════════════════════════════════════════ */
+#screen-analyze{flex-direction:column;padding:12px;gap:10px}
+#kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex-shrink:0}
+.kpi-card{padding:14px}
+.kpi-label{font-size:10px;color:var(--text-dim);font-weight:600;letter-spacing:1px;margin-bottom:6px;text-transform:uppercase}
+.kpi-val{font-family:'Consolas',monospace;font-size:28px;font-weight:800;line-height:1}
+#chart-card{flex:1;min-height:0;padding:14px;display:flex;flex-direction:column;gap:8px}
+#chart-card h3{font-size:13px;font-weight:700}
+#analyze-canvas-wrap{flex:1;min-height:0}
+
+/* ══════════════════════════════════════════════════════════════════════
+   STATUS BAR
+══════════════════════════════════════════════════════════════════════ */
+#statusbar{
+  background:var(--surface);border-top:1px solid var(--border);
+  height:26px;display:flex;align-items:center;padding:0 16px;gap:16px;flex-shrink:0;
+  font-size:10px;color:var(--text-dim);font-family:'Consolas',monospace;
+}
+#sb-left{margin-right:auto}
+#sb-pos{flex:1;text-align:center}
+#sb-prog{color:var(--primary);margin-left:auto}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════════════════════════════════ */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  display:flex;align-items:center;justify-content:center;z-index:9999;
+  backdrop-filter:blur(4px);
+}
+.modal-bg.hidden{display:none}
+.modal{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:24px;width:360px;display:flex;flex-direction:column;gap:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+.modal h2{font-size:18px;font-weight:700}
+.modal label{font-size:11px;color:var(--text-dim);display:block;margin-bottom:4px}
+.modal input[type=text]{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);border-radius:6px;padding:7px 10px;font-size:13px;
+}
+.modal input[type=text]:focus{outline:none;border-color:var(--primary)}
+.modal textarea{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);border-radius:6px;padding:8px 10px;font-size:12px;
+  resize:none;height:80px;font-family:inherit;
+}
+.modal textarea:focus{outline:none;border-color:var(--primary)}
+.modal-row{display:flex;gap:10px;align-items:center}
+.modal-row label{margin:0;cursor:pointer;display:flex;align-items:center;gap:6px}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end}
+.modal-btns .btn{min-width:90px;justify-content:center}
+
+/* Checkbox style */
+input[type=checkbox]{accent-color:var(--primary);cursor:pointer;width:14px;height:14px}
+/* macOS traffic-light padding */
+body.darwin #topbar{padding-left:80px}
+/* Electron drag region */
+#topbar{-webkit-app-region:drag}
+#topbar button,#topbar select,#topbar input,.nav-btn,#topbar-right{-webkit-app-region:no-drag}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ TOP BAR ═══════════════════ -->
+<div id="topbar">
+  <div class="logo">
+    <span class="logo-sym">✦</span>
+    <div>
+      <div class="logo-name">AXTEA</div>
+      <div class="logo-sub">INTEGRATED WOODWORKING SOLUTIONS</div>
+    </div>
+  </div>
+
+  <nav id="nav">
+    <button class="nav-btn active" data-screen="home"   onclick="showScreen('home')">
+      <span class="nav-icon">⌂</span><span class="nav-label" data-i18n="nav_home">Home</span>
+    </button>
+    <button class="nav-btn" data-screen="design" onclick="showScreen('design')">
+      <span class="nav-icon">◧</span><span class="nav-label" data-i18n="nav_design">Design</span>
+    </button>
+    <button class="nav-btn" data-screen="work"   onclick="showScreen('work')">
+      <span class="nav-icon">⚙</span><span class="nav-label" data-i18n="nav_work">Work</span>
+    </button>
+    <button class="nav-btn" data-screen="inspect" onclick="showScreen('inspect')">
+      <span class="nav-icon">◉</span><span class="nav-label" data-i18n="nav_inspect">Inspect</span>
+    </button>
+    <button class="nav-btn" data-screen="analyze" onclick="showScreen('analyze')">
+      <span class="nav-icon">◈</span><span class="nav-label" data-i18n="nav_analyze">Analyze</span>
+    </button>
+  </nav>
+
+  <div id="topbar-right">
+    <span id="status-chip" class="status-chip connected">● IDLE</span>
+    <select class="lang-sel" id="lang-sel" onchange="setLang(this.value)">
+      <option value="TR">Türkçe</option>
+      <option value="EN" selected>English</option>
+      <option value="DE">Deutsch</option>
+      <option value="FR">Français</option>
+      <option value="IT">Italiano</option>
+      <option value="ES">Español</option>
+      <option value="ZH">中文</option>
+    </select>
+    <button class="btn primary" onclick="openConnModal()" data-i18n-btn="connect">⟳ Connect</button>
+    <span id="clock"></span>
+  </div>
+</div>
+
+<!-- ═══════════════════ SCREENS ═══════════════════ -->
+<div id="screens">
+
+  <!-- ── HOME ──────────────────────────────────────────── -->
+  <div id="screen-home" class="screen active">
+
+    <!-- LEFT -->
+    <div id="col-left">
+      <!-- Axis X -->
+      <div class="card axis-card">
+        <div class="axis-letter" style="color:var(--primary)">X</div>
+        <div class="axis-machine" id="ax-x-m">+0.000</div>
+        <div class="axis-sep"></div>
+        <div class="axis-work"  id="ax-x-w">W +0.000</div>
+      </div>
+      <!-- Axis Y -->
+      <div class="card axis-card">
+        <div class="axis-letter" style="color:var(--accent)">Y</div>
+        <div class="axis-machine" id="ax-y-m">+0.000</div>
+        <div class="axis-sep"></div>
+        <div class="axis-work"  id="ax-y-w">W +0.000</div>
+      </div>
+      <!-- Axis Z -->
+      <div class="card axis-card">
+        <div class="axis-letter" style="color:var(--wood)">Z</div>
+        <div class="axis-machine" id="ax-z-m">+0.000</div>
+        <div class="axis-sep"></div>
+        <div class="axis-work"  id="ax-z-w">W +0.000</div>
+      </div>
+
+      <!-- Load bars -->
+      <div class="card" style="flex:1;min-height:0">
+        <div class="card-title" data-i18n="absorption">LOAD</div>
+        <div class="load-row"><span class="load-label">X</span><div class="load-track"><div class="load-fill" id="load-x" style="width:0%;background:var(--primary)"></div></div><span class="load-val" id="load-x-v">0%</span></div>
+        <div class="load-row"><span class="load-label">Y</span><div class="load-track"><div class="load-fill" id="load-y" style="width:0%;background:var(--accent)"></div></div><span class="load-val" id="load-y-v">0%</span></div>
+        <div class="load-row"><span class="load-label">Z</span><div class="load-track"><div class="load-fill" id="load-z" style="width:0%;background:var(--wood)"></div></div><span class="load-val" id="load-z-v">0%</span></div>
+        <div class="load-row"><span class="load-label">S</span><div class="load-track"><div class="load-fill" id="load-s" style="width:0%;background:var(--warn)"></div></div><span class="load-val" id="load-s-v">0%</span></div>
+      </div>
+
+      <!-- Gauges -->
+      <div class="card gauge-row" style="flex-shrink:0">
+        <div class="gauge-wrap">
+          <canvas class="gauge-arc" id="gauge-feed" width="100" height="100"></canvas>
+          <div class="gauge-val" style="color:var(--primary)" id="gv-feed">0</div>
+          <div class="gauge-unit">mm/min  FEED</div>
+        </div>
+        <div class="gauge-wrap">
+          <canvas class="gauge-arc" id="gauge-spn" width="100" height="100"></canvas>
+          <div class="gauge-val" style="color:var(--wood)" id="gv-spn">0</div>
+          <div class="gauge-unit">RPM  SPINDLE</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div id="col-center">
+      <div id="notes-header">
+        <h3 data-i18n="notes">Notes</h3>
+        <button class="btn primary" id="add-note-btn" onclick="openNoteModal()" title="Add Note">＋</button>
+      </div>
+
+      <div id="notes-grid">
+        <!-- seeded by JS -->
+      </div>
+
+      <div style="flex-shrink:0">
+        <h3 style="font-size:13px;font-weight:700;margin-bottom:8px" data-i18n="monitoring">Monitoring</h3>
+        <div id="mon-grid">
+          <div class="card mon-card">
+            <div class="mon-icon">⬛ <span data-i18n="pieces_produced">Pieces Produced</span></div>
+            <div class="mon-val" id="mon-pieces">0</div>
+            <div class="mon-delta" style="color:var(--accent)">+0%</div>
+            <div class="mon-sub" data-i18n="last_24h">Last 24 hours</div>
+          </div>
+          <div class="card mon-card">
+            <div class="mon-icon">⚠ <span data-i18n="errors">Errors</span></div>
+            <div class="mon-val" id="mon-errors" style="color:var(--error)">0</div>
+            <div class="mon-delta" style="color:var(--error)">+0%</div>
+            <div class="mon-sub" data-i18n="last_24h">Last 24 hours</div>
+          </div>
+          <div class="card mon-card">
+            <div class="mon-icon">△ <span data-i18n="warnings">Warnings</span></div>
+            <div class="mon-val" id="mon-warns" style="color:var(--warn)">0</div>
+            <div class="mon-delta" style="color:var(--warn)">0</div>
+            <div class="mon-sub" data-i18n="last_24h">Last 24 hours</div>
+          </div>
+          <div class="card mon-card">
+            <div class="mon-icon">◎ <span data-i18n="availability">Availability</span></div>
+            <div class="mon-val" id="mon-avail" style="color:var(--accent)">98%</div>
+            <div class="mon-delta" style="color:var(--accent)">+1%</div>
+            <div class="mon-sub" data-i18n="last_24h">Last 24 hours</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Energy sparkline -->
+      <div class="card energy-wrap" id="energy-wrap" style="flex:1;min-height:80px">
+        <div class="card-title" data-i18n="energy_management">ENERGY MANAGEMENT</div>
+        <div id="energy-canvas-wrap" style="flex:1;position:relative;min-height:60px">
+          <canvas id="energy-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div id="col-right">
+      <h3 style="font-size:13px;font-weight:700;flex-shrink:0" data-i18n="smart_links">Smart Links</h3>
+      <a class="smart-link" href="#" onclick="return false" data-i18n-link="homing"><span class="smart-link-icon">⌖</span><span data-i18n="homing">Homing</span></a>
+      <a class="smart-link" href="#" onclick="return false" data-i18n-link="detections"><span class="smart-link-icon">◈</span><span data-i18n="detections">Detections</span></a>
+      <a class="smart-link" href="#" onclick="return false" data-i18n-link="manuals"><span class="smart-link-icon">📖</span><span data-i18n="manuals">Manuals</span></a>
+      <a class="smart-link" href="#" onclick="return false" data-i18n-link="issues"><span class="smart-link-icon">⚑</span><span data-i18n="issues">Issues</span></a>
+      <a class="smart-link" href="#" onclick="return false" data-i18n-link="task"><span class="smart-link-icon">✓</span><span data-i18n="task">Task</span></a>
+      <a class="smart-link" href="#" onclick="return false" data-i18n-link="worklist"><span class="smart-link-icon">☰</span><span data-i18n="worklist">Worklist</span></a>
+      <a class="smart-link" href="#" onclick="return false" data-i18n-link="functions"><span class="smart-link-icon">⚙</span><span data-i18n="functions">Functions</span></a>
+      <a class="smart-link" href="#" onclick="return false" data-i18n-link="machine_data"><span class="smart-link-icon">📊</span><span data-i18n="machine_data">Machine Data</span></a>
+
+      <!-- Override -->
+      <div class="card" style="flex-shrink:0;margin-top:4px">
+        <div class="card-title">OVERRIDE</div>
+        <div class="ovr-label" data-i18n="feed_override">Feed Override</div>
+        <div class="ovr-val" id="feed-ovr-val" style="color:var(--primary)">100 %</div>
+        <input type="range" min="0" max="200" value="100" id="feed-slider"
+               oninput="feedOvrChange(this.value)">
+
+        <div class="ovr-label" style="margin-top:10px" data-i18n="spindle_override">Spindle Override</div>
+        <div class="ovr-val" id="spn-ovr-val" style="color:var(--wood)">100 %</div>
+        <input type="range" min="0" max="200" value="100" id="spn-slider"
+               oninput="spnOvrChange(this.value)">
+      </div>
+
+      <!-- Tool -->
+      <div class="card" style="flex-shrink:0">
+        <div class="card-title" data-i18n="tool">TOOL</div>
+        <div class="tool-num" id="tool-disp">T1 – TP1 700</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-top:4px" id="tool-rpm">Ø 70mm  Nx: 18000</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DESIGN (placeholder) ─────────────────────────── -->
+  <div id="screen-design" class="screen" style="align-items:center;justify-content:center;flex-direction:column;gap:12px">
+    <div style="font-size:64px;color:var(--primary)">◧</div>
+    <div style="font-size:18px;font-weight:600;color:var(--text-dim)" data-i18n="nav_design">Design</div>
+    <div style="color:var(--text-muted);font-size:13px">G-code editor & toolpath viewer</div>
+  </div>
+
+  <!-- ── WORK ──────────────────────────────────────────── -->
+  <div id="screen-work" class="screen">
+    <!-- Program card -->
+    <div class="card" id="prog-card">
+      <div id="prog-name" data-i18n-placeholder="program">—</div>
+      <div id="prog-bar"><div id="prog-bar-fill"></div></div>
+      <div id="prog-line">Line 0 / 0</div>
+    </div>
+
+    <!-- Control buttons -->
+    <div id="ctrl-row">
+      <button class="btn success" onclick="simStart()">▶ <span data-i18n="program_start">Start</span></button>
+      <button class="btn warn"    onclick="simPause()">⏸ <span data-i18n="program_pause">Pause</span></button>
+      <button class="btn danger"  onclick="simStop()">⏹ <span data-i18n="program_stop">Stop</span></button>
+      <button class="btn"         onclick="simReset()">↺ <span data-i18n="program_reset">Reset</span></button>
+      <button class="btn primary" onclick="simHome()">⌖ <span data-i18n="homing">Homing</span></button>
+    </div>
+
+    <div id="work-lower">
+      <div class="card" id="state-card">
+        <div id="state-big" style="color:var(--text-dim)">IDLE</div>
+        <div id="tool-info">Tool: —    Feed: — mm/min    Spindle: — RPM</div>
+      </div>
+      <div class="card" id="ax-card">
+        <div class="ax-row"><span class="ax-ltr" style="color:var(--primary)">X</span><span class="ax-v" id="wax-x">+0.000</span><span class="ax-mm">mm</span></div>
+        <div class="ax-row"><span class="ax-ltr" style="color:var(--accent)">Y</span><span class="ax-v" id="wax-y">+0.000</span><span class="ax-mm">mm</span></div>
+        <div class="ax-row"><span class="ax-ltr" style="color:var(--wood)">Z</span><span class="ax-v" id="wax-z">+0.000</span><span class="ax-mm">mm</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── INSPECT ───────────────────────────────────────── -->
+  <div id="screen-inspect" class="screen">
+    <h2 style="font-size:16px;font-weight:700;flex-shrink:0" data-i18n="alarm_title">Alarm List</h2>
+    <div id="alarm-list">
+      <div class="no-alarm"><span style="font-size:28px">✅</span><span data-i18n="no_alarms">No active alarms</span></div>
+    </div>
+  </div>
+
+  <!-- ── ANALYZE ───────────────────────────────────────── -->
+  <div id="screen-analyze" class="screen">
+    <div id="kpi-row">
+      <div class="card kpi-card"><div class="kpi-label" data-i18n="pieces_produced">Pieces Produced</div><div class="kpi-val" style="color:var(--primary)" id="kpi-pieces">0</div></div>
+      <div class="card kpi-card"><div class="kpi-label" data-i18n="errors">Errors</div><div class="kpi-val" style="color:var(--error)" id="kpi-errors">0</div></div>
+      <div class="card kpi-card"><div class="kpi-label" data-i18n="availability">Availability</div><div class="kpi-val" style="color:var(--accent)" id="kpi-avail">98.2%</div></div>
+      <div class="card kpi-card"><div class="kpi-label" data-i18n="power_kw">Power (kW)</div><div class="kpi-val" style="color:var(--wood)" id="kpi-power">0.0</div></div>
+    </div>
+    <div class="card chart-card" style="flex:1;min-height:0;padding:14px;display:flex;flex-direction:column;gap:8px">
+      <h3 style="font-size:13px;font-weight:700" data-i18n="pieces_produced">Weekly Production</h3>
+      <div style="flex:1;position:relative;min-height:0">
+        <canvas id="analyze-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ STATUS BAR ═══════════════════ -->
+<div id="statusbar">
+  <span id="sb-left">OSAI C07  |  <span data-i18n="simulation">Simulation</span> MODE</span>
+  <span id="sb-pos">X: +0.000   Y: +0.000   Z: +0.000</span>
+  <span id="sb-prog"></span>
+</div>
+
+<!-- ═══════════════════ MODALS ═══════════════════ -->
+<!-- Connection modal -->
+<div class="modal-bg hidden" id="conn-modal">
+  <div class="modal">
+    <h2 data-i18n="connection">Connection</h2>
+    <div>
+      <label data-i18n="ip_address">IP Address</label>
+      <input type="text" id="conn-ip" value="192.168.1.10">
+    </div>
+    <div>
+      <label data-i18n="port">Port</label>
+      <input type="text" id="conn-port" value="5050">
+    </div>
+    <div class="modal-row">
+      <input type="checkbox" id="conn-sim" checked>
+      <label for="conn-sim" data-i18n="simulation">Simulation Mode</label>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('conn-modal')" data-i18n="cancel">Cancel</button>
+      <button class="btn primary" onclick="doConnect()" data-i18n="connect">Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- Note modal -->
+<div class="modal-bg hidden" id="note-modal">
+  <div class="modal">
+    <h2 data-i18n="add_note">Add Note</h2>
+    <div>
+      <label data-i18n="notes">Note</label>
+      <textarea id="note-text" placeholder="…"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('note-modal')" data-i18n="cancel">Cancel</button>
+      <button class="btn primary" onclick="saveNote()" data-i18n="ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   i18n
+═══════════════════════════════════════════════════════════════════════ */
+const TR_DATA = {
+  nav_home:"Ana Sayfa", nav_design:"Tasarım", nav_work:"Çalışma",
+  nav_inspect:"Denetim", nav_analyze:"Analiz",
+  notes:"Notlar", add_note:"Not Ekle", monitoring:"İzleme",
+  pieces_produced:"Üretilen Parça", errors:"Hatalar", warnings:"Uyarılar",
+  availability:"Kullanılabilirlik", last_24h:"Son 24 Saat",
+  energy_management:"Enerji Yönetimi", smart_links:"Hızlı Erişim",
+  homing:"Referans Al", detections:"Tespitler", manuals:"Kılavuzlar",
+  issues:"Sorunlar", task:"Görev", worklist:"İş Listesi",
+  functions:"Fonksiyonlar", machine_data:"Makine Verileri",
+  feed_override:"İlerleme Oranı", spindle_override:"Mil Hızı Oranı",
+  tool:"Takım", absorption:"YÜK", program:"Program",
+  program_start:"Başlat", program_stop:"Durdur", program_pause:"Beklet",
+  program_reset:"Sıfırla", alarm_title:"Alarm Listesi",
+  no_alarms:"Aktif alarm yok", connection:"Bağlantı",
+  ip_address:"IP Adresi", port:"Port", connect:"Bağlan",
+  cancel:"İptal", ok:"Tamam", simulation:"Simülasyon",
+  disconnect:"Bağlantıyı Kes", language:"Dil", settings:"Ayarlar",
+  power_kw:"Güç (kW)", idle:"Beklemede", running:"Çalışıyor",
+  paused:"Duraklatıldı", alarm:"Alarm", connected:"Bağlı",
+  disconnected:"Bağlantı Yok",
+};
+const EN_DATA = {
+  nav_home:"Home", nav_design:"Design", nav_work:"Work",
+  nav_inspect:"Inspect", nav_analyze:"Analyze",
+  notes:"Notes", add_note:"Add Note", monitoring:"Monitoring",
+  pieces_produced:"Pieces Produced", errors:"Errors", warnings:"Warnings",
+  availability:"Availability", last_24h:"Last 24 Hours",
+  energy_management:"Energy Management", smart_links:"Smart Links",
+  homing:"Homing", detections:"Detections", manuals:"Manuals",
+  issues:"Issues", task:"Task", worklist:"Worklist",
+  functions:"Functions", machine_data:"Machine Data",
+  feed_override:"Feed Override", spindle_override:"Spindle Override",
+  tool:"Tool", absorption:"LOAD", program:"Program",
+  program_start:"Start", program_stop:"Stop", program_pause:"Pause",
+  program_reset:"Reset", alarm_title:"Alarm List",
+  no_alarms:"No active alarms", connection:"Connection",
+  ip_address:"IP Address", port:"Port", connect:"Connect",
+  cancel:"Cancel", ok:"OK", simulation:"Simulation",
+  disconnect:"Disconnect", language:"Language", settings:"Settings",
+  power_kw:"Power (kW)", idle:"Idle", running:"Running",
+  paused:"Paused", alarm:"Alarm", connected:"Connected",
+  disconnected:"Disconnected",
+};
+const DE_DATA = {
+  nav_home:"Startseite", nav_design:"Design", nav_work:"Arbeit",
+  nav_inspect:"Inspektion", nav_analyze:"Analysieren",
+  notes:"Notizen", add_note:"Notiz hinzufügen", monitoring:"Überwachung",
+  pieces_produced:"Produzierte Teile", errors:"Fehler", warnings:"Warnungen",
+  availability:"Verfügbarkeit", last_24h:"Letzte 24 Stunden",
+  energy_management:"Energiemanagement", smart_links:"Schnellzugriff",
+  homing:"Referenzfahrt", detections:"Erkennungen", manuals:"Handbücher",
+  issues:"Probleme", task:"Aufgabe", worklist:"Arbeitsliste",
+  functions:"Funktionen", machine_data:"Maschinendaten",
+  feed_override:"Vorschuboverride", spindle_override:"Spindeloverride",
+  tool:"Werkzeug", absorption:"LAST", program:"Programm",
+  program_start:"Starten", program_stop:"Stoppen", program_pause:"Pause",
+  program_reset:"Reset", alarm_title:"Alarmliste",
+  no_alarms:"Keine aktiven Alarme", connection:"Verbindung",
+  ip_address:"IP-Adresse", port:"Port", connect:"Verbinden",
+  cancel:"Abbrechen", ok:"OK", simulation:"Simulation",
+  disconnect:"Trennen", language:"Sprache", settings:"Einstellungen",
+  power_kw:"Leistung (kW)", idle:"Bereit", running:"Läuft",
+  paused:"Pausiert", alarm:"Alarm", connected:"Verbunden",
+  disconnected:"Getrennt",
+};
+const FR_DATA = {
+  nav_home:"Accueil", nav_design:"Conception", nav_work:"Travail",
+  nav_inspect:"Inspection", nav_analyze:"Analyser",
+  notes:"Notes", add_note:"Ajouter note", monitoring:"Surveillance",
+  pieces_produced:"Pièces produites", errors:"Erreurs", warnings:"Avertissements",
+  availability:"Disponibilité", last_24h:"24 dernières heures",
+  energy_management:"Gestion énergie", smart_links:"Liens rapides",
+  homing:"Prise d'origine", detections:"Détections", manuals:"Manuels",
+  issues:"Problèmes", task:"Tâche", worklist:"Liste de travail",
+  functions:"Fonctions", machine_data:"Données machine",
+  feed_override:"Override avance", spindle_override:"Override broche",
+  tool:"Outil", absorption:"CHARGE", program:"Programme",
+  program_start:"Démarrer", program_stop:"Arrêter", program_pause:"Pause",
+  program_reset:"Réinitialiser", alarm_title:"Liste alarmes",
+  no_alarms:"Aucune alarme active", connection:"Connexion",
+  ip_address:"Adresse IP", port:"Port", connect:"Connecter",
+  cancel:"Annuler", ok:"OK", simulation:"Simulation",
+  disconnect:"Déconnecter", language:"Langue", settings:"Paramètres",
+  power_kw:"Puissance (kW)", idle:"En attente", running:"En cours",
+  paused:"En pause", alarm:"Alarme", connected:"Connecté",
+  disconnected:"Déconnecté",
+};
+const IT_DATA = {
+  nav_home:"Home", nav_design:"Design", nav_work:"Lavoro",
+  nav_inspect:"Ispezione", nav_analyze:"Analizza",
+  notes:"Note", add_note:"Aggiungi nota", monitoring:"Monitoraggio",
+  pieces_produced:"Pezzi prodotti", errors:"Errori", warnings:"Avvisi",
+  availability:"Disponibilità", last_24h:"Ultime 24 ore",
+  energy_management:"Gestione energia", smart_links:"Link rapidi",
+  homing:"Homing", detections:"Rilevamenti", manuals:"Manuali",
+  issues:"Problemi", task:"Compito", worklist:"Lista lavori",
+  functions:"Funzioni", machine_data:"Dati macchina",
+  feed_override:"Override avanzamento", spindle_override:"Override mandrino",
+  tool:"Utensile", absorption:"CARICO", program:"Programma",
+  program_start:"Avvia", program_stop:"Ferma", program_pause:"Pausa",
+  program_reset:"Reset", alarm_title:"Lista allarmi",
+  no_alarms:"Nessun allarme attivo", connection:"Connessione",
+  ip_address:"Indirizzo IP", port:"Porta", connect:"Connetti",
+  cancel:"Annulla", ok:"OK", simulation:"Simulazione",
+  disconnect:"Disconnetti", language:"Lingua", settings:"Impostazioni",
+  power_kw:"Potenza (kW)", idle:"In attesa", running:"In esecuzione",
+  paused:"In pausa", alarm:"Allarme", connected:"Connesso",
+  disconnected:"Disconnesso",
+};
+const ES_DATA = {
+  nav_home:"Inicio", nav_design:"Diseño", nav_work:"Trabajo",
+  nav_inspect:"Inspección", nav_analyze:"Analizar",
+  notes:"Notas", add_note:"Añadir nota", monitoring:"Monitoreo",
+  pieces_produced:"Piezas producidas", errors:"Errores", warnings:"Advertencias",
+  availability:"Disponibilidad", last_24h:"Últimas 24 horas",
+  energy_management:"Gestión energía", smart_links:"Accesos rápidos",
+  homing:"Búsqueda origen", detections:"Detecciones", manuals:"Manuales",
+  issues:"Problemas", task:"Tarea", worklist:"Lista de trabajo",
+  functions:"Funciones", machine_data:"Datos máquina",
+  feed_override:"Override avance", spindle_override:"Override husillo",
+  tool:"Herramienta", absorption:"CARGA", program:"Programa",
+  program_start:"Iniciar", program_stop:"Detener", program_pause:"Pausa",
+  program_reset:"Reiniciar", alarm_title:"Lista alarmas",
+  no_alarms:"Sin alarmas activas", connection:"Conexión",
+  ip_address:"Dirección IP", port:"Puerto", connect:"Conectar",
+  cancel:"Cancelar", ok:"OK", simulation:"Simulación",
+  disconnect:"Desconectar", language:"Idioma", settings:"Configuración",
+  power_kw:"Potencia (kW)", idle:"Inactivo", running:"Ejecutando",
+  paused:"En pausa", alarm:"Alarma", connected:"Conectado",
+  disconnected:"Desconectado",
+};
+const ZH_DATA = {
+  nav_home:"主页", nav_design:"设计", nav_work:"工作",
+  nav_inspect:"检查", nav_analyze:"分析",
+  notes:"备注", add_note:"添加备注", monitoring:"监控",
+  pieces_produced:"生产数量", errors:"错误", warnings:"警告",
+  availability:"可用性", last_24h:"过去24小时",
+  energy_management:"能源管理", smart_links:"快捷链接",
+  homing:"回零", detections:"检测", manuals:"手册",
+  issues:"问题", task:"任务", worklist:"工作列表",
+  functions:"功能", machine_data:"机器数据",
+  feed_override:"进给倍率", spindle_override:"主轴倍率",
+  tool:"刀具", absorption:"负载", program:"程序",
+  program_start:"启动", program_stop:"停止", program_pause:"暂停",
+  program_reset:"复位", alarm_title:"报警列表",
+  no_alarms:"无活动报警", connection:"连接",
+  ip_address:"IP地址", port:"端口", connect:"连接",
+  cancel:"取消", ok:"确定", simulation:"仿真",
+  disconnect:"断开", language:"语言", settings:"设置",
+  power_kw:"功率 (kW)", idle:"待机", running:"运行中",
+  paused:"已暂停", alarm:"报警", connected:"已连接",
+  disconnected:"未连接",
+};
+const LANGS = {TR:TR_DATA, EN:EN_DATA, DE:DE_DATA, FR:FR_DATA, IT:IT_DATA, ES:ES_DATA, ZH:ZH_DATA};
+let currentLang = "EN";
+
+function t(key){ return (LANGS[currentLang]||EN_DATA)[key] || key; }
+
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = t(el.dataset.i18n);
+  });
+}
+
+function setLang(code){
+  currentLang = code;
+  applyI18n();
+  updateStatusChip();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SIMULATION STATE
+═══════════════════════════════════════════════════════════════════════ */
+const state = {
+  mode: 'idle',   // idle | running | paused | homing | alarm
+  t: 0,
+  mx: 0, my: 0, mz: 0,
+  wx: 0, wy: 0, wz: 0,
+  feed: 0, spn: 0,
+  feedOvr: 100, spnOvr: 100,
+  lx: 0, ly: 0, lz: 0, ls: 0,
+  power: 0.8,
+  progLine: 0, progTotal: 1200,
+  progName: '',
+  pieces: 0,
+  alarms: [],
+  energyHistory: Array.from({length:60},()=>+(0.8+Math.random()*0.4).toFixed(2)),
+};
+
+function simStart(){
+  if(state.mode==='idle'||state.mode==='paused'){
+    state.mode='running';
+    state.progName='AXTEA_PART_001.NC';
+    state.progTotal=1200;
+    if(state.mode!=='paused') state.progLine=0;
+  }
+}
+function simPause(){
+  if(state.mode==='running') state.mode='paused';
+  else if(state.mode==='paused') state.mode='running';
+}
+function simStop(){
+  state.mode='idle';
+  state.feed=0; state.spn=0;
+  state.progName='';
+}
+function simReset(){
+  state.mode='idle';
+  state.progLine=0; state.feed=0; state.spn=0; state.progName='';
+}
+function simHome(){
+  state.mode='homing';
+}
+
+function feedOvrChange(v){
+  state.feedOvr=+v;
+  document.getElementById('feed-ovr-val').textContent=v+' %';
+}
+function spnOvrChange(v){
+  state.spnOvr=+v;
+  document.getElementById('spn-ovr-val').textContent=v+' %';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TICK (200ms)
+═══════════════════════════════════════════════════════════════════════ */
+function tick(){
+  state.t += 0.2;
+  const t2 = state.t;
+
+  if(state.mode==='running'){
+    const fo = state.feedOvr/100, so = state.spnOvr/100;
+    state.mx = 150 + 130*Math.sin(t2*0.15);
+    state.my = -42  + 30 *Math.cos(t2*0.12);
+    state.mz = -10  - 8  *Math.abs(Math.sin(t2*0.25));
+    state.wx = state.mx-50; state.wy = state.my+5; state.wz = state.mz+2;
+    state.feed = Math.round((8000*fo + (Math.random()-0.5)*100)*10)/10;
+    state.spn  = Math.round((18000*so+ (Math.random()-0.5)*40)*10)/10;
+    state.lx   = clamp(Math.abs(30+15*Math.sin(t2*0.3)+(Math.random()-0.5)*6));
+    state.ly   = clamp(Math.abs(25+12*Math.cos(t2*0.25)));
+    state.lz   = clamp(Math.abs(20+10*Math.sin(t2*0.4)));
+    state.ls   = clamp(Math.abs(55+20*Math.sin(t2*0.1)+(Math.random()-0.5)*10));
+    state.power= +(3.5+1.2*Math.sin(t2*0.1)+(Math.random()-0.5)*0.2).toFixed(2);
+    state.progLine = Math.min(state.progTotal, state.progLine + Math.floor(Math.random()*4)+1);
+    if(state.progLine>=state.progTotal){ state.mode='idle'; state.pieces++; state.progLine=0; }
+  } else if(state.mode==='homing'){
+    state.mx = approach(state.mx, 0, 8);
+    state.my = approach(state.my, 0, 5);
+    state.mz = approach(state.mz, 0, 6);
+    if(Math.abs(state.mx)<0.5&&Math.abs(state.my)<0.5&&Math.abs(state.mz)<0.5){
+      state.mx=0;state.my=0;state.mz=0;state.mode='idle';
+    }
+    state.power=0.9;
+  } else {
+    state.feed=0; state.spn=0;
+    state.power=+(0.8+(Math.random()-0.5)*0.1).toFixed(2);
+    state.lx=clamp(Math.abs(state.lx*0.92));
+    state.ly=clamp(Math.abs(state.ly*0.92));
+    state.lz=clamp(Math.abs(state.lz*0.92));
+    state.ls=clamp(Math.abs(state.ls*0.92));
+  }
+
+  state.energyHistory.push(state.power);
+  if(state.energyHistory.length>60) state.energyHistory.shift();
+
+  renderUI();
+}
+
+function clamp(v){ return Math.max(0,Math.min(100,v)); }
+function approach(v, target, step){ return v>target ? Math.max(target,v-step) : Math.min(target,v+step); }
+function fmt(v){ return (v>=0?'+':'')+v.toFixed(3); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════════════════════ */
+function renderUI(){
+  // Axes
+  setText('ax-x-m', fmt(state.mx)); setText('ax-x-w','W '+fmt(state.wx));
+  setText('ax-y-m', fmt(state.my)); setText('ax-y-w','W '+fmt(state.wy));
+  setText('ax-z-m', fmt(state.mz)); setText('ax-z-w','W '+fmt(state.wz));
+
+  // Load bars
+  setLoad('load-x','load-x-v',state.lx,'var(--primary)');
+  setLoad('load-y','load-y-v',state.ly,'var(--accent)');
+  setLoad('load-z','load-z-v',state.lz,'var(--wood)');
+  setLoad('load-s','load-s-v',state.ls,'var(--warn)');
+
+  // Gauges
+  drawGauge('gauge-feed', state.feed, 20000, '#535DDC');
+  drawGauge('gauge-spn',  state.spn,  24000, '#D8AD7D');
+  setText('gv-feed', Math.round(state.feed).toLocaleString());
+  setText('gv-spn',  Math.round(state.spn).toLocaleString());
+
+  // Monitoring
+  setText('mon-pieces', state.pieces);
+  setText('mon-errors',  state.alarms.length);
+  setText('kpi-pieces', state.pieces);
+  setText('kpi-errors',  state.alarms.length);
+  setText('kpi-power',   state.power+' kW');
+
+  // Energy chart
+  updateEnergyChart();
+
+  // Work screen
+  setText('wax-x', fmt(state.mx));
+  setText('wax-y', fmt(state.my));
+  setText('wax-z', fmt(state.mz));
+
+  const pct = state.progTotal ? Math.round(state.progLine*100/state.progTotal) : 0;
+  document.getElementById('prog-bar-fill').style.width = pct+'%';
+  setText('prog-name', state.progName || '—');
+  setText('prog-line', `Line ${state.progLine} / ${state.progTotal}`);
+  setText('tool-info', `Tool: T1    Feed: ${Math.round(state.feed)} mm/min    Spindle: ${Math.round(state.spn)} RPM`);
+
+  // State display
+  const stateMap = {
+    idle:    {label:t('idle').toUpperCase(),    color:'var(--text-dim)'},
+    running: {label:t('running').toUpperCase(), color:'var(--accent)'},
+    paused:  {label:t('paused').toUpperCase(),  color:'var(--warn)'},
+    homing:  {label:'HOMING',                   color:'var(--primary)'},
+    alarm:   {label:t('alarm').toUpperCase(),   color:'var(--error)'},
+  };
+  const s = stateMap[state.mode]||stateMap.idle;
+  const sb = document.getElementById('state-big');
+  sb.textContent = s.label;
+  sb.style.color  = s.color;
+
+  // Status chip
+  updateStatusChip();
+
+  // Status bar
+  setText('sb-pos', `X: ${fmt(state.mx)}   Y: ${fmt(state.my)}   Z: ${fmt(state.mz)}`);
+  setText('sb-prog', state.progName ? `${state.progName}  ${pct}%` : '');
+
+  // Analyze
+  setText('kpi-power', state.power+' kW');
+}
+
+function updateStatusChip(){
+  const chip = document.getElementById('status-chip');
+  const map = {
+    idle:    {cls:'connected', lbl:t('idle')},
+    running: {cls:'running',   lbl:t('running')},
+    paused:  {cls:'paused',    lbl:t('paused')},
+    homing:  {cls:'homing',    lbl:'HOMING'},
+    alarm:   {cls:'alarm',     lbl:t('alarm')},
+  };
+  const m = map[state.mode]||map.idle;
+  chip.className = 'status-chip '+m.cls;
+  chip.textContent = '● '+m.lbl.toUpperCase();
+}
+
+function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+
+function setLoad(barId, valId, v, color){
+  const bar = document.getElementById(barId);
+  const val = document.getElementById(valId);
+  if(!bar||!val) return;
+  const pct = Math.round(v);
+  bar.style.width = pct+'%';
+  bar.style.background = v<60 ? 'var(--accent)' : v<85 ? 'var(--warn)' : 'var(--error)';
+  val.textContent = pct+'%';
+  val.style.color  = v<60 ? 'var(--accent)' : v<85 ? 'var(--warn)' : 'var(--error)';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GAUGE CANVAS
+═══════════════════════════════════════════════════════════════════════ */
+function drawGauge(id, val, maxVal, color){
+  const canvas = document.getElementById(id);
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height, cx=W/2, cy=H/2, R=Math.min(W,H)/2-8;
+  ctx.clearRect(0,0,W,H);
+
+  const startA = Math.PI*1.25, endA = Math.PI*2.75;
+  const pct = maxVal ? Math.min(1, val/maxVal) : 0;
+
+  ctx.beginPath(); ctx.arc(cx,cy,R,startA,endA);
+  ctx.strokeStyle='#232F38'; ctx.lineWidth=6; ctx.lineCap='round'; ctx.stroke();
+
+  if(pct>0){
+    ctx.beginPath(); ctx.arc(cx,cy,R,startA, startA+(endA-startA)*pct);
+    ctx.strokeStyle=color; ctx.lineWidth=6; ctx.lineCap='round'; ctx.stroke();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ENERGY SPARKLINE (Chart.js)
+═══════════════════════════════════════════════════════════════════════ */
+let energyChart = null;
+function initEnergyChart(){
+  const canvas = document.getElementById('energy-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  energyChart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: Array.from({length:60},(_,i)=>i),
+      datasets:[{
+        data: state.energyHistory,
+        borderColor:'#535DDC', borderWidth:2, pointRadius:0,
+        fill:true,
+        backgroundColor: (c)=>{
+          const g = c.chart.ctx.createLinearGradient(0,0,0,c.chart.height);
+          g.addColorStop(0,'rgba(83,93,220,0.4)');
+          g.addColorStop(1,'rgba(83,93,220,0.0)');
+          return g;
+        },
+        tension:0.4,
+      }]
+    },
+    options:{
+      animation:{duration:0}, responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
+      scales:{
+        x:{display:false},
+        y:{
+          grid:{color:'rgba(35,47,56,0.8)'},
+          ticks:{color:'#8899AA', font:{size:9}, maxTicksLimit:4},
+          border:{display:false},
+        }
+      }
+    }
+  });
+}
+function updateEnergyChart(){
+  if(!energyChart) return;
+  energyChart.data.datasets[0].data = [...state.energyHistory];
+  energyChart.update('none');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ANALYZE BAR CHART
+═══════════════════════════════════════════════════════════════════════ */
+let analyzeChart = null;
+function initAnalyzeChart(){
+  const canvas = document.getElementById('analyze-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const vals = [38, 42, 35, 29, 44, 41, 36];
+  analyzeChart = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels: days,
+      datasets:[{
+        data: vals,
+        backgroundColor:'rgba(83,93,220,0.75)',
+        borderColor:'#535DDC', borderWidth:1, borderRadius:6,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:'rgba(35,47,56,0.6)'},ticks:{color:'#8899AA'}},
+        y:{grid:{color:'rgba(35,47,56,0.6)'},ticks:{color:'#8899AA',maxTicksLimit:5},border:{display:false}},
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════════════════ */
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const sc = document.getElementById('screen-'+name);
+  if(sc) sc.classList.add('active');
+  const btn = document.querySelector(`.nav-btn[data-screen="${name}"]`);
+  if(btn) btn.classList.add('active');
+  // Init charts on first view
+  if(name==='home' && !energyChart) { setTimeout(initEnergyChart, 50); }
+  if(name==='analyze' && !analyzeChart){ setTimeout(initAnalyzeChart, 50); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════════════════════════════════ */
+function openConnModal(){ document.getElementById('conn-modal').classList.remove('hidden'); }
+function openNoteModal(){ document.getElementById('note-modal').classList.remove('hidden'); document.getElementById('note-text').value=''; }
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+
+function doConnect(){
+  closeModal('conn-modal');
+  state.mode = 'idle';
+  updateStatusChip();
+}
+
+/* ── NOTES ──────────────────────────────────────────────────── */
+const NOTE_COLORS = [
+  'var(--primary)', 'var(--warn)', 'var(--accent)', 'var(--wood)', 'var(--error)'
+];
+let noteColorIdx = 0;
+
+function saveNote(){
+  const text = document.getElementById('note-text').value.trim();
+  if(!text){ closeModal('note-modal'); return; }
+  addNote(text, 'Operator', new Date().toLocaleDateString('tr-TR')+' '+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}), NOTE_COLORS[noteColorIdx%NOTE_COLORS.length]);
+  noteColorIdx++;
+  closeModal('note-modal');
+}
+
+function addNote(body, author, ts, color){
+  const grid = document.getElementById('notes-grid');
+  if(grid.children.length>=4) grid.removeChild(grid.firstChild);
+  const card = document.createElement('div');
+  card.className='note-card';
+  card.style.borderLeftColor=color;
+  card.innerHTML=`
+    <button class="note-del" onclick="this.parentElement.remove()">✕</button>
+    <div class="note-ts">${ts}</div>
+    <div class="note-body">${body.replace(/\n/g,'<br>')}</div>
+    <div class="note-author">${author}</div>
+  `;
+  grid.appendChild(card);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CLOCK
+═══════════════════════════════════════════════════════════════════════ */
+function updateClock(){
+  const now=new Date();
+  const hh=String(now.getHours()).padStart(2,'0');
+  const mm=String(now.getMinutes()).padStart(2,'0');
+  const ss=String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent=`${hh}:${mm}:${ss}`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════════════ */
+window.addEventListener('load', ()=>{
+  applyI18n();
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Seed notes
+  addNote('Grinder dressing scheduling', 'Charlie – Operator Shift 2', '10/01/25 15:06', 'var(--primary)');
+  addNote('Machine maintenance scheduled\n10/04/2025 – 09:00-12:00', 'John – Operator Shift 1', '10/01/25 15:10', 'var(--warn)');
+
+  // Init home charts
+  setTimeout(()=>{ initEnergyChart(); }, 100);
+
+  // Start simulation
+  setInterval(tick, 200);
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e=>{
+    if(e.key==='F5'||e.key==='r'&&e.ctrlKey) return;
+    if(e.key==='1') showScreen('home');
+    if(e.key==='2') showScreen('design');
+    if(e.key==='3') showScreen('work');
+    if(e.key==='4') showScreen('inspect');
+    if(e.key==='5') showScreen('analyze');
+    if(e.key==='s'||e.key==='S') simStart();
+    if(e.key==='p'||e.key==='P') simPause();
+    if(e.key==='Escape') { simStop(); document.querySelectorAll('.modal-bg').forEach(m=>m.classList.add('hidden')); }
+  });
+
+  // Close modals on bg click
+  document.querySelectorAll('.modal-bg').forEach(bg=>{
+    bg.addEventListener('click', e=>{ if(e.target===bg) bg.classList.add('hidden'); });
+  });
+});
+</script>
+
+<!-- ═══ ELECTRON BRIDGE ═══════════════════════════════════════════════ -->
+<script>
+(function(){
+  // Only runs inside Electron (window.AXTEA is exposed by preload.js)
+  if (typeof window.AXTEA === 'undefined') return;
+
+  const A = window.AXTEA;
+
+  // Platform class on body (for macOS padding etc.)
+  document.body.classList.add(A.platform);
+
+  // ── Menu → nav ──────────────────────────────────────────────────────
+  A.onMenuNav(screen => showScreen(screen));
+  A.onMenuConn(() => openConnModal());
+  A.onMachineCmd(cmd => {
+    if(cmd==='start')  simStart();
+    if(cmd==='pause')  simPause();
+    if(cmd==='stop')   simStop();
+    if(cmd==='reset')  simReset();
+    if(cmd==='homing') simHome();
+  });
+
+  // ── Override doConnect to use real OSAI TCP ─────────────────────────
+  window.doConnect = async function(){
+    closeModal('conn-modal');
+    const host = document.getElementById('conn-ip').value.trim();
+    const port = parseInt(document.getElementById('conn-port').value)||5050;
+    const sim  = document.getElementById('conn-sim').checked;
+
+    const result = await A.osaiConnect({ host, port, simulation: sim });
+    if (result.ok){
+      document.getElementById('sb-left').textContent =
+        `OSAI C07  |  ${host}:${port}  |  ${sim ? 'SIMULATION' : 'LIVE'}`;
+      updateStatusChip();
+    } else {
+      alert('Connection failed: ' + (result.error||'Unknown error'));
+    }
+  };
+
+  // ── Real OSAI data → parse & update state ───────────────────────────
+  A.onOsaiData(raw => {
+    // Basic parser for OSAI HOST LINK ASCII frames:
+    // \x02STS,<status>\x03  |  \x02POS,<x>,<y>,<z>\x03  etc.
+    const frames = raw.match(/\x02[^\x03]*\x03/g) || [];
+    frames.forEach(frame => {
+      const inner = frame.slice(1,-1);
+      const [cmd, ...parts] = inner.split(',');
+      if (cmd==='POS' && parts.length>=3){
+        state.mx = parseFloat(parts[0])||0;
+        state.my = parseFloat(parts[1])||0;
+        state.mz = parseFloat(parts[2])||0;
+      }
+      if (cmd==='FDR') state.feed   = parseFloat(parts[0])||0;
+      if (cmd==='SPN') state.spn    = parseFloat(parts[0])||0;
+      if (cmd==='STS'){
+        const s = (parts[0]||'').trim().toUpperCase();
+        state.mode = s==='RUN'?'running': s==='PAU'?'paused': s==='ALM'?'alarm':'idle';
+      }
+    });
+  });
+
+  // ── Machine commands via IPC ─────────────────────────────────────────
+  const _simStart   = window.simStart;
+  const _simPause   = window.simPause;
+  const _simStop    = window.simStop;
+  const _simReset   = window.simReset;
+  const _simHome    = window.simHome;
+
+  window.simStart  = ()=>{ _simStart();  A.osaiCommand('PST'); };
+  window.simPause  = ()=>{ _simPause();  A.osaiCommand('PPU'); };
+  window.simStop   = ()=>{ _simStop();   A.osaiCommand('PSP'); };
+  window.simReset  = ()=>{ _simReset();  A.osaiCommand('PRS'); };
+  window.simHome   = ()=>{ _simHome();   A.osaiCommand('HOM'); };
+
+  // Feed/spindle override → also send to real unit
+  const _feedOvr = window.feedOvrChange;
+  const _spnOvr  = window.spnOvrChange;
+  window.feedOvrChange = v=>{ _feedOvr(v); A.osaiCommand('FOV', String(v)); };
+  window.spnOvrChange  = v=>{ _spnOvr(v);  A.osaiCommand('SOV', String(v)); };
+
+  // ── System info in status bar ────────────────────────────────────────
+  A.getSysinfo().then(info=>{
+    const net = info.network.map(n=>n.address).join(' | ') || '—';
+    console.log(`AXTEA HMI v${info.version} | ${info.platform} ${info.arch} | ${net}`);
+  });
+
+})();
+</script>
+</body>
+</html>
