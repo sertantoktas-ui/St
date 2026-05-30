@@ -2,1077 +2,829 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AXTEA CNC HMI v2.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AXTEA HMI — Integrated Woodworking Solutions</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root{
-  --blue:#6366C8; --navy:#141E23; --bg:#0D1418; --card:#1A2530;
-  --border:#2A3540; --text:#E3E6FF; --text2:#8899AA;
-  --green:#22C55E; --amber:#F59E0B; --red:#EF4444;
+  --blue:#6366C8; --navy:#141E23; --bg:#0D1418; --card:#1A2530; --border:#2A3540;
+  --text:#E3E6FF; --muted:#8899AA; --green:#22C55E; --amber:#F59E0B; --red:#EF4444; --cyan:#06B6D4;
+  --r:14px; --tap:44px;
 }
-*{box-sizing:border-box; margin:0; padding:0;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+button{font-family:inherit;cursor:pointer;color:inherit}
 body{
-  font-family:'Segoe UI',Roboto,system-ui,sans-serif;
-  background:var(--bg); color:var(--text); font-size:14px;
-  -webkit-font-smoothing:antialiased;
+  font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+  background:var(--bg);color:var(--text);overflow-x:hidden;font-size:clamp(14px,1.6vw,16px);
 }
-::-webkit-scrollbar{width:10px;height:10px;}
-::-webkit-scrollbar-track{background:var(--bg);}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
-::-webkit-scrollbar-thumb:hover{background:var(--blue);}
+::-webkit-scrollbar{height:8px;width:8px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+::-webkit-scrollbar-track{background:transparent}
 
-/* HEADER */
-header{
-  display:flex;align-items:center;justify-content:space-between;
-  background:linear-gradient(90deg,var(--navy),#0F171C);
-  padding:10px 18px;border-bottom:2px solid var(--blue);
-  position:sticky;top:0;z-index:50;
-}
-.logo-wrap{display:flex;align-items:center;gap:12px;}
-.logo-text-wrap{display:flex;flex-direction:column;line-height:1;}
-.logo-axtea{font-size:26px;font-weight:900;letter-spacing:3px;color:var(--text);}
-.logo-sub{font-size:8px;letter-spacing:2px;color:var(--text2);margin-top:3px;font-weight:600;}
-.header-right{display:flex;align-items:center;gap:14px;}
-.hmi-ver{font-size:13px;color:var(--blue);font-weight:700;}
-.badge-sim{
-  background:rgba(99,102,200,.15);color:var(--blue);
-  border:1px solid var(--blue);padding:4px 10px;border-radius:14px;
-  font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;
-}
-.dot-pulse{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6);}70%{box-shadow:0 0 0 8px rgba(34,197,94,0);}100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}}
-.lang-switch{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
-.lang-switch button{background:transparent;border:none;color:var(--text2);padding:6px 12px;cursor:pointer;font-weight:700;font-size:12px;}
-.lang-switch button.active{background:var(--blue);color:#fff;}
-.help-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);width:32px;height:32px;border-radius:8px;cursor:pointer;font-weight:700;}
+.topbar{display:flex;align-items:center;gap:14px;padding:12px 18px;
+  background:linear-gradient(180deg,var(--navy),#0F171C);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:50}
+.logo{display:flex;align-items:center;gap:12px}
+.logo .lt{display:flex;flex-direction:column;line-height:1}
+.logo .lt b{font-size:1.25rem;letter-spacing:3px;font-weight:800}
+.logo .lt span{font-size:.52rem;letter-spacing:1.5px;color:var(--muted);margin-top:3px}
+.spin{animation:spin 14s linear infinite;transform-origin:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.topbar .grow{flex:1}
+.clock{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.85rem}
+.back-btn{display:none;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:0 14px;height:var(--tap);font-weight:600}
+.back-btn:hover{border-color:var(--blue)}
+body.in-machine .back-btn{display:flex}
 
-/* TABS */
-nav.tabs{display:flex;background:var(--navy);border-bottom:1px solid var(--border);overflow-x:auto;}
-nav.tabs button{
-  background:transparent;border:none;color:var(--text2);
-  padding:14px 22px;cursor:pointer;font-weight:700;font-size:13px;
-  border-bottom:3px solid transparent;white-space:nowrap;transition:.2s;
-}
-nav.tabs button:hover{color:var(--text);background:rgba(99,102,200,.08);}
-nav.tabs button.active{color:var(--blue);border-bottom-color:var(--blue);}
+.selector{padding:22px;max-width:1500px;margin:0 auto}
+.sel-head h1{font-size:clamp(1.4rem,3vw,2rem);font-weight:800}
+.sel-head p{color:var(--muted);margin:6px 0 20px;font-size:.95rem}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:768px){.grid{grid-template-columns:repeat(3,1fr)}}
+.mcard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;transition:.2s}
+.mcard:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:0 10px 30px #0008}
+.mcard .photo{height:130px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#22303d,#10181d)}
+.mcard .body{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.mcard h3{font-size:1.05rem;font-weight:700}
+.mcard .model{color:var(--muted);font-size:.8rem;margin-top:-4px}
+.badge{display:inline-block;align-self:flex-start;font-size:.65rem;padding:3px 9px;border-radius:20px;background:#6366c833;color:var(--blue);font-weight:700;letter-spacing:.5px}
+.statline{display:flex;align-items:center;gap:7px;font-size:.8rem;font-weight:600}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.s-RUNNING .dot{background:var(--green);box-shadow:0 0 8px var(--green)}
+.s-IDLE .dot{background:var(--amber)}
+.s-ALARM .dot{background:var(--red);animation:blink 1s infinite}
+.s-OFFLINE .dot{background:var(--muted)}
+@keyframes blink{50%{opacity:.3}}
+.s-RUNNING{color:var(--green)}.s-IDLE{color:var(--amber)}.s-ALARM{color:var(--red)}.s-OFFLINE{color:var(--muted)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.72rem;color:var(--muted)}
+.stats b{display:block;color:var(--text);font-size:.9rem;margin-top:2px}
+.connect{margin-top:auto;height:var(--tap);border:none;border-radius:10px;background:var(--blue);color:#fff;font-weight:700;letter-spacing:1px}
+.connect:hover{filter:brightness(1.12)}
 
-main{padding:18px;max-width:1500px;margin:0 auto;}
-.tabpanel{display:none;animation:fade .3s;}
-.tabpanel.active{display:block;}
-@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+#machineView{display:none}
+body.in-machine #selectorView{display:none}
+body.in-machine #machineView{display:block}
+.tabbar{display:flex;gap:4px;overflow-x:auto;background:var(--navy);border-bottom:1px solid var(--border);
+  padding:0 8px;position:sticky;top:65px;z-index:40;scrollbar-width:none}
+.tabbar::-webkit-scrollbar{display:none}
+.tab{flex:none;display:flex;align-items:center;gap:7px;background:none;border:none;padding:0 16px;height:50px;
+  color:var(--muted);font-weight:600;font-size:.85rem;border-bottom:3px solid transparent;white-space:nowrap}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.tab svg{flex:none}
+.tabcontent{padding:18px;max-width:1500px;margin:0 auto}
 
-.grid{display:grid;gap:16px;}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;}
-.card h3{font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:700;}
-.row{display:flex;gap:16px;flex-wrap:wrap;}
+.cards{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.card h4{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:700}
+.kpi{font-size:1.9rem;font-weight:800}
+.kpi small{font-size:.9rem;color:var(--muted);font-weight:500}
+.row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #ffffff10;font-size:.88rem}
+.row:last-child{border:none}
+.row .v{font-weight:700}
+.btn{height:var(--tap);padding:0 18px;border-radius:10px;border:1px solid var(--border);background:var(--card);font-weight:600}
+.btn:hover{border-color:var(--blue)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.green{background:var(--green);border-color:var(--green);color:#06210f}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.bar{height:10px;border-radius:6px;background:#0008;overflow:hidden;margin-top:8px}
+.bar>i{display:block;height:100%;background:var(--blue);border-radius:6px;transition:width .4s}
+.gridhead{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.gridhead h2{font-size:1.2rem}
+canvas.fluid{width:100%!important;height:auto!important;display:block}
+.axisgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px}
+.axisbox{background:#0e161b;border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+.axisbox .ax{color:var(--blue);font-weight:800;font-size:1.1rem}
+.axisbox .val{font-size:1.15rem;font-weight:700;font-variant-numeric:tabular-nums;margin-top:4px}
+.axisbox .u{font-size:.65rem;color:var(--muted)}
 
-/* STATUS */
-.status-big{display:flex;align-items:center;gap:14px;}
-.status-light{width:46px;height:46px;border-radius:50%;}
-.status-light.RUNNING{background:var(--green);animation:pulse 1.5s infinite;}
-.status-light.IDLE{background:var(--text2);}
-.status-light.PAUSED{background:var(--amber);}
-.status-light.HOMING{background:var(--blue);animation:pulse 1s infinite;}
-.status-light.ALARM{background:var(--red);animation:pulse .6s infinite;}
-.status-label{font-size:30px;font-weight:900;letter-spacing:1px;}
+.field{margin-bottom:16px}
+.field label{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);margin-bottom:6px}
+.field label b{color:var(--text)}
+input[type=range]{width:100%;height:8px;border-radius:6px;background:var(--border);appearance:none;outline:none}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:22px;height:22px;border-radius:50%;background:var(--blue);cursor:pointer;border:3px solid #fff2}
+.toggle{position:relative;width:52px;height:28px;border-radius:20px;background:var(--border);transition:.2s;flex:none}
+.toggle.on{background:var(--green)}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
+.toggle.on::after{left:27px}
+.toggrow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #ffffff10}
 
-.axis-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-.axis-box{background:var(--navy);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
-.axis-name{font-size:14px;color:var(--blue);font-weight:800;}
-.axis-val{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:4px;}
-.axis-unit{font-size:13px;color:var(--text2);}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px}
+tr:hover td{background:#ffffff06}
+.pill{font-size:.68rem;padding:2px 9px;border-radius:20px;font-weight:700}
+.pill.Bekliyor{background:#8899aa33;color:var(--muted)}
+.pill.Çalışıyor{background:#22c55e33;color:var(--green)}
+.pill.Tamamlandı{background:#6366c833;color:var(--blue)}
+.pill.Duraklatıldı{background:#f59e0b33;color:var(--amber)}
+.table-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:6px 12px}
+.iconbtn{background:none;border:none;font-size:1rem;padding:4px 6px;border-radius:6px}
+.iconbtn:hover{background:#ffffff12}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:.78rem;font-weight:600}
+.chip.active{background:var(--blue);border-color:var(--blue);color:#fff}
 
-.gauge-wrap{display:flex;gap:20px;justify-content:space-around;flex-wrap:wrap;}
-.gauge{text-align:center;}
-.gauge .gv{font-size:20px;font-weight:800;margin-top:-58px;position:relative;}
-.gauge .gl{font-size:11px;color:var(--text2);margin-top:36px;text-transform:uppercase;letter-spacing:1px;}
+.modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:100;padding:18px}
+.modal.show{display:flex}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:480px;padding:22px;max-height:92vh;overflow:auto}
+.modal-box h3{margin-bottom:16px}
+.modal-box input,.modal-box select{width:100%;height:var(--tap);background:#0e161b;border:1px solid var(--border);border-radius:8px;color:var(--text);padding:0 12px;margin-bottom:12px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
 
-.loadbar{margin-bottom:10px;}
-.loadbar .lbl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;}
-.loadbar .track{height:10px;background:var(--navy);border-radius:5px;overflow:hidden;}
-.loadbar .fill{height:100%;border-radius:5px;transition:width .2s,background .2s;}
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 200px);min-height:420px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.chat-log{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:80%;padding:11px 14px;border-radius:14px;font-size:.9rem;line-height:1.45;white-space:pre-wrap}
+.msg.bot{background:#0e161b;border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.user{background:var(--blue);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.quick{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--border)}
+.quick button{font-size:.75rem;padding:7px 11px;border-radius:18px;border:1px solid var(--border);background:#0e161b;color:var(--blue);font-weight:600}
+.chat-input{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border)}
+.chat-input input{flex:1;height:var(--tap);background:#0e161b;border:1px solid var(--border);border-radius:22px;color:var(--text);padding:0 16px}
+.chat-input button{width:var(--tap);height:var(--tap);border-radius:50%;border:none;background:var(--blue);color:#fff;font-size:1.1rem;flex:none}
+.mic.listening{background:var(--red);animation:blink 1s infinite}
+.typing{display:flex;gap:4px;padding:14px}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
 
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-.stat{background:var(--navy);border-radius:10px;padding:14px;text-align:center;}
-.stat .v{font-size:26px;font-weight:800;color:var(--blue);}
-.stat .l{font-size:11px;color:var(--text2);margin-top:4px;}
+.podgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;max-width:420px}
+.pod{aspect-ratio:1;border-radius:8px;border:1px solid var(--border);background:#0e161b;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted);font-weight:700}
+.pod.on{background:var(--green);color:#06210f;border-color:var(--green)}
+.carousel{position:relative;width:260px;height:260px;margin:0 auto}
+.slot{position:absolute;width:36px;height:36px;border-radius:50%;background:#0e161b;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;transform:translate(-50%,-50%);transition:.2s}
+.slot.active{background:var(--blue);border-color:#fff;color:#fff;box-shadow:0 0 14px var(--blue)}
+.slot.empty{opacity:.35}
+.process{display:flex;gap:6px;flex-wrap:wrap;align-items:stretch}
+.stage{flex:1;min-width:90px;background:#0e161b;border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center}
+.stage .si{width:14px;height:14px;border-radius:50%;margin:0 auto 8px;background:var(--muted)}
+.stage.ok .si{background:var(--green);box-shadow:0 0 8px var(--green)}
+.stage.off .si{background:var(--red)}
+.stage small{font-size:.7rem;display:block;color:var(--muted)}
+.stage b{font-size:.78rem}
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+.preset{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:#0e161b;font-size:.8rem;font-weight:600}
+.preset.active{border-color:var(--blue);background:#6366c822;color:var(--blue)}
+.hint{font-size:.75rem;color:var(--muted);margin-top:8px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.75rem;margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 
-.alarm-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;background:var(--navy);margin-bottom:6px;font-size:12px;}
-.alarm-item .ac{color:var(--red);font-weight:800;min-width:62px;}
-.alarm-item .at{color:var(--text2);font-size:11px;}
-
-/* TABLE */
-table{width:100%;border-collapse:collapse;font-size:13px;}
-th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);}
-th{color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
-tr:hover td{background:rgba(99,102,200,.05);}
-.badge{padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;display:inline-block;}
-.b-wait{background:rgba(245,158,11,.15);color:var(--amber);}
-.b-run{background:rgba(34,197,94,.15);color:var(--green);}
-.b-done{background:rgba(99,102,200,.15);color:var(--blue);}
-.b-cancel{background:rgba(239,68,68,.15);color:var(--red);}
-.prio-H{color:var(--red);font-weight:800;}.prio-M{color:var(--amber);font-weight:700;}.prio-L{color:var(--text2);}
-
-button.btn{background:var(--blue);color:#fff;border:none;padding:9px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px;transition:.15s;}
-button.btn:hover{filter:brightness(1.1);}
-button.btn.sec{background:var(--card);border:1px solid var(--border);color:var(--text);}
-button.btn.dng{background:var(--red);}
-button.btn.grn{background:var(--green);}
-button.btn:disabled{opacity:.4;cursor:not-allowed;}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
-select,input[type=text],input[type=number],textarea{
-  background:var(--navy);border:1px solid var(--border);color:var(--text);
-  padding:8px 10px;border-radius:8px;font-size:13px;font-family:inherit;
-}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);}
-
-/* MODAL */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;}
-.modal-bg.show{display:flex;}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;width:440px;max-width:92vw;max-height:90vh;overflow:auto;}
-.modal h3{margin-bottom:16px;color:var(--text);font-size:18px;}
-.field{margin-bottom:12px;}
-.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;}
-.field input,.field select{width:100%;}
-
-/* SIM CANVAS */
-.sim-layout{display:grid;grid-template-columns:1fr 360px;gap:16px;}
-canvas#toolpath{background:#0A1013;border:1px solid var(--border);border-radius:10px;width:100%;display:block;}
-.sim-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;}
-.gcode-editor{width:100%;height:300px;font-family:monospace;font-size:12px;white-space:pre;overflow:auto;resize:vertical;line-height:1.5;}
-.gcode-lines{height:300px;overflow:auto;background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:8px;font-family:monospace;font-size:12px;}
-.gcode-lines .gl-line{padding:2px 6px;border-radius:4px;white-space:pre;}
-.gcode-lines .gl-line.cur{background:var(--blue);color:#fff;}
-.simstat{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.simstat div{background:var(--navy);padding:8px;border-radius:8px;font-size:12px;}
-.simstat b{color:var(--blue);display:block;font-size:16px;}
-input[type=range]{accent-color:var(--blue);}
-
-/* RUN */
-.run-btns{display:flex;gap:14px;margin:16px 0;}
-.run-btns button{flex:1;padding:22px;font-size:18px;font-weight:900;border-radius:12px;border:none;cursor:pointer;}
-.over-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
-.over-row label{min-width:90px;font-size:13px;}
-.over-row span{min-width:50px;font-weight:800;color:var(--blue);}
-.toggle{position:relative;width:50px;height:26px;background:var(--navy);border-radius:13px;cursor:pointer;border:1px solid var(--border);}
-.toggle.on{background:var(--green);}
-.toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;}
-.toggle.on::after{left:26px;}
-.indicator{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--navy);border-radius:8px;}
-.indicator .d{width:12px;height:12px;border-radius:50%;}
-
-/* CHAT */
-.chat-layout{display:grid;grid-template-columns:1fr 300px;gap:16px;}
-.chat-box{display:flex;flex-direction:column;height:560px;}
-.chat-msgs{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:12px;}
-.msg{display:flex;gap:8px;max-width:80%;}
-.msg.user{align-self:flex-end;flex-direction:row-reverse;}
-.msg .av{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--navy);border:1px solid var(--border);}
-.msg .bubble{padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.55;}
-.msg.ai .bubble{background:var(--navy);border:1px solid var(--border);border-top-left-radius:4px;}
-.msg.user .bubble{background:var(--blue);color:#fff;border-top-right-radius:4px;}
-.msg .bubble b{color:var(--blue);}
-.msg.user .bubble b{color:#fff;}
-.typing{display:flex;gap:4px;padding:12px;}
-.typing span{width:8px;height:8px;border-radius:50%;background:var(--text2);animation:typing 1.2s infinite;}
-.typing span:nth-child(2){animation-delay:.2s;}.typing span:nth-child(3){animation-delay:.4s;}
-@keyframes typing{0%,60%,100%{opacity:.3;transform:translateY(0);}30%{opacity:1;transform:translateY(-4px);}}
-.chat-input{display:flex;gap:8px;margin-top:10px;}
-.chat-input input{flex:1;}
-.mic-btn{background:var(--card);border:1px solid var(--border);color:var(--text);width:42px;border-radius:8px;cursor:pointer;font-size:18px;}
-.mic-btn.listening{background:var(--red);animation:pulse .8s infinite;}
-.suggestions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-.suggestions button{background:var(--navy);border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:16px;cursor:pointer;font-size:12px;}
-.suggestions button:hover{border-color:var(--blue);color:var(--blue);}
-.collapsible{background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;font-weight:700;font-size:13px;}
-.collapsible-body{display:none;padding:10px;font-size:12px;line-height:1.7;color:var(--text2);}
-.collapsible-body.show{display:block;}
-.cmd-ref{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);}
-.cmd-ref code{color:var(--blue);}
-
-/* TOAST */
-#toasts{position:fixed;top:70px;right:18px;z-index:200;display:flex;flex-direction:column;gap:8px;}
-.toast{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--blue);padding:12px 16px;border-radius:8px;font-size:13px;min-width:220px;animation:slidein .3s;box-shadow:0 4px 20px rgba(0,0,0,.4);}
-.toast.green{border-left-color:var(--green);}.toast.red{border-left-color:var(--red);}.toast.amber{border-left-color:var(--amber);}
-@keyframes slidein{from{transform:translateX(120%);}to{transform:none;}}
-
-.health{display:flex;align-items:center;gap:10px;padding:10px;background:var(--navy);border-radius:8px;margin-bottom:8px;}
-.health .bar{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
-.health .bar .f{height:100%;border-radius:4px;}
-
-/* ── RESPONSIVE ── */
-
-/* 4K / Large screens */
-@media(min-width:2560px){
-  html{font-size:18px;}
-  header{padding:0 48px;height:72px;}
-  .tab-bar{padding:0 48px;}
-  .tab-btn{font-size:15px;padding:14px 28px;}
-  .content{padding:40px 48px;max-width:2400px;margin:0 auto;}
-  .axis-val{font-size:3rem;}
-  .gauge-ring{width:140px;height:140px;}
-}
-
-/* Large desktop (1440px+) */
-@media(min-width:1440px){
-  .content{max-width:1400px;margin:0 auto;}
-  .axis-grid{grid-template-columns:repeat(3,1fr);}
-  .stat-grid{grid-template-columns:repeat(4,1fr);}
-}
-
-/* Desktop (1024-1440px) — default */
-@media(max-width:1280px){
-  .content{padding:20px 24px;}
-  .axis-val{font-size:2.2rem;}
-}
-
-/* Tablet landscape (980-1024px) */
-@media(max-width:1024px){
-  .tab-btn{font-size:11px;padding:10px 14px;}
-  .sim-layout{grid-template-columns:1fr;}
-  .chat-layout{grid-template-columns:1fr;}
-  .axis-grid{grid-template-columns:repeat(3,1fr);}
-  .stat-grid{grid-template-columns:repeat(2,1fr);}
-  .gauge-row{gap:16px;}
-}
-
-/* Tablet portrait (768-980px) */
-@media(max-width:980px){
-  .sim-layout,.chat-layout{grid-template-columns:1fr;}
-  .axis-grid{grid-template-columns:repeat(3,1fr);}
-  .stat-grid{grid-template-columns:repeat(2,1fr);}
-  .load-grid{grid-template-columns:1fr 1fr;}
-  header{padding:0 16px;}
-  .logo-sub{display:none;}
-  .tab-btn span.tab-label{display:none;}
-  .tab-btn span.tab-icon{display:inline;}
-}
-
-/* Mobile landscape (600-768px) */
-@media(max-width:768px){
-  header{height:52px;}
-  .logo-axtea{font-size:18px;}
-  .tab-bar{overflow-x:auto;gap:2px;padding:0 8px;}
-  .tab-btn{font-size:10px;padding:8px 10px;min-width:48px;}
-  .content{padding:12px;}
-  .axis-grid{grid-template-columns:1fr 1fr 1fr;}
-  .axis-val{font-size:1.8rem;}
-  .stat-grid{grid-template-columns:1fr 1fr;}
-  .gauge-row{flex-direction:column;align-items:center;}
-  .gauge-ring{width:100px;height:100px;}
-  .gauge-ring text{font-size:18px;}
-  .card{padding:14px;}
-  .load-grid{grid-template-columns:1fr;}
-  .btn-row{flex-wrap:wrap;gap:8px;}
-  #gcode-canvas{max-height:280px;}
-  .modal-body{padding:16px;}
-  table{font-size:12px;}
-  th,td{padding:6px 8px;}
-  #chat-msgs{height:280px;}
-  .run-controls{grid-template-columns:1fr;}
-}
-
-/* Mobile portrait (320-600px) */
 @media(max-width:600px){
-  header{height:48px;padding:0 10px;}
-  .logo-axtea{font-size:15px;}
-  .hmi-ver{display:none;}
-  .tab-bar{padding:0 4px;gap:1px;}
-  .tab-btn{padding:6px 8px;font-size:9px;}
-  .content{padding:8px;}
-  .axis-grid{grid-template-columns:1fr 1fr 1fr;gap:6px;}
-  .axis-val{font-size:1.4rem;}
-  .axis-label{font-size:10px;}
-  .stat-grid{grid-template-columns:1fr 1fr;gap:6px;}
-  .card{padding:10px;border-radius:8px;}
-  .card-title{font-size:11px;}
-  h2{font-size:14px;}
-  .gauge-ring{width:80px;height:80px;}
-  .btn{padding:8px 14px;font-size:12px;}
-  .btn-lg{padding:14px 24px;font-size:16px;}
-  .run-btn{width:100%;padding:16px;}
-  #gcode-canvas{max-height:220px;}
-  .sim-stats{grid-template-columns:1fr 1fr;}
-  #ai-input{font-size:14px;}
-  .alarm-row td{font-size:11px;}
-  .badge-sim{font-size:10px;padding:3px 8px;}
-  .lang-switch button{padding:3px 7px;font-size:10px;}
-  #toasts{right:8px;top:56px;}
-  .toast{min-width:160px;font-size:12px;}
-  .override-row{flex-direction:column;gap:8px;}
-  .maint-grid{grid-template-columns:1fr;}
-  .job-table-wrap{overflow-x:auto;}
-  .health{flex-wrap:wrap;}
-}
-
-/* Touch/hover states for mobile */
-@media(hover:none){
-  .tab-btn:hover,.btn:hover,.btn-lg:hover{opacity:1;}
-  .tab-btn:active,.btn:active{opacity:.75;transform:scale(.97);}
-}
-
-/* Ensure canvas is always square-ish and responsive */
-#gcode-canvas{
-  width:100%!important;
-  max-width:600px;
-  height:auto!important;
-  aspect-ratio:1/1;
-  display:block;
-  margin:0 auto;
-}
-
-/* Scrollable tab bar on small screens */
-.tab-bar{scrollbar-width:none;}
-.tab-bar::-webkit-scrollbar{display:none;}
-
-/* Fluid typography */
-@media(max-width:480px){
-  :root{font-size:13px;}
+  .tab span{display:none}
+  .tab{padding:0 14px}
+  .modal{padding:0}
+  .modal-box{max-width:none;height:100vh;max-height:100vh;border-radius:0}
+  .stats{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo-wrap">
-    <svg width="40" height="40" viewBox="0 0 100 100">
+<header class="topbar">
+  <button class="back-btn" onclick="goHome()">&#8592; <span>Makineler</span></button>
+  <div class="logo">
+    <svg class="spin" width="34" height="34" viewBox="0 0 100 100" aria-hidden="true">
       <g fill="#6366C8">
-        <path d="M50 8 L58 38 L88 30 L62 50 L88 70 L58 62 L50 92 L42 62 L12 70 L38 50 L12 30 L42 38 Z"/>
+        <rect x="42" y="42" width="16" height="16" rx="2"/>
+        <rect x="46" y="6" width="8" height="30" rx="3"/>
+        <rect x="46" y="64" width="8" height="30" rx="3"/>
+        <rect x="6" y="46" width="30" height="8" rx="3"/>
+        <rect x="64" y="46" width="30" height="8" rx="3"/>
+        <rect x="46" y="6" width="8" height="30" rx="3" transform="rotate(45 50 50)"/>
+        <rect x="46" y="64" width="8" height="30" rx="3" transform="rotate(45 50 50)"/>
+        <rect x="6" y="46" width="30" height="8" rx="3" transform="rotate(45 50 50)"/>
+        <rect x="64" y="46" width="30" height="8" rx="3" transform="rotate(45 50 50)"/>
       </g>
-      <circle cx="50" cy="50" r="7" fill="#0D1418"/>
     </svg>
-    <div class="logo-text-wrap">
-      <span class="logo-axtea">AXTEA</span>
-      <span class="logo-sub">INTEGRATED WOODWORKING SOLUTIONS</span>
-    </div>
+    <div class="lt"><b>AXTEA</b><span>INTEGRATED WOODWORKING SOLUTIONS</span></div>
   </div>
-  <div class="header-right">
-    <span class="hmi-ver">CNC HMI v2.0</span>
-    <span class="badge-sim"><span class="dot-pulse"></span><span data-i18n="sim">SİMÜLASYON</span></span>
-    <div class="lang-switch">
-      <button id="lng-tr" class="active" onclick="setLang('tr')">TR</button>
-      <button id="lng-en" onclick="setLang('en')">EN</button>
-    </div>
-    <button class="help-btn" title="Kısayollar: Space=Başlat/Dur, S=Stop, R=Reset, H=Home, 1-6=Sekmeler" onclick="showHelp()">?</button>
-  </div>
+  <div class="grow"></div>
+  <div class="clock" id="clock"></div>
 </header>
 
-<nav class="tabs">
-  <button class="active" data-tab="home" onclick="switchTab('home')" data-i18n="t_home">ANA SAYFA</button>
-  <button data-tab="jobs" onclick="switchTab('jobs')" data-i18n="t_jobs">İŞ LİSTESİ</button>
-  <button data-tab="sim" onclick="switchTab('sim')" data-i18n="t_sim">G-CODE SİMÜLASYON</button>
-  <button data-tab="run" onclick="switchTab('run')" data-i18n="t_run">ÇALIŞMA</button>
-  <button data-tab="maint" onclick="switchTab('maint')" data-i18n="t_maint">BAKIM</button>
-  <button data-tab="ai" onclick="switchTab('ai')" data-i18n="t_ai">AI ASİSTAN</button>
-</nav>
-
-<main>
-<!-- ============ HOME ============ -->
-<section id="home" class="tabpanel active">
-  <div class="grid" style="grid-template-columns:1fr 1fr 1fr;">
-    <div class="card">
-      <h3 data-i18n="machine_status">Makine Durumu</h3>
-      <div class="status-big">
-        <div id="statusLight" class="status-light IDLE"></div>
-        <div>
-          <div id="statusLabel" class="status-label">IDLE</div>
-          <div id="statusProg" style="color:var(--text2);font-size:12px;">—</div>
-        </div>
-      </div>
+<section id="selectorView">
+  <div class="selector">
+    <div class="sel-head">
+      <h1>Makine Seçici</h1>
+      <p>Bağlanmak istediğiniz makineyi seçin — tüm makineler aynı arayüz felsefesini paylaşır.</p>
     </div>
-    <div class="card" style="grid-column:span 2;">
-      <h3 data-i18n="positions">Eksen Pozisyonları (mm)</h3>
-      <div class="axis-grid">
-        <div class="axis-box"><div class="axis-name">X</div><div class="axis-val" id="hX">0.000</div><div class="axis-unit">mm</div></div>
-        <div class="axis-box"><div class="axis-name">Y</div><div class="axis-val" id="hY">0.000</div><div class="axis-unit">mm</div></div>
-        <div class="axis-box"><div class="axis-name">Z</div><div class="axis-val" id="hZ">0.000</div><div class="axis-unit">mm</div></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row" style="margin-top:16px;">
-    <div class="card" style="flex:1;min-width:280px;">
-      <h3 data-i18n="gauges">Feed & Spindle</h3>
-      <div class="gauge-wrap">
-        <div class="gauge"><svg width="120" height="80" id="feedGauge"></svg><div class="gv" id="feedVal">0</div><div class="gl">Feed mm/min</div></div>
-        <div class="gauge"><svg width="120" height="80" id="spinGauge"></svg><div class="gv" id="spinVal">0</div><div class="gl">Spindle RPM</div></div>
-      </div>
-    </div>
-    <div class="card" style="flex:1;min-width:280px;">
-      <h3 data-i18n="motor_load">Motor Yükleri</h3>
-      <div class="loadbar"><div class="lbl"><span>X</span><span id="lXt">0%</span></div><div class="track"><div class="fill" id="lX"></div></div></div>
-      <div class="loadbar"><div class="lbl"><span>Y</span><span id="lYt">0%</span></div><div class="track"><div class="fill" id="lY"></div></div></div>
-      <div class="loadbar"><div class="lbl"><span>Z</span><span id="lZt">0%</span></div><div class="track"><div class="fill" id="lZ"></div></div></div>
-      <div class="loadbar"><div class="lbl"><span>Spindle</span><span id="lSt">0%</span></div><div class="track"><div class="fill" id="lS"></div></div></div>
-    </div>
-  </div>
-
-  <div class="row" style="margin-top:16px;">
-    <div class="card" style="flex:1;min-width:280px;">
-      <h3 data-i18n="quick_stats">Hızlı İstatistikler</h3>
-      <div class="stat-grid">
-        <div class="stat"><div class="v" id="sUptime">0:00</div><div class="l" data-i18n="uptime">Çalışma süresi</div></div>
-        <div class="stat"><div class="v" id="sParts">0</div><div class="l" data-i18n="parts">Bugün parça</div></div>
-        <div class="stat"><div class="v" id="sEff">0%</div><div class="l" data-i18n="eff">Verimlilik</div></div>
-      </div>
-      <div style="margin-top:14px;"><canvas id="energyChart" height="70"></canvas></div>
-    </div>
-    <div class="card" style="flex:1;min-width:280px;">
-      <h3 data-i18n="recent_alarms">Son Alarmlar</h3>
-      <div id="homeAlarms"></div>
-    </div>
+    <div class="grid" id="machineGrid"></div>
   </div>
 </section>
 
-<!-- ============ JOBS ============ -->
-<section id="jobs" class="tabpanel">
-  <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
-    <div class="stat"><div class="v" id="jTotal">0</div><div class="l" data-i18n="total">Toplam</div></div>
-    <div class="stat"><div class="v" style="color:var(--green)" id="jRun">0</div><div class="l" data-i18n="running">Çalışıyor</div></div>
-    <div class="stat"><div class="v" style="color:var(--amber)" id="jWait">0</div><div class="l" data-i18n="waiting">Bekliyor</div></div>
-    <div class="stat"><div class="v" style="color:var(--blue)" id="jDone">0</div><div class="l" data-i18n="done">Tamamlandı</div></div>
-  </div>
-  <div class="card">
-    <div class="toolbar">
-      <button class="btn" onclick="openJobModal()">+ <span data-i18n="add_job">Yeni İş Ekle</span></button>
-      <button class="btn sec" onclick="editSelectedJob()" data-i18n="edit">Düzenle</button>
-      <button class="btn dng" onclick="deleteSelectedJob()" data-i18n="delete">Sil</button>
-      <button class="btn grn" onclick="startSelectedJob()" data-i18n="start_job">Başlat</button>
-      <span style="flex:1"></span>
-      <label data-i18n="filter">Filtre:</label>
-      <select id="jobFilter" onchange="renderJobs()">
-        <option value="all" data-i18n="all">Tümü</option>
-        <option value="Bekliyor">Bekliyor</option>
-        <option value="Çalışıyor">Çalışıyor</option>
-        <option value="Tamamlandı">Tamamlandı</option>
-        <option value="İptal">İptal</option>
-      </select>
-    </div>
-    <table>
-      <thead><tr><th></th><th>ID</th><th data-i18n="part">Parça</th><th data-i18n="material">Malzeme</th><th>G-Code</th><th data-i18n="status">Durum</th><th data-i18n="priority">Öncelik</th><th data-i18n="est_time">Süre</th><th>Operatör</th></tr></thead>
-      <tbody id="jobBody"></tbody>
-    </table>
-  </div>
+<section id="machineView">
+  <div class="tabbar" id="tabbar"></div>
+  <div class="tabcontent" id="tabcontent"></div>
 </section>
 
-<!-- ============ SIM ============ -->
-<section id="sim" class="tabpanel">
-  <div class="toolbar">
-    <input type="file" id="gfile" accept=".nc,.gcode,.txt" onchange="loadGFile(event)">
-    <button class="btn sec" onclick="loadDemo()" data-i18n="demo">Demo Program</button>
-  </div>
-  <div class="sim-layout">
-    <div class="card">
-      <h3>Toolpath (XY Top View)</h3>
-      <canvas id="toolpath" width="700" height="500"></canvas>
-      <div class="sim-controls">
-        <button class="btn grn" onclick="simPlay()">▶ <span data-i18n="play">Play</span></button>
-        <button class="btn sec" onclick="simPause()">⏸ <span data-i18n="pause">Pause</span></button>
-        <button class="btn dng" onclick="simStop()">⏹ <span data-i18n="stop">Stop</span></button>
-        <button class="btn sec" onclick="simReset()">↺ <span data-i18n="reset">Reset</span></button>
-        <label>Hız: <span id="simSpeedV">1x</span></label>
-        <input type="range" min="1" max="10" value="1" id="simSpeed" oninput="document.getElementById('simSpeedV').textContent=this.value+'x'">
-      </div>
-      <div class="simstat" style="margin-top:14px;">
-        <div data-i18n="lines">Satır <b id="ssLines">0</b></div>
-        <div>Rapid <b id="ssRapid">0 mm</b></div>
-        <div>Cut <b id="ssCut">0 mm</b></div>
-        <div data-i18n="est">Tahmini <b id="ssTime">0:00</b></div>
-      </div>
-    </div>
-    <div class="card">
-      <h3>G-Code Editor</h3>
-      <textarea class="gcode-editor" id="gEditor" oninput="parseGCode()"></textarea>
-      <h3 style="margin-top:14px;" data-i18n="execution">Satır Bazlı Çalışma</h3>
-      <div class="gcode-lines" id="gLines"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ RUN ============ -->
-<section id="run" class="tabpanel">
-  <div class="row">
-    <div class="card" style="flex:2;min-width:320px;">
-      <h3 data-i18n="program">Program</h3>
-      <div style="font-size:20px;font-weight:800;" id="runProg">demo_kapak.nc</div>
-      <div style="color:var(--text2);margin-top:4px;" id="runStatus">IDLE</div>
-      <div class="run-btns">
-        <button class="btn grn" onclick="machineStart()">▶ START</button>
-        <button class="btn" style="background:var(--amber)" onclick="machinePause()">⏸ PAUSE</button>
-        <button class="btn dng" onclick="machineStop()">⏹ STOP</button>
-      </div>
-      <div class="card" style="background:var(--navy);">
-        <h3 data-i18n="current_line">Mevcut Satır</h3>
-        <div style="font-family:monospace;font-size:16px;color:var(--green)" id="runLine">—</div>
-      </div>
-      <div class="axis-grid" style="margin-top:14px;">
-        <div class="axis-box"><div class="axis-name">X</div><div class="axis-val" id="rX">0.000</div></div>
-        <div class="axis-box"><div class="axis-name">Y</div><div class="axis-val" id="rY">0.000</div></div>
-        <div class="axis-box"><div class="axis-name">Z</div><div class="axis-val" id="rZ">0.000</div></div>
-      </div>
-    </div>
-    <div class="card" style="flex:1;min-width:280px;">
-      <h3 data-i18n="overrides">Override & Durum</h3>
-      <div class="over-row"><label>Feed %</label><input type="range" min="0" max="200" value="100" id="feedOv" oninput="document.getElementById('feedOvV').textContent=this.value+'%'"><span id="feedOvV">100%</span></div>
-      <div class="over-row"><label>Spindle %</label><input type="range" min="0" max="150" value="100" id="spinOv" oninput="document.getElementById('spinOvV').textContent=this.value+'%'"><span id="spinOvV">100%</span></div>
-      <div class="over-row"><label data-i18n="coolant">Soğutma</label><div class="toggle" id="coolant" onclick="this.classList.toggle('on');toast('Soğutma '+(this.classList.contains('on')?'açık':'kapalı'))"></div></div>
-      <hr style="border-color:var(--border);margin:12px 0;">
-      <div class="indicator" style="margin-bottom:8px;"><div class="d" id="doorD" style="background:var(--green)"></div><span data-i18n="door">Kapı:</span> <b id="doorS">Kapalı</b></div>
-      <div class="indicator" style="margin-bottom:8px;"><div class="d" id="estopD" style="background:var(--green)"></div><span>E-Stop:</span> <b id="estopS">OK</b></div>
-      <div class="indicator"><div class="d" style="background:var(--blue)"></div><span data-i18n="cycle">Kalan süre:</span> <b id="cycleT">--:--</b></div>
-      <hr style="border-color:var(--border);margin:12px 0;">
-      <h3 data-i18n="tool_info">Takım Bilgisi</h3>
-      <div style="font-size:13px;line-height:1.9;">
-        <div>Takım No: <b id="toolNo">T1</b></div>
-        <div data-i18n="diameter">Çap: <b id="toolDia">6 mm</b></div>
-        <div data-i18n="material">Malzeme: <b id="toolMat">MDF</b></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ MAINT ============ -->
-<section id="maint" class="tabpanel">
-  <div class="row">
-    <div class="card" style="flex:2;min-width:320px;">
-      <h3 data-i18n="maint_sched">Bakım Takvimi</h3>
-      <table>
-        <thead><tr><th data-i18n="task">İşlem</th><th data-i18n="last">Son</th><th data-i18n="next">Sonraki</th><th data-i18n="hours_left">Kalan Saat</th><th>Durum</th></tr></thead>
-        <tbody id="maintBody"></tbody>
-      </table>
-    </div>
-    <div class="card" style="flex:1;min-width:260px;">
-      <h3 data-i18n="health">Makine Sağlığı</h3>
-      <div id="healthBox"></div>
-    </div>
-  </div>
-  <div class="row" style="margin-top:16px;">
-    <div class="card" style="flex:2;min-width:320px;">
-      <h3 data-i18n="alarm_hist">Alarm Geçmişi</h3>
-      <table>
-        <thead><tr><th data-i18n="time">Zaman</th><th>Kod</th><th data-i18n="desc">Açıklama</th><th data-i18n="resolution">Çözüm</th></tr></thead>
-        <tbody id="alarmHistBody"></tbody>
-      </table>
-    </div>
-    <div class="card" style="flex:1;min-width:260px;">
-      <h3 data-i18n="notes">Notlar / Log</h3>
-      <textarea id="maintNotes" style="width:100%;height:160px;" placeholder="Bakım notu ekleyin..."></textarea>
-      <button class="btn" style="margin-top:8px;" onclick="addNote()" data-i18n="add_note">Not Ekle</button>
-      <div id="noteList" style="margin-top:10px;font-size:12px;"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ AI ============ -->
-<section id="ai" class="tabpanel">
-  <div class="chat-layout">
-    <div class="card chat-box">
-      <h3>AXTEA AI ASİSTAN</h3>
-      <div class="chat-msgs" id="chatMsgs"></div>
-      <div class="suggestions">
-        <button onclick="quickAsk('Alarm nedir?')">Alarm nedir?</button>
-        <button onclick="quickAsk('G-code yardım')">G-code yardım</button>
-        <button onclick="quickAsk('Bakım zamanı?')">Bakım zamanı?</button>
-        <button onclick="quickAsk('Takım değişimi')">Takım değişimi</button>
-      </div>
-      <div class="chat-input">
-        <input type="text" id="chatInput" placeholder="Mesaj veya komut yazın..." onkeydown="if(event.key==='Enter')sendChat()">
-        <button class="mic-btn" id="micBtn" onclick="toggleVoice()" title="Sesli komut">🎤</button>
-        <button class="btn" onclick="sendChat()">Gönder</button>
-      </div>
-    </div>
-    <div class="card">
-      <h3 data-i18n="voice_ref">Sesli Komutlar</h3>
-      <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('show')">📋 Komut Referansı ▾</div>
-      <div class="collapsible-body show">
-        <div class="cmd-ref"><span data-i18n="start">Başlat</span><code>"başlat"</code></div>
-        <div class="cmd-ref"><span>Durdur</span><code>"dur" / "durdur"</code></div>
-        <div class="cmd-ref"><span>Duraklat</span><code>"beklet"</code></div>
-        <div class="cmd-ref"><span>Sıfırla</span><code>"sıfırla"</code></div>
-        <div class="cmd-ref"><span>X Sıfır</span><code>"X sıfır"</code></div>
-        <div class="cmd-ref"><span>Eve Git</span><code>"eve git"</code></div>
-        <div class="cmd-ref"><span>Soru Sor</span><code>"soru: ..."</code></div>
-      </div>
-      <h3 style="margin-top:16px;">Bilgi Bankası</h3>
-      <div style="font-size:12px;color:var(--text2);line-height:1.9;">
-        • Alarm kodları (OSAI)<br>
-        • Operatör rehberi<br>
-        • Arıza giderme<br>
-        • G-code komutları<br>
-        • Bakım rehberi<br>
-        • Malzeme hız/ilerleme
-      </div>
-    </div>
-  </div>
-</section>
-</main>
-
-<!-- JOB MODAL -->
-<div class="modal-bg" id="jobModal">
-  <div class="modal">
-    <h3 id="jobModalTitle">Yeni İş</h3>
-    <div class="field"><label>Parça Adı</label><input type="text" id="jmName"></div>
-    <div class="field"><label>Malzeme</label><select id="jmMat"><option>MDF</option><option>Masif Ahşap</option><option>Kontrplak</option><option>Alüminyum</option></select></div>
-    <div class="field"><label>G-Code Dosyası</label><input type="text" id="jmFile" value="program.nc"></div>
-    <div class="field"><label>Durum</label><select id="jmStatus"><option>Bekliyor</option><option>Çalışıyor</option><option>Tamamlandı</option><option>İptal</option></select></div>
-    <div class="field"><label>Öncelik</label><select id="jmPrio"><option value="H">Yüksek</option><option value="M" selected>Orta</option><option value="L">Düşük</option></select></div>
-    <div class="field"><label>Tahmini Süre (dk)</label><input type="number" id="jmTime" value="30"></div>
-    <div class="field"><label>Operatör</label><input type="text" id="jmOp" value="Operatör"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
-      <button class="btn sec" onclick="closeJobModal()">İptal</button>
-      <button class="btn" onclick="saveJob()">Kaydet</button>
-    </div>
-  </div>
-</div>
-
-<div id="toasts"></div>
+<div class="modal" id="modal"><div class="modal-box" id="modalBox"></div></div>
 
 <script>
-/* ============ I18N ============ */
-const I18N={
-  tr:{sim:'SİMÜLASYON',t_home:'ANA SAYFA',t_jobs:'İŞ LİSTESİ',t_sim:'G-CODE SİMÜLASYON',t_run:'ÇALIŞMA',t_maint:'BAKIM',t_ai:'AI ASİSTAN',
-    machine_status:'Makine Durumu',positions:'Eksen Pozisyonları (mm)',gauges:'Feed & Spindle',motor_load:'Motor Yükleri',quick_stats:'Hızlı İstatistikler',
-    uptime:'Çalışma süresi',parts:'Bugün parça',eff:'Verimlilik',recent_alarms:'Son Alarmlar',total:'Toplam',running:'Çalışıyor',waiting:'Bekliyor',done:'Tamamlandı',
-    add_job:'Yeni İş Ekle',edit:'Düzenle',delete:'Sil',start_job:'Başlat',filter:'Filtre:',all:'Tümü',part:'Parça',material:'Malzeme',status:'Durum',priority:'Öncelik',est_time:'Süre',
-    demo:'Demo Program',play:'Play',pause:'Pause',stop:'Stop',reset:'Reset',lines:'Satır',est:'Tahmini',execution:'Satır Bazlı Çalışma',
-    program:'Program',current_line:'Mevcut Satır',overrides:'Override & Durum',coolant:'Soğutma',door:'Kapı:',cycle:'Kalan süre:',tool_info:'Takım Bilgisi',diameter:'Çap:',
-    maint_sched:'Bakım Takvimi',task:'İşlem',last:'Son',next:'Sonraki',hours_left:'Kalan Saat',health:'Makine Sağlığı',alarm_hist:'Alarm Geçmişi',time:'Zaman',desc:'Açıklama',resolution:'Çözüm',notes:'Notlar / Log',add_note:'Not Ekle',voice_ref:'Sesli Komutlar',start:'Başlat'},
-  en:{sim:'SIMULATION',t_home:'HOME',t_jobs:'JOB LIST',t_sim:'G-CODE SIM',t_run:'RUN',t_maint:'MAINTENANCE',t_ai:'AI ASSISTANT',
-    machine_status:'Machine Status',positions:'Axis Positions (mm)',gauges:'Feed & Spindle',motor_load:'Motor Loads',quick_stats:'Quick Stats',
-    uptime:'Uptime',parts:'Parts today',eff:'Efficiency',recent_alarms:'Recent Alarms',total:'Total',running:'Running',waiting:'Waiting',done:'Done',
-    add_job:'Add Job',edit:'Edit',delete:'Delete',start_job:'Start',filter:'Filter:',all:'All',part:'Part',material:'Material',status:'Status',priority:'Priority',est_time:'Time',
-    demo:'Demo Program',play:'Play',pause:'Pause',stop:'Stop',reset:'Reset',lines:'Lines',est:'Est.',execution:'Line Execution',
-    program:'Program',current_line:'Current Line',overrides:'Override & Status',coolant:'Coolant',door:'Door:',cycle:'Time left:',tool_info:'Tool Info',diameter:'Dia:',
-    maint_sched:'Maint. Schedule',task:'Task',last:'Last',next:'Next',hours_left:'Hours Left',health:'Health',alarm_hist:'Alarm History',time:'Time',desc:'Description',resolution:'Resolution',notes:'Notes / Log',add_note:'Add Note',voice_ref:'Voice Commands',start:'Start'}
+/* ===== ICONS ===== */
+const I={
+  home:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>',
+  sim:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>',
+  list:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  run:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M10 8l6 4-6 4z" fill="currentColor"/></svg>',
+  wrench:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 7a4 4 0 0 1-5 5L4 17l3 3 5-5a4 4 0 0 0 5-5l-2 2-3-3 2-2z"/></svg>',
+  ai:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="16" height="12" rx="3"/><path d="M9 11h.01M15 11h.01M9 15h6M12 3v3"/></svg>',
+  params:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h6M14 18h6"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="12" cy="18" r="2"/></svg>',
+  diag:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2 6 4-12 2 6h6"/></svg>',
+  grid:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',
+  cut:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.5 7.5L20 18M8.5 16.5L20 6"/></svg>',
+  drill:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="6"/><circle cx="12" cy="9" r="2" fill="currentColor"/><path d="M12 15v6"/></svg>',
+  laser:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6M12 22v-2M4 9l4 4M20 9l-4 4"/><circle cx="12" cy="13" r="3"/></svg>',
 };
-let lang='tr';
-function setLang(l){lang=l;document.getElementById('lng-tr').classList.toggle('active',l==='tr');document.getElementById('lng-en').classList.toggle('active',l==='en');
-  document.querySelectorAll('[data-i18n]').forEach(e=>{const k=e.getAttribute('data-i18n');if(I18N[l][k])e.textContent=I18N[l][k];});}
 
-/* ============ TABS ============ */
-function switchTab(t){
-  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
-  document.getElementById(t).classList.add('active');
-  if(t==='sim')drawToolpath();
-}
-
-/* ============ TOAST ============ */
-function toast(msg,type=''){
-  const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
-  document.getElementById('toasts').appendChild(t);
-  setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},3200);
-}
-function showHelp(){toast('Kısayollar: Space=Başlat/Dur · S=Stop · R=Reset · H=Home · 1-6=Sekmeler','amber');}
-
-/* ============ SIMULATION ENGINE ============ */
-const M={state:'IDLE',pos:{x:0,y:0,z:0},target:{x:200,y:150,z:-5},feed:0,spindle:0,
-  loads:{x:0,y:0,z:0,s:0},uptime:0,parts:7,energy:[],eff:87,cycleLeft:0,progLine:0};
-const STATES=['IDLE','RUNNING','PAUSED','HOMING','ALARM'];
-let tickCount=0;
-
-function tick(){
-  tickCount++;
-  const t=tickCount*0.2;
-  if(M.state==='RUNNING'){
-    M.uptime+=0.2;
-    M.pos.x=120+80*Math.sin(t*0.4);
-    M.pos.y=100+60*Math.cos(t*0.3);
-    M.pos.z=-3+2*Math.sin(t*0.7);
-    M.feed=2400+400*Math.sin(t*0.5);
-    M.spindle=18000+800*Math.sin(t*0.2);
-    M.loads.x=40+30*Math.abs(Math.sin(t*0.5));
-    M.loads.y=35+28*Math.abs(Math.cos(t*0.4));
-    M.loads.z=25+20*Math.abs(Math.sin(t*0.6));
-    M.loads.s=55+25*Math.abs(Math.sin(t*0.3));
-    if(M.cycleLeft>0)M.cycleLeft-=0.2;
-    M.progLine=(M.progLine+1)%demoProgram.length;
-    if(Math.random()<0.0015){triggerAlarm();}
-  }else if(M.state==='HOMING'){
-    M.pos.x*=0.85;M.pos.y*=0.85;M.pos.z*=0.85;
-    M.feed=600;M.spindle=0;
-    if(Math.abs(M.pos.x)<0.5){M.pos={x:0,y:0,z:0};M.state='IDLE';setState('IDLE');toast('Home tamamlandı','green');}
-  }else{
-    M.feed=Math.max(0,M.feed*0.8);M.spindle=Math.max(0,M.spindle*0.9);
-    M.loads.x*=0.8;M.loads.y*=0.8;M.loads.z*=0.8;M.loads.s*=0.8;
-  }
-  const e=(M.loads.x+M.loads.y+M.loads.z+M.loads.s)/4*0.12+(M.spindle/18000*4);
-  M.energy.push(e);if(M.energy.length>40)M.energy.shift();
-  renderHome();renderRun();
-  if(energyChart){energyChart.data.datasets[0].data=[...M.energy];energyChart.data.labels=M.energy.map((_,i)=>i);energyChart.update('none');}
-}
-function setState(s){
-  M.state=s;
-  document.getElementById('statusLight').className='status-light '+s;
-  document.getElementById('statusLabel').textContent=s;
-  document.getElementById('runStatus').textContent=s;
-}
-function triggerAlarm(){
-  setState('ALARM');
-  const al={code:'ALM '+(100+Math.floor(Math.random()*30)),desc:'Eksen limit aşımı',time:new Date().toLocaleTimeString('tr'),res:'Eksen sınırı kontrol edildi'};
-  alarmHistory.unshift(al);renderAlarms();toast('ALARM: '+al.code+' '+al.desc,'red');
+function machineArt(type,color){
+  const arts={
+    router:'<rect x="14" y="40" width="92" height="14" fill="'+color+'" rx="2"/><rect x="40" y="14" width="40" height="30" fill="#2a3a47" rx="3"/><rect x="55" y="44" width="10" height="20" fill="'+color+'"/><rect x="40" y="62" width="40" height="6" fill="#2a3a47" rx="2"/>',
+    nesting:'<rect x="16" y="20" width="88" height="56" fill="#2a3a47" rx="4"/><rect x="22" y="26" width="30" height="20" fill="'+color+'" opacity=".7"/><rect x="55" y="26" width="44" height="14" fill="'+color+'" opacity=".5"/><rect x="22" y="50" width="50" height="20" fill="'+color+'" opacity=".6"/><rect x="76" y="44" width="23" height="26" fill="'+color+'" opacity=".4"/>',
+    edge:'<rect x="10" y="44" width="100" height="8" fill="#2a3a47"/><rect x="20" y="32" width="22" height="12" fill="'+color+'" rx="2"/><rect x="78" y="32" width="22" height="12" fill="'+color+'" rx="2"/><circle cx="48" cy="38" r="6" fill="'+color+'"/><circle cx="72" cy="38" r="6" fill="'+color+'"/>',
+    saw:'<rect x="18" y="36" width="84" height="40" fill="#2a3a47" rx="3"/><circle cx="60" cy="30" r="18" fill="none" stroke="'+color+'" stroke-width="4"/><circle cx="60" cy="30" r="3" fill="'+color+'"/><path d="M30 56h60" stroke="'+color+'" stroke-width="2"/>',
+    boring:'<rect x="18" y="50" width="84" height="24" fill="#2a3a47" rx="3"/>'+[0,1,2,3,4].map(i=>'<rect x="'+(28+i*15)+'" y="20" width="6" height="26" fill="'+color+'" rx="2"/>').join(''),
+    laserm:'<rect x="20" y="24" width="80" height="52" fill="#2a3a47" rx="4"/><circle cx="60" cy="40" r="8" fill="none" stroke="'+color+'" stroke-width="3"/><path d="M60 48v22" stroke="'+color+'" stroke-width="3"/><circle cx="60" cy="70" r="3" fill="'+color+'"/>',
+  };
+  return '<svg width="110" height="90" viewBox="0 0 120 90">'+(arts[type]||'')+'</svg>';
 }
 
-function renderHome(){
-  document.getElementById('hX').textContent=M.pos.x.toFixed(3);
-  document.getElementById('hY').textContent=M.pos.y.toFixed(3);
-  document.getElementById('hZ').textContent=M.pos.z.toFixed(3);
-  document.getElementById('feedVal').textContent=Math.round(M.feed);
-  document.getElementById('spinVal').textContent=Math.round(M.spindle);
-  drawGauge('feedGauge',M.feed/4000);
-  drawGauge('spinGauge',M.spindle/24000);
-  setLoad('lX','lXt',M.loads.x);setLoad('lY','lYt',M.loads.y);setLoad('lZ','lZt',M.loads.z);setLoad('lS','lSt',M.loads.s);
-  const h=Math.floor(M.uptime/3600),m=Math.floor((M.uptime%3600)/60);
-  document.getElementById('sUptime').textContent=h+':'+String(m).padStart(2,'0');
-  document.getElementById('sParts').textContent=M.parts;
-  document.getElementById('sEff').textContent=M.eff+'%';
-  document.getElementById('statusProg').textContent=M.state==='RUNNING'?'demo_kapak.nc · satır '+M.progLine:'—';
-}
-function setLoad(id,tid,v){
-  v=Math.min(100,v);const el=document.getElementById(id);
-  el.style.width=v+'%';
-  el.style.background=v>80?'var(--red)':v>55?'var(--amber)':'var(--green)';
-  document.getElementById(tid).textContent=Math.round(v)+'%';
-}
-function drawGauge(id,frac){
-  frac=Math.max(0,Math.min(1,frac));
-  const svg=document.getElementById(id);
-  const cx=60,cy=70,r=48;const a1=Math.PI+Math.PI*frac;
-  const x0=cx+r*Math.cos(Math.PI),y0=cy+r*Math.sin(Math.PI);
-  const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
-  const xe=cx+r*Math.cos(0),ye=cy+r*Math.sin(0);
-  const col=frac>0.85?'#EF4444':frac>0.6?'#F59E0B':'#6366C8';
-  svg.innerHTML='<path d="M'+x0+' '+y0+' A'+r+' '+r+' 0 0 1 '+xe+' '+ye+'" fill="none" stroke="#2A3540" stroke-width="9"/>'+
-    '<path d="M'+x0+' '+y0+' A'+r+' '+r+' 0 '+(frac>0.5?1:0)+' 1 '+x1+' '+y1+'" fill="none" stroke="'+col+'" stroke-width="9" stroke-linecap="round"/>';
-}
-function renderRun(){
-  document.getElementById('rX').textContent=M.pos.x.toFixed(3);
-  document.getElementById('rY').textContent=M.pos.y.toFixed(3);
-  document.getElementById('rZ').textContent=M.pos.z.toFixed(3);
-  document.getElementById('runLine').textContent=M.state==='RUNNING'?(demoProgram[M.progLine]||'—'):'—';
-  if(M.cycleLeft>0){const m=Math.floor(M.cycleLeft/60),s=Math.floor(M.cycleLeft%60);document.getElementById('cycleT').textContent=m+':'+String(s).padStart(2,'0');}
-  else document.getElementById('cycleT').textContent='--:--';
-}
-function renderAlarms(){
-  const recent=alarmHistory.slice(0,5).map(a=>'<div class="alarm-item"><span class="ac">'+a.code+'</span><div><div>'+a.desc+'</div><div class="at">'+a.time+'</div></div></div>').join('');
-  document.getElementById('homeAlarms').innerHTML=recent||'<div style="color:var(--text2)">Alarm yok</div>';
-  document.getElementById('alarmHistBody').innerHTML=alarmHistory.map(a=>'<tr><td>'+a.time+'</td><td style="color:var(--red);font-weight:700">'+a.code+'</td><td>'+a.desc+'</td><td>'+a.res+'</td></tr>').join('');
-}
+/* ===== TAB DEFINITIONS ===== */
+const TABDEFS={
+  router:[['home','Ana Sayfa',I.home],['sim','G-Code Sim',I.sim],['jobs','İş Listesi',I.list],['run','Çalışma',I.run],['maint','Bakım',I.wrench],['ai','AI Asistan',I.ai]],
+  nesting:[['home','Ana Sayfa',I.home],['nest','Nesting Plan',I.grid],['jobs','İş Listesi',I.list],['run','Çalışma',I.run],['maint','Bakım',I.wrench],['ai','AI Asistan',I.ai]],
+  edge:[['home','Ana Sayfa',I.home],['params','Parametreler',I.params],['jobs','İş Listesi',I.list],['diag','Tanılama',I.diag],['maint','Bakım',I.wrench],['ai','AI Asistan',I.ai]],
+  saw:[['home','Ana Sayfa',I.home],['cutprog','Kesim Programı',I.cut],['jobs','İş Listesi',I.list],['run','Çalışma',I.run],['maint','Bakım',I.wrench],['ai','AI Asistan',I.ai]],
+  boring:[['home','Ana Sayfa',I.home],['pattern','Delik Deseni',I.drill],['jobs','İş Listesi',I.list],['run','Çalışma',I.run],['maint','Bakım',I.wrench],['ai','AI Asistan',I.ai]],
+  laserm:[['home','Ana Sayfa',I.home],['preview','Gravür Önizleme',I.laser],['jobs','İş Listesi',I.list],['run','Çalışma',I.run],['maint','Bakım',I.wrench],['ai','AI Asistan',I.ai]],
+};
 
-/* ============ MACHINE CONTROLS ============ */
-function machineStart(){if(M.state==='ALARM'){toast('Önce alarmı temizleyin (Reset)','amber');return;}setState('RUNNING');M.cycleLeft=M.cycleLeft||320;toast('Program başlatıldı','green');}
-function machinePause(){if(M.state==='RUNNING'){setState('PAUSED');toast('Duraklatıldı','amber');}}
-function machineStop(){setState('IDLE');M.cycleLeft=0;M.progLine=0;toast('Durduruldu','red');}
-function machineReset(){M.pos={x:0,y:0,z:0};setState('IDLE');toast('Sıfırlandı','green');}
-function machineHome(){setState('HOMING');toast('Home alınıyor...','');}
-function zeroAxis(ax){M.pos[ax]=0;toast(ax.toUpperCase()+' ekseni sıfırlandı','green');}
+/* ===== MACHINE DATA ===== */
+const MACHINES={
+  RT5000:{id:'RT5000',type:'router',name:'AXTEA RT-5000',model:'5 Eksenli CNC Freze',serial:'AX-RT-2024-001',color:'#6366C8',status:'RUNNING',
+    job:'KAPI-PANEL-A12',uptime:'6s 42dk',eff:'94%',area:'3050 × 1550 × 250 mm',spindle:'24.000 RPM · 22 kW · HSK-63',
+    specs:{'Çalışma Alanı':'3050×1550×250 mm','Spindle':'24.000 RPM / 22 kW','Tutucu':'HSK-63','ATC':'24 takım karusel','Eksen':'X Y Z A B (5 eksen)'},
+    maint:[['Spindle yatakları','98%','green','1.240 sa'],['A/B döner eksen yağı','62%','amber','840 sa'],['ATC karusel','88%','green','420 değişim'],['Vakum pompası','75%','green','—'],['Lineer kızaklar','91%','green','—']],
+    alarms:[['08:12','Bilgi','Takım 7 ömür uyarısı (%85 aşınma)'],['Dün 14:30','Uyarı','A ekseni referans gecikmesi giderildi']]},
+  NS3200:{id:'NS3200',type:'nesting',name:'AXTEA NS-3200',model:'Nesting Merkezi',serial:'AX-NS-2024-002',color:'#06B6D4',status:'RUNNING',
+    job:'MUTFAK-SET-09',uptime:'5s 10dk',eff:'89%',area:'3210 × 1580 × 200 mm',spindle:'18.000 RPM · 15 kW',
+    specs:{'Çalışma Alanı':'3210×1580×200 mm','Spindle':'18.000 RPM / 15 kW','ATC':'12 takım','Vakum':'6×4 pod sistemi','Eksen':'X Y Z'},
+    maint:[['Vakum podları','94%','green','—'],['Spindle','90%','green','980 sa'],['Çıkış konveyörü','81%','green','—'],['Toz toplama','70%','amber','Filtre %70']],
+    alarms:[['09:40','Bilgi','Nesting optimizasyonu tamamlandı %91 verim'],['Dün','Uyarı','Pod B3 düşük vakum — temizlendi']]},
+  EB800:{id:'EB800',type:'edge',name:'AXTEA EB-800',model:'Kenar Bantlama',serial:'AX-EB-2024-003',color:'#F59E0B',status:'IDLE',
+    job:'—',uptime:'3s 05dk',eff:'97%',area:'Lineer proses',spindle:'Konveyör tahrikli',
+    specs:{'Proses':'Lineer konveyör','Besleme':'5–25 m/dk','Tutkal':'160–200 °C','Bant':'0.4–3 mm','İstasyon':'8 kademe'},
+    maint:[['Tutkal haznesi','55%','amber','Doldurma gerekli'],['Ön frezeleme bıçağı','83%','green','—'],['Flush trim motor','92%','green','—'],['Buffing keçesi','40%','red','Değişim önerilir']],
+    alarms:[['10:05','Uyarı','Tutkal seviyesi %55 — doldurun'],['Dün 16:00','Bilgi','Sıcaklık 180°C stabil']]},
+  BS4500:{id:'BS4500',type:'saw',name:'AXTEA BS-4500',model:'Daire Testere (Panel Boy)',serial:'AX-BS-2024-004',color:'#22C55E',status:'RUNNING',
+    job:'PANEL-KESIM-22',uptime:'4s 30dk',eff:'92%',area:'2440 × 1220 mm panel',spindle:'Ø450 mm · 3800 RPM · 7.5 kW',
+    specs:{'Bıçak':'Ø450 mm','Devir':'3800 RPM / 7.5 kW','Eksen':'X (fence) Y (carriage) Z','Skor':'Çizici bıçak mevcut','Baskı':'Baskı kirişi'},
+    maint:[['Ana testere bıçağı','78%','green','340 kesim'],['Çizici bıçak','85%','green','—'],['Baskı kirişi hidrolik','90%','green','—'],['Fence servo','95%','green','—']],
+    alarms:[['11:20','Bilgi','Kesim programı 22 yüklendi'],['Dün','Uyarı','Bıçak titreşimi normal aralıkta']]},
+  BD21:{id:'BD21',type:'boring',name:'AXTEA BD-21',model:'CNC Delik Delme',serial:'AX-BD-2024-005',color:'#EF4444',status:'IDLE',
+    job:'—',uptime:'2s 18dk',eff:'95%',area:'21 dikey + 4 yatay spindle',spindle:'2800 RPM',
+    specs:{'Dikey Spindle':'21 adet','Yatay Spindle':'4 adet','Devir':'2800 RPM','Eksen':'X Y Z','Delme':'Step / havşa'},
+    maint:[['Dikey spindle grubu','89%','green','—'],['Yatay spindle','93%','green','—'],['Z eksen tahrik','86%','green','—'],['Matkap uçları','67%','amber','5 uç aşınmış']],
+    alarms:[['07:50','Bilgi','25 spindle kalibrasyonu OK'],['Dün','Bilgi','Delik deseni STD-32 yüklendi']]},
+  LM2000:{id:'LM2000',type:'laserm',name:'AXTEA LM-2000',model:'Lazer Gravür',serial:'AX-LM-2024-006',color:'#06B6D4',status:'OFFLINE',
+    job:'—',uptime:'0s 00dk',eff:'—',area:'1300 × 900 mm',spindle:'100 W CO₂ · 10.600 nm',
+    specs:{'Çalışma Alanı':'1300×900 mm','Lazer':'100 W CO₂','Dalga Boyu':'10.600 nm','Eksen':'X Y Z (fokus)','Hız':'0–500 mm/s'},
+    maint:[['Lazer tüpü','72%','amber','~4.000 sa kaldı'],['Aynalar / lens','88%','green','Temiz'],['Soğutma (chiller)','94%','green','22°C'],['Egzoz fanı','90%','green','—']],
+    alarms:[['—','Bilgi','Makine çevrimdışı'],['Dün 18:00','Bilgi','Günlük bakım tamamlandı']]},
+};
 
-document.addEventListener('keydown',e=>{
-  if(['INPUT','TEXTAREA'].includes(e.target.tagName))return;
-  if(e.code==='Space'){e.preventDefault();M.state==='RUNNING'?machinePause():machineStart();}
-  else if(e.key.toLowerCase()==='s')machineStop();
-  else if(e.key.toLowerCase()==='r')machineReset();
-  else if(e.key.toLowerCase()==='h')machineHome();
-  else if('123456'.includes(e.key)){switchTab(['home','jobs','sim','run','maint','ai'][+e.key-1]);}
-});
+const DEFAULT_JOBS={
+  RT5000:[{id:'WO-1001',part:'Kapı Paneli A12',mat:'MDF 18mm',prog:'PANEL_5AX.nc',st:'Çalışıyor',op:'Mehmet K.',eta:'42 dk'},
+          {id:'WO-1002',part:'Köşe Bağlantı',mat:'Meşe Masif',prog:'CORNER_AB.nc',st:'Bekliyor',op:'Ayşe T.',eta:'1 sa 10 dk'}],
+  NS3200:[{id:'WO-2001',part:'Mutfak Set 09',mat:'Suntalam 18mm',prog:'NEST_KIT09.nc',st:'Çalışıyor',op:'Ali R.',eta:'1 sa'},
+          {id:'WO-2002',part:'Raf Grubu',mat:'MDF 16mm',prog:'NEST_SHELF.nc',st:'Bekliyor',op:'Ayşe T.',eta:'35 dk'}],
+  EB800:[{id:'WO-3001',part:'Tezgah Kenarı',mat:'PVC Bant 2mm',prog:'EB_STD180.prg',st:'Bekliyor',op:'Veli S.',eta:'25 dk'},
+         {id:'WO-3002',part:'Dolap Kapağı x40',mat:'ABS Bant 1mm',prog:'EB_FAST.prg',st:'Tamamlandı',op:'Veli S.',eta:'—'}],
+  BS4500:[{id:'WO-4001',part:'Panel Kesim 22',mat:'Suntalam 18mm',prog:'CUT_OPT22.cut',st:'Çalışıyor',op:'Hasan D.',eta:'30 dk'},
+          {id:'WO-4002',part:'Yan Panel',mat:'MDF 18mm',prog:'CUT_SIDE.cut',st:'Bekliyor',op:'Hasan D.',eta:'20 dk'}],
+  BD21:[{id:'WO-5001',part:'Yan Gövde Delik',mat:'Suntalam 18mm',prog:'DRILL_STD32.drl',st:'Bekliyor',op:'Murat A.',eta:'15 dk'},
+        {id:'WO-5002',part:'Alt Tabla',mat:'MDF 18mm',prog:'DRILL_BASE.drl',st:'Bekliyor',op:'Murat A.',eta:'12 dk'}],
+  LM2000:[{id:'WO-6001',part:'Logo Gravür',mat:'Meşe Masif',prog:'LOGO_OAK.lz',st:'Bekliyor',op:'Selin B.',eta:'8 dk'},
+          {id:'WO-6002',part:'Seri No Marka',mat:'MDF',prog:'SERIAL.lz',st:'Tamamlandı',op:'Selin B.',eta:'—'}],
+};
 
-/* ============ JOBS ============ */
-let jobs=[
-  {id:'WO-1001',name:'Mutfak Kapağı',mat:'MDF',file:'kapak.nc',status:'Çalışıyor',prio:'H',time:45,op:'Ahmet Y.'},
-  {id:'WO-1002',name:'Raf Paneli',mat:'Kontrplak',file:'raf.nc',status:'Bekliyor',prio:'M',time:30,op:'Mehmet K.'},
-  {id:'WO-1003',name:'Masa Ayağı',mat:'Masif Ahşap',file:'ayak.nc',status:'Bekliyor',prio:'L',time:60,op:'Ayşe T.'},
-  {id:'WO-1004',name:'Dolap Yan',mat:'MDF',file:'yan.nc',status:'Tamamlandı',prio:'M',time:25,op:'Ahmet Y.'},
-  {id:'WO-1005',name:'Montaj Plakası',mat:'Alüminyum',file:'plaka.nc',status:'İptal',prio:'H',time:90,op:'Mehmet K.'}
-];
-let selectedJob=null,editingJob=null;
-const STBADGE={'Bekliyor':'b-wait','Çalışıyor':'b-run','Tamamlandı':'b-done','İptal':'b-cancel'};
-const PRIOLBL={H:'Yüksek',M:'Orta',L:'Düşük'};
-function renderJobs(){
-  const f=document.getElementById('jobFilter').value;
-  const list=jobs.filter(j=>f==='all'||j.status===f);
-  document.getElementById('jobBody').innerHTML=list.map(j=>'<tr onclick="selectJob(\''+j.id+'\')" style="cursor:pointer;'+(selectedJob===j.id?'background:rgba(99,102,200,.12)':'')+'">'+
-    '<td><input type="radio" name="jobsel" '+(selectedJob===j.id?'checked':'')+'></td>'+
-    '<td>'+j.id+'</td><td>'+j.name+'</td><td>'+j.mat+'</td><td>'+j.file+'</td>'+
-    '<td><span class="badge '+STBADGE[j.status]+'">'+j.status+'</span></td>'+
-    '<td class="prio-'+j.prio+'">'+PRIOLBL[j.prio]+'</td><td>'+j.time+' dk</td><td>'+j.op+'</td></tr>').join('');
-  document.getElementById('jTotal').textContent=jobs.length;
-  document.getElementById('jRun').textContent=jobs.filter(j=>j.status==='Çalışıyor').length;
-  document.getElementById('jWait').textContent=jobs.filter(j=>j.status==='Bekliyor').length;
-  document.getElementById('jDone').textContent=jobs.filter(j=>j.status==='Tamamlandı').length;
-}
-function selectJob(id){selectedJob=id;renderJobs();}
-function openJobModal(){editingJob=null;document.getElementById('jobModalTitle').textContent='Yeni İş';
-  document.getElementById('jmName').value='';document.getElementById('jmFile').value='program.nc';
-  document.getElementById('jmTime').value=30;document.getElementById('jmOp').value='Operatör';
-  document.getElementById('jobModal').classList.add('show');}
-function editSelectedJob(){if(!selectedJob){toast('Bir iş seçin','amber');return;}
-  const j=jobs.find(x=>x.id===selectedJob);editingJob=j;
-  document.getElementById('jobModalTitle').textContent='İşi Düzenle';
-  document.getElementById('jmName').value=j.name;document.getElementById('jmMat').value=j.mat;
-  document.getElementById('jmFile').value=j.file;document.getElementById('jmStatus').value=j.status;
-  document.getElementById('jmPrio').value=j.prio;document.getElementById('jmTime').value=j.time;document.getElementById('jmOp').value=j.op;
-  document.getElementById('jobModal').classList.add('show');}
-function closeJobModal(){document.getElementById('jobModal').classList.remove('show');}
-function saveJob(){
-  const data={name:document.getElementById('jmName').value||'Yeni Parça',mat:document.getElementById('jmMat').value,
-    file:document.getElementById('jmFile').value,status:document.getElementById('jmStatus').value,
-    prio:document.getElementById('jmPrio').value,time:+document.getElementById('jmTime').value,op:document.getElementById('jmOp').value};
-  if(editingJob){Object.assign(editingJob,data);toast('İş güncellendi','green');}
-  else{data.id='WO-'+(1000+jobs.length+1);jobs.push(data);toast('İş eklendi','green');}
-  closeJobModal();renderJobs();
-}
-function deleteSelectedJob(){if(!selectedJob){toast('Bir iş seçin','amber');return;}
-  jobs=jobs.filter(j=>j.id!==selectedJob);selectedJob=null;renderJobs();toast('İş silindi','red');}
-function startSelectedJob(){if(!selectedJob){toast('Bir iş seçin','amber');return;}
-  const j=jobs.find(x=>x.id===selectedJob);j.status='Çalışıyor';renderJobs();
-  document.getElementById('runProg').textContent=j.file;document.getElementById('toolMat').textContent=j.mat;
-  machineStart();switchTab('run');toast(j.name+' başlatıldı','green');}
+const AI_KB={
+  router:{intro:'Merhaba! Ben RT-5000 5 eksenli CNC freze asistanınızım. Eksen yönlendirme, takım değişimi ve nesting konularında yardımcı olabilirim.',
+    quick:['Durum raporu','A eksenini sıfırla','Takım değiştir 5','Spindle nasıl?'],
+    rules:[[/başlat|start/i,'Çevrim başlatılıyor. Spindle 24.000 RPM, tüm eksenler referanslı.'],
+      [/dur\b|stop/i,'Acil durdurma uygulandı. Spindle durdu, eksenler güvenli pozisyonda.'],
+      [/a eksen|sıfırla|reset/i,'A ekseni referans noktasına alınıyor... 0.000° konumda. Döner eksen kalibrasyonu OK.'],
+      [/takım değiştir|tool/i,m=>{var n=(m.match(/\d+/)||['—'])[0];return 'Takım '+n+' ATC karuselinden alınıyor. HSK-63 kilitleme tamam. Aktif takım: T'+n+'.';}],
+      [/spindle|mil/i,'Spindle sağlıklı: yatak sıcaklığı 38°C, titreşim 1.2 mm/s (normal). %98 sağlık.'],
+      [/durum|rapor|status/i,'RT-5000 ÇALIŞIYOR · İş: KAPI-PANEL-A12 · Verim %94 · 5 eksen aktif · Takım T7 (%85 aşınma).'],
+      [/nest|dizilim/i,'Nesting verimi %91. Atık %9. Optimizasyon için parça döndürme önerilir.'],
+      [/alarm|hata/i,'Aktif uyarı: Takım 7 ömür sınırına yaklaştı (%85). T7 değişimi planlayın.']]},
+  nesting:{intro:'Merhaba! NS-3200 nesting merkezi asistanıyım. Pod vakum sistemi ve dizilim optimizasyonunda yardımcı olurum.',
+    quick:['Verim raporu','Pod durumu','Optimizasyonu çalıştır','Atık oranı'],
+    rules:[[/başlat|start/i,'Nesting çevrimi başladı. 6×4 pod aktif, vakum -0.8 bar.'],
+      [/dur\b|stop/i,'Durduruldu. Tüm podlar serbest bırakıldı.'],
+      [/pod|vakum/i,'24 poddan 22 aktif. B3 düşük vakum gösteriyor — kontrol önerilir.'],
+      [/verim|optim/i,'Mevcut dizilim verimi %91, atık %9. Yeniden optimizasyon ile +%2 mümkün.'],
+      [/atık|waste/i,'Atık oranı %9 (1.4 m²). Hedef <%10 — uygun.'],
+      [/durum|rapor/i,'NS-3200 ÇALIŞIYOR · MUTFAK-SET-09 · Verim %89 · 22/24 pod aktif.']]},
+  edge:{intro:'Merhaba! EB-800 kenar bantlama asistanıyım. Sıcaklık, hız ve istasyon ayarlarında yardımcı olurum.',
+    quick:['Sıcaklık 180','Hız 12','Tutkal seviyesi','İstasyon durumu'],
+    rules:[[/sıcaklık|temp/i,m=>{var n=(m.match(/\d+/)||[180])[0];return 'Tutkal sıcaklığı '+n+'°C olarak ayarlandı. Isınma ~90 sn.';}],
+      [/hız|speed|feed/i,m=>{var n=(m.match(/\d+/)||[12])[0];return 'Besleme hızı '+n+' m/dk olarak ayarlandı.';}],
+      [/başlat|start/i,'Konveyör başladı. Tüm istasyonlar aktif: ön frezeleme → tutkal → bant → flush.'],
+      [/dur\b|stop/i,'Konveyör durduruldu. Tutkal haznesi sıcak tutuluyor.'],
+      [/tutkal|glue/i,'Tutkal seviyesi %55 — yakında doldurun. Sıcaklık 180°C stabil.'],
+      [/istasyon|stage/i,'Buffing istasyonu keçesi %40 — değişim önerilir. Diğer istasyonlar OK.'],
+      [/durum|rapor/i,'EB-800 BEKLEMEDE · Bugün 248 parça · 412 m bant · Tutkal %55.']]},
+  saw:{intro:'Merhaba! BS-4500 panel boy testere asistanıyım. Kesim programları ve fence pozisyonunda yardımcı olurum.',
+    quick:['Kesim programı 22','Fence pozisyonu','Bıçak durumu','Başlat'],
+    rules:[[/kesim programı|program/i,m=>{var n=(m.match(/\d+/)||['22'])[0];return 'Kesim programı '+n+' yüklendi. 3 rip + 4 cross kesim, tahmini 30 dk.';}],
+      [/başlat|start/i,'Kesim çevrimi başladı. Baskı kirişi indirildi, bıçak 3800 RPM.'],
+      [/dur\b|stop/i,'Kesim durduruldu. Bıçak yükseliyor, baskı kirişi açıldı.'],
+      [/fence/i,'Fence pozisyonu 612.0 mm. Servo hassasiyeti ±0.1 mm.'],
+      [/bıçak|blade/i,'Ana bıçak %78 (340 kesim). Çizici bıçak %85. Titreşim normal.'],
+      [/durum|rapor/i,'BS-4500 ÇALIŞIYOR · PANEL-KESIM-22 · Verim %92 · Bıçak %78.']]},
+  boring:{intro:'Merhaba! BD-21 CNC delik delme asistanıyım. Delik desenleri ve spindle gruplarında yardımcı olurum.',
+    quick:['Delik deseni STD-32','Spindle durumu','Delik sayısı','Başlat'],
+    rules:[[/desen|pattern/i,m=>{var n=(m.match(/[\w-]*\d+/)||['STD-32'])[0];return 'Delik deseni '+n+' yüklendi. 32 delik: 8mm × 24, 5mm × 8.';}],
+      [/başlat|start/i,'Delme çevrimi başladı. 21 dikey spindle 2800 RPM.'],
+      [/dur\b|stop/i,'Durduruldu. Spindle grupları yukarı çekildi.'],
+      [/spindle/i,'21 dikey + 4 yatay spindle aktif. Grup sağlığı %89.'],
+      [/delik|hole/i,'Bu iş için 32 delik/parça. Bugün toplam 1.280 delik.'],
+      [/durum|rapor/i,'BD-21 BEKLEMEDE · Verim %95 · 25 spindle hazır · 5 uç aşınmış.']]},
+  laserm:{intro:'Merhaba! LM-2000 lazer gravür asistanıyım. Güç, hız ve malzeme presetlerinde yardımcı olurum.',
+    quick:['Güç 40','Hız 300','Malzeme Meşe','Fokus ayarı'],
+    rules:[[/güç|power/i,m=>{var n=(m.match(/\d+/)||[40])[0];return 'Lazer gücü %'+n+' olarak ayarlandı.';}],
+      [/hız|speed/i,m=>{var n=(m.match(/\d+/)||[300])[0];return 'Tarama hızı '+n+' mm/s.';}],
+      [/malzeme|meşe|mdf|ceviz/i,'Malzeme preseti uygulandı. Meşe: %35 güç, 280 mm/s, 1 geçiş.'],
+      [/fokus|focus/i,'Fokus mesafesi otomatik ayarlandı: lens-yüzey 5.0 mm. Fokus asistanı aktif.'],
+      [/başlat|start/i,'Gravür başladı. Egzoz açık, lazer tüpü 22°C.'],
+      [/dur\b|stop/i,'Gravür durduruldu. Lazer kapalı.'],
+      [/durum|rapor/i,'LM-2000 ÇEVRİMDIŞI · Lazer tüpü %72 · Chiller 22°C.']]},
+};
 
-/* ============ G-CODE SIM ============ */
-const demoProgram=('G21 G90 G54\nG0 Z5\nG0 X10 Y10\nM3 S18000\nG1 Z-2 F600\nG1 X190 F2400\nG1 Y140\nG1 X10\nG1 Y10\nG0 Z5\nG0 X100 Y75\nG1 Z-4 F600\nG2 X140 Y75 I20 J0 F1800\nG2 X100 Y75 I-20 J0\nG0 Z5\nG0 X40 Y40\nG1 Z-3 F600\nG3 X160 Y40 I60 J0\nG1 Y110\nG3 X40 Y110 I-60 J0\nG1 Y40\nG0 Z5\nM5\nG0 X0 Y0\nM30').split('\n');
-let parsedMoves=[],simIdx=0,simTimer=null;
-function loadDemo(){document.getElementById('gEditor').value=demoProgram.join('\n');parseGCode();toast('Demo program yüklendi');}
-function loadGFile(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{document.getElementById('gEditor').value=e.target.result;parseGCode();toast('Dosya yüklendi: '+f.name,'green');};r.readAsText(f);}
-function parseGCode(){
-  const lines=document.getElementById('gEditor').value.split('\n');
-  parsedMoves=[];let cur={x:0,y:0,z:0},mode='G0';
-  let rapidD=0,cutD=0;
-  lines.forEach((raw,i)=>{
-    const line=raw.toUpperCase().replace(/;.*/,'').trim();
-    const g=line.match(/G([0-3])\b/);if(g)mode='G'+g[1];
-    const mx=line.match(/X(-?[\d.]+)/),my=line.match(/Y(-?[\d.]+)/),mz=line.match(/Z(-?[\d.]+)/);
-    const mi=line.match(/I(-?[\d.]+)/),mj=line.match(/J(-?[\d.]+)/);
-    let nx=mx?+mx[1]:cur.x,ny=my?+my[1]:cur.y,nz=mz?+mz[1]:cur.z;
-    if(mx||my||mz){
-      const isArc=mode==='G2'||mode==='G3';
-      const d=Math.hypot(nx-cur.x,ny-cur.y);
-      if(mode==='G0')rapidD+=d;else cutD+=d;
-      if(isArc&&mi&&mj){
-        const cxx=cur.x+ +mi[1],cyy=cur.y+ +mj[1];
-        const a0=Math.atan2(cur.y-cyy,cur.x-cxx),a1=Math.atan2(ny-cyy,nx-cxx);
-        const rr=Math.hypot(cur.x-cxx,cur.y-cyy);
-        let da=a1-a0;const cw=mode==='G2';
-        if(cw&&da>0)da-=2*Math.PI;if(!cw&&da<0)da+=2*Math.PI;
-        const segs=Math.max(6,Math.ceil(Math.abs(da)/0.2));
-        let px=cur.x,py=cur.y;
-        for(let s=1;s<=segs;s++){const a=a0+da*s/segs;const ax=cxx+rr*Math.cos(a),ay=cyy+rr*Math.sin(a);
-          parsedMoves.push({line:i,type:mode,x0:px,y0:py,x1:ax,y1:ay,z:nz});px=ax;py=ay;}
-      }else{
-        parsedMoves.push({line:i,type:mode,x0:cur.x,y0:cur.y,x1:nx,y1:ny,z:nz});
-      }
-      cur={x:nx,y:ny,z:nz};
-    }
+/* ===== STATE ===== */
+var current=null,charts={},sim=null,recog=null,listening=false;
+var canvasRAF=null;
+function $(s){return document.querySelector(s);}
+function ce(t){return document.createElement(t);}
+
+/* ===== CLOCK ===== */
+function tick(){var d=new Date();$('#clock').textContent=d.toLocaleString('tr-TR',{weekday:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+setInterval(tick,1000);tick();
+
+/* ===== SELECTOR ===== */
+function buildSelector(){
+  var g=$('#machineGrid');g.innerHTML='';
+  Object.keys(MACHINES).forEach(function(k){
+    var m=MACHINES[k];var c=ce('div');c.className='mcard';
+    c.innerHTML='<div class="photo">'+machineArt(m.type,m.color)+'</div>'+
+      '<div class="body"><div><h3>'+m.name+'</h3><div class="model">'+m.serial+'</div></div>'+
+      '<span class="badge">'+m.model+'</span>'+
+      '<div class="statline s-'+m.status+'"><span class="dot"></span>'+m.status+'</div>'+
+      '<div class="stats"><div>İş<b>'+m.job+'</b></div><div>Çalışma<b>'+m.uptime+'</b></div>'+
+      '<div>Verim<b>'+m.eff+'</b></div><div>Alan<b style="font-size:.75rem">'+m.area.split('·')[0]+'</b></div></div>'+
+      '<button class="connect" onclick="openMachine(\''+m.id+'\')">BAĞLAN</button></div>';
+    g.appendChild(c);
   });
-  document.getElementById('ssLines').textContent=lines.length;
-  document.getElementById('ssRapid').textContent=Math.round(rapidD)+' mm';
-  document.getElementById('ssCut').textContent=Math.round(cutD)+' mm';
-  const est=cutD/2400*60+rapidD/8000*60;
-  document.getElementById('ssTime').textContent=Math.floor(est/60)+':'+String(Math.round(est%60)).padStart(2,'0');
-  simIdx=parsedMoves.length;
-  renderGLines();drawToolpath();
 }
-function renderGLines(curLine){
-  if(curLine===undefined)curLine=-1;
-  const lines=document.getElementById('gEditor').value.split('\n');
-  document.getElementById('gLines').innerHTML=lines.map((l,i)=>'<div class="gl-line '+(i===curLine?'cur':'')+'">'+String(i+1).padStart(3,' ')+'  '+(l||' ')+'</div>').join('');
-  const cur=document.querySelector('.gl-line.cur');if(cur)cur.scrollIntoView({block:'nearest'});
-}
-function zColor(z){
-  if(z>=0)return '#6366C8';
-  const d=Math.min(1,-z/8);
-  const r=Math.round(34+(239-34)*d),g=Math.round(197-(197-68)*d),b=Math.round(94-(94-68)*d);
-  return 'rgb('+r+','+g+','+b+')';
-}
-function resizeCanvas(){
-  const cv=document.getElementById('toolpath');if(!cv)return;
-  const w=cv.parentElement.clientWidth||500;
-  const size=Math.min(w,600);
-  cv.width=size;cv.height=size;
-  drawToolpath();
-}
-window.addEventListener('resize',()=>{clearTimeout(window._rsz);window._rsz=setTimeout(resizeCanvas,150);});
 
-function drawToolpath(upto){
-  if(upto===undefined)upto=null;
-  const cv=document.getElementById('toolpath');if(!cv)return;
-  if(!cv.width||cv.width<10)resizeCanvas();
-  const ctx=cv.getContext('2d');
-  const W=cv.width,H=cv.height;ctx.clearRect(0,0,W,H);
-  const sc=Math.min(W,H)/280*1.2,ox=Math.floor(W*0.1),oy=H-Math.floor(H*0.1);
-  ctx.lineWidth=1;ctx.strokeStyle='rgba(42,53,64,.5)';
-  ctx.font='9px monospace';ctx.fillStyle='#8899AA';
-  for(let gx=0;gx<=250;gx+=50){const px=ox+gx*sc;ctx.beginPath();ctx.moveTo(px,20);ctx.lineTo(px,oy);ctx.stroke();ctx.fillText(gx,px-6,oy+14);}
-  for(let gy=0;gy<=200;gy+=50){const py=oy-gy*sc;ctx.beginPath();ctx.moveTo(ox,py);ctx.lineTo(W-20,py);ctx.stroke();ctx.fillText(gy,ox-26,py+3);}
-  ctx.strokeStyle='#6366C880';ctx.setLineDash([4,4]);ctx.strokeRect(ox,oy-200*sc,200*sc,200*sc);ctx.setLineDash([]);
-  ctx.strokeStyle='#F59E0B';ctx.beginPath();ctx.moveTo(ox-8,oy);ctx.lineTo(ox+8,oy);ctx.moveTo(ox,oy-8);ctx.lineTo(ox,oy+8);ctx.stroke();
-  const lim=upto===null?parsedMoves.length:upto;
-  for(let i=0;i<lim;i++){const m=parsedMoves[i];
-    const x0=ox+m.x0*sc,y0=oy-m.y0*sc,x1=ox+m.x1*sc,y1=oy-m.y1*sc;
-    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);
-    if(m.type==='G0'){ctx.strokeStyle='#EF4444';ctx.setLineDash([5,4]);ctx.lineWidth=1;}
-    else{ctx.strokeStyle=zColor(m.z);ctx.setLineDash([]);ctx.lineWidth=2;}
-    ctx.stroke();ctx.setLineDash([]);
+/* ===== OPEN / CLOSE ===== */
+function openMachine(id){
+  current=MACHINES[id];
+  document.body.classList.add('in-machine');
+  buildTabs();switchTab(TABDEFS[current.type][0][0]);startSim();window.scrollTo(0,0);
+}
+function goHome(){
+  stopSim();stopListening();
+  Object.keys(charts).forEach(function(k){try{charts[k].destroy();}catch(e){}});charts={};
+  document.body.classList.remove('in-machine');current=null;buildSelector();
+}
+function buildTabs(){
+  var tb=$('#tabbar');tb.innerHTML='';
+  TABDEFS[current.type].forEach(function(t){
+    var b=ce('button');b.className='tab';b.dataset.tab=t[0];b.innerHTML=t[2]+'<span>'+t[1]+'</span>';
+    b.onclick=function(){switchTab(t[0]);};tb.appendChild(b);
+  });
+}
+function switchTab(key){
+  stopListening();stopCanvasLoop();
+  Object.keys(charts).forEach(function(k){try{charts[k].destroy();}catch(e){}});charts={};
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('active',t.dataset.tab===key);});
+  var c=$('#tabcontent');c.innerHTML='';
+  var fn={home:renderHome,jobs:renderJobs,maint:renderMaint,ai:renderAI,sim:renderRouterSim,run:renderRun,
+    nest:renderNest,params:renderParams,diag:renderDiag,cutprog:renderCutProg,pattern:renderPattern,preview:renderPreview}[key];
+  (fn||renderHome)(c);
+}
+
+/* ===== HOME ===== */
+function renderHome(c){
+  var m=current,d=ce('div');
+  d.innerHTML='<div class="gridhead"><h2>'+m.name+' — Genel Bakış</h2>'+
+    '<div class="statline s-'+m.status+'" id="homeStatus"><span class="dot"></span>'+m.status+'</div></div>'+
+    '<div class="cards">'+
+      '<div class="card"><h4>Aktif İş</h4><div class="kpi" id="kJob" style="font-size:1.2rem">'+m.job+'</div><div class="bar"><i id="jobBar" style="width:34%"></i></div><div class="hint" id="jobPct">İlerleme %34</div></div>'+
+      '<div class="card"><h4>Bugün Çalışma</h4><div class="kpi">'+m.uptime+'</div></div>'+
+      '<div class="card"><h4>Verimlilik</h4><div class="kpi" style="color:var(--green)">'+m.eff+'</div></div>'+
+      '<div class="card"><h4>Spindle / Tahrik</h4><div class="kpi" style="font-size:1rem">'+m.spindle+'</div></div>'+
+    '</div>'+
+    '<div class="cards" style="margin-top:16px">'+
+      '<div class="card"><h4>Teknik Özellikler</h4>'+Object.keys(m.specs).map(function(k){return '<div class="row"><span>'+k+'</span><span class="v">'+m.specs[k]+'</span></div>';}).join('')+'</div>'+
+      '<div class="card"><h4>Canlı Veri</h4><div id="liveData"></div></div>'+
+      '<div class="card"><h4>Hızlı Komutlar</h4><div class="btn-row">'+
+        '<button class="btn green" onclick="quickCmd(\'start\')">Başlat</button>'+
+        '<button class="btn red" onclick="quickCmd(\'stop\')">Durdur</button>'+
+        '<button class="btn" onclick="switchTab(\''+TABDEFS[m.type][1][0]+'\')">'+TABDEFS[m.type][1][1]+'</button>'+
+        '<button class="btn primary" onclick="switchTab(\'ai\')">AI Asistan</button></div></div>'+
+    '</div>';
+  c.appendChild(d);
+}
+function quickCmd(a){
+  var m=current;m.status=(a==='start')?'RUNNING':'IDLE';
+  var hs=$('#homeStatus');if(hs){hs.className='statline s-'+m.status;hs.innerHTML='<span class="dot"></span>'+m.status;}
+  toast(a==='start'?m.name+' başlatıldı':m.name+' durduruldu');
+}
+function toast(t){
+  var x=ce('div');x.textContent=t;
+  x.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;padding:12px 22px;border-radius:12px;z-index:200;font-weight:600;box-shadow:0 8px 24px #0008';
+  document.body.appendChild(x);setTimeout(function(){x.remove();},2200);
+}
+
+/* ===== JOBS ===== */
+var jobFilter='Tümü';
+function jobKey(){return 'axtea_jobs_'+current.id;}
+function getJobs(){try{return JSON.parse(localStorage.getItem(jobKey()))||DEFAULT_JOBS[current.id];}catch(e){return DEFAULT_JOBS[current.id];}}
+function saveJobs(j){localStorage.setItem(jobKey(),JSON.stringify(j));}
+function renderJobs(c){
+  var d=ce('div');
+  d.innerHTML='<div class="gridhead"><h2>İş Listesi — '+current.name+'</h2><button class="btn primary" onclick="jobModal()">+ Yeni İş</button></div>'+
+    '<div class="filters" style="margin-bottom:14px" id="jobFilters">'+
+    ['Tümü','Bekliyor','Çalışıyor','Duraklatıldı','Tamamlandı'].map(function(f){return '<button class="chip '+(f===jobFilter?'active':'')+'" onclick="setJobFilter(\''+f+'\')">'+f+'</button>';}).join('')+'</div>'+
+    '<div class="table-wrap"><table><thead><tr><th>ID</th><th>Parça</th><th>Malzeme</th><th>Program</th><th>Durum</th><th>Operatör</th><th>Süre</th><th></th></tr></thead><tbody id="jobBody"></tbody></table></div>';
+  c.appendChild(d);renderJobRows();
+}
+function setJobFilter(f){jobFilter=f;document.querySelectorAll('#jobFilters .chip').forEach(function(c){c.classList.toggle('active',c.textContent===f);});renderJobRows();}
+function renderJobRows(){
+  var jobs=getJobs(),tb=$('#jobBody');if(!tb)return;tb.innerHTML='';
+  jobs.forEach(function(j,real){
+    if(jobFilter!=='Tümü'&&j.st!==jobFilter)return;
+    var tr=ce('tr');
+    tr.innerHTML='<td>'+j.id+'</td><td>'+j.part+'</td><td>'+j.mat+'</td><td>'+j.prog+'</td>'+
+      '<td><span class="pill '+j.st+'">'+j.st+'</span></td><td>'+j.op+'</td><td>'+j.eta+'</td>'+
+      '<td style="white-space:nowrap"><button class="iconbtn" title="Başlat" onclick="startJob('+real+')">&#9654;</button>'+
+      '<button class="iconbtn" title="Düzenle" onclick="jobModal('+real+')">&#9998;</button>'+
+      '<button class="iconbtn" title="Sil" onclick="delJob('+real+')">&#128465;</button></td>';
+    tb.appendChild(tr);
+  });
+  if(!tb.children.length)tb.innerHTML='<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:24px">Bu filtrede iş yok.</td></tr>';
+}
+function startJob(i){var j=getJobs();j.forEach(function(x){if(x.st==='Çalışıyor')x.st='Bekliyor';});j[i].st='Çalışıyor';saveJobs(j);renderJobRows();toast(j[i].id+' başlatıldı');}
+function delJob(i){var j=getJobs();if(confirm('İş silinsin mi: '+j[i].id+'?')){j.splice(i,1);saveJobs(j);renderJobRows();}}
+function jobModal(i){
+  var editing=(i!=null),j=editing?getJobs()[i]:{id:'WO-'+Math.floor(1000+Math.random()*9000),part:'',mat:'',prog:'',st:'Bekliyor',op:'',eta:''};
+  openModal('<h3>'+(editing?'İş Düzenle':'Yeni İş')+'</h3>'+
+    '<input id="f_id" placeholder="İş No" value="'+j.id+'">'+
+    '<input id="f_part" placeholder="Parça Adı" value="'+j.part+'">'+
+    '<input id="f_mat" placeholder="Malzeme" value="'+j.mat+'">'+
+    '<input id="f_prog" placeholder="Program" value="'+j.prog+'">'+
+    '<select id="f_st">'+['Bekliyor','Çalışıyor','Duraklatıldı','Tamamlandı'].map(function(s){return '<option '+(s===j.st?'selected':'')+'>'+s+'</option>';}).join('')+'</select>'+
+    '<input id="f_op" placeholder="Operatör" value="'+j.op+'">'+
+    '<input id="f_eta" placeholder="Tahmini Süre" value="'+j.eta+'">'+
+    '<div class="modal-actions"><button class="btn" onclick="closeModal()">İptal</button><button class="btn primary" onclick="saveJob('+(editing?i:-1)+')">Kaydet</button></div>');
+}
+function saveJob(i){
+  var obj={id:$('#f_id').value,part:$('#f_part').value,mat:$('#f_mat').value,prog:$('#f_prog').value,st:$('#f_st').value,op:$('#f_op').value,eta:$('#f_eta').value||'—'};
+  var j=getJobs();if(i>=0)j[i]=obj;else j.push(obj);saveJobs(j);closeModal();renderJobRows();toast('İş kaydedildi');
+}
+
+/* ===== MAINTENANCE ===== */
+function renderMaint(c){
+  var m=current,d=ce('div');
+  d.innerHTML='<div class="gridhead"><h2>Bakım & Sağlık — '+m.name+'</h2></div>'+
+    '<div class="cards">'+m.maint.map(function(a){return '<div class="card"><h4>'+a[0]+'</h4><div class="kpi" style="color:var(--'+a[2]+')">'+a[1]+'</div><div class="bar"><i style="width:'+a[1]+';background:var(--'+a[2]+')"></i></div><div class="hint">'+a[3]+'</div></div>';}).join('')+'</div>'+
+    '<div class="card" style="margin-top:16px"><h4>Alarm & Olay Geçmişi</h4>'+
+    '<div class="table-wrap" style="border:none;padding:0"><table><thead><tr><th>Zaman</th><th>Tür</th><th>Açıklama</th></tr></thead><tbody>'+
+    m.alarms.map(function(a){return '<tr><td>'+a[0]+'</td><td><span class="pill '+(a[1]==='Uyarı'?'Duraklatıldı':'Tamamlandı')+'">'+a[1]+'</span></td><td>'+a[2]+'</td></tr>';}).join('')+'</tbody></table></div>'+
+    '<div class="btn-row" style="margin-top:14px"><button class="btn primary" onclick="toast(\'Bakım kaydı oluşturuldu\')">Bakım Kaydı Aç</button><button class="btn" onclick="toast(\'Alarm geçmişi temizlendi\')">Geçmişi Temizle</button></div></div>';
+  c.appendChild(d);
+}
+
+/* ===== AI ===== */
+function renderAI(c){
+  var kb=AI_KB[current.type],d=ce('div');
+  d.innerHTML='<div class="gridhead"><h2>AI Asistan — '+current.name+'</h2></div>'+
+    '<div class="chat-wrap"><div class="chat-log" id="chatLog"></div>'+
+    '<div class="quick">'+kb.quick.map(function(q){return '<button onclick="sendChat(\''+q.replace(/'/g,"\\'")+'\')">'+q+'</button>';}).join('')+'</div>'+
+    '<div class="chat-input"><button class="mic" id="micBtn" title="Sesli komut" onclick="toggleVoice()">&#127908;</button>'+
+    '<input id="chatIn" placeholder="Mesaj yazın veya mikrofona basın..." onkeydown="if(event.key===\'Enter\')sendChat()">'+
+    '<button onclick="sendChat()">&#10148;</button></div></div>';
+  c.appendChild(d);addMsg('bot',kb.intro);
+}
+function addMsg(who,text){var log=$('#chatLog');if(!log)return null;var d=ce('div');d.className='msg '+who;d.textContent=text;log.appendChild(d);log.scrollTop=log.scrollHeight;return d;}
+function sendChat(preset){
+  var inp=$('#chatIn'),text=preset||(inp?inp.value.trim():'');if(!text)return;
+  if(inp&&!preset)inp.value='';addMsg('user',text);
+  var log=$('#chatLog'),typing=ce('div');typing.className='msg bot';typing.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';log.appendChild(typing);log.scrollTop=log.scrollHeight;
+  setTimeout(function(){typing.remove();typewriter(addMsg('bot',''),aiReply(text));},650);
+}
+function aiReply(text){
+  var rules=AI_KB[current.type].rules;
+  for(var i=0;i<rules.length;i++){if(rules[i][0].test(text)){var r=rules[i][1];return typeof r==='function'?r(text):r;}}
+  return 'Bu konuda kesin bilgim yok, ancak '+current.name+' için durum/başlat/durdur, parametre ayarı ve bakım komutları verebilirsiniz. Deneyin: "durum raporu".';
+}
+function typewriter(el,text){var i=0,log=$('#chatLog');(function step(){if(el&&i<=text.length){el.textContent=text.slice(0,i++);if(log)log.scrollTop=log.scrollHeight;setTimeout(step,12);}})();}
+function toggleVoice(){listening?stopListening():startListening();}
+function startListening(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('Tarayıcı sesli komutu desteklemiyor');return;}
+  recog=new SR();recog.lang='tr-TR';recog.interimResults=false;
+  recog.onresult=function(e){sendChat(e.results[0][0].transcript);};
+  recog.onend=function(){stopListening();};
+  recog.onerror=function(){stopListening();toast('Ses tanıma hatası');};
+  try{recog.start();listening=true;var b=$('#micBtn');if(b)b.classList.add('listening');toast('Dinleniyor... konuşun');}catch(e){}
+}
+function stopListening(){listening=false;if(recog){try{recog.stop();}catch(e){}}var b=$('#micBtn');if(b)b.classList.remove('listening');}
+
+/* ===== MODAL ===== */
+function openModal(html){$('#modalBox').innerHTML=html;$('#modal').classList.add('show');}
+function closeModal(){$('#modal').classList.remove('show');}
+$('#modal').addEventListener('click',function(e){if(e.target.id==='modal')closeModal();});
+
+/* ===== RUN PANEL ===== */
+function renderRun(c){
+  var m=current,d=ce('div');
+  var axes=m.type==='router'?['X','Y','Z','A','B']:['X','Y','Z'];
+  d.innerHTML='<div class="gridhead"><h2>Çalışma Ekranı — '+m.name+'</h2>'+
+    '<div class="btn-row"><button class="btn green" onclick="quickCmd(\'start\')">Başlat</button><button class="btn red" onclick="quickCmd(\'stop\')">Durdur</button></div></div>'+
+    '<div class="card"><h4>Eksen Pozisyonları</h4><div class="axisgrid">'+
+    axes.map(function(a){return '<div class="axisbox"><div class="ax">'+a+'</div><div class="val" id="ax_'+a+'">0.000</div><div class="u">'+((a==='A'||a==='B')?'derece':'mm')+'</div></div>';}).join('')+'</div></div>'+
+    (m.type==='router'?routerExtra():'')+
+    '<div class="cards" style="margin-top:16px">'+
+      '<div class="card"><h4>Spindle / Tahrik</h4><div class="kpi" id="rpmVal">0 <small>RPM</small></div><div class="bar"><i id="rpmBar" style="width:0%"></i></div></div>'+
+      '<div class="card"><h4>Besleme Override</h4><div class="kpi" id="feedVal">100 <small>%</small></div><input type="range" min="0" max="150" value="100" oninput="$(\'#feedVal\').innerHTML=this.value+\' <small>%</small>\'"></div>'+
+      '<div class="card"><h4>Program İlerleme</h4><div class="kpi" id="runPct">0%</div><div class="bar"><i id="runBar" style="width:0%"></i></div></div></div>';
+  c.appendChild(d);
+}
+function routerExtra(){
+  return '<div class="cards" style="margin-top:16px">'+
+    '<div class="card"><h4>5-Eksen Yönlendirme (A / B)</h4><svg id="orientBox" width="100%" viewBox="0 0 220 200" style="max-width:280px;display:block;margin:auto"></svg><div class="hint">A (döner) ve B (eğim) eksenlerine göre takım yönü.</div></div>'+
+    '<div class="card"><h4>ATC Takım Karuseli (24)</h4><div class="carousel" id="carousel"></div><div class="hint" style="text-align:center" id="activeTool">Aktif takım: T1</div></div></div>';
+}
+
+/* ===== ROUTER G-CODE SIM ===== */
+var simRun=true,simT=0;
+function renderRouterSim(c){
+  var d=ce('div');
+  d.innerHTML='<div class="gridhead"><h2>G-Code Simülasyonu — RT-5000</h2>'+
+    '<div class="btn-row"><button class="btn green" onclick="simRun=true">Oynat</button><button class="btn" onclick="simRun=false">Duraklat</button><button class="btn" onclick="simT=0">Sıfırla</button></div></div>'+
+    '<div class="cards"><div class="card" style="grid-column:1/-1"><h4>Takım Yolu (Nesting Layout)</h4><canvas id="simCanvas" class="fluid" width="900" height="420"></canvas></div></div>'+
+    '<div class="cards" style="margin-top:16px">'+
+    '<div class="card"><h4>5-Eksen Pozisyon</h4><div class="axisgrid">'+['X','Y','Z','A','B'].map(function(a){return '<div class="axisbox"><div class="ax">'+a+'</div><div class="val" id="sim_'+a+'">0</div><div class="u">'+(a>'Z'?'°':'mm')+'</div></div>';}).join('')+'</div></div>'+
+    '<div class="card"><h4>G-Code Önizleme</h4><pre style="font-size:.72rem;color:var(--muted);line-height:1.6;overflow:auto;max-height:160px">G00 X0 Y0 Z50\nG01 Z-12 F1200\nG01 X1200 Y0\nG02 X1280 Y80 R80\nG01 X1280 Y720 A45 B12\nM06 T5\nG01 X80 Y720\nM30</pre></div></div>';
+  c.appendChild(d);simRun=true;simT=0;
+  var cv=$('#simCanvas');startCanvasLoop(function(){drawRouterSim(cv);});
+}
+function drawRouterSim(cv){
+  if(!cv)return;var x=cv.getContext('2d'),W=cv.width,H=cv.height;
+  x.clearRect(0,0,W,H);x.fillStyle='#0e161b';x.fillRect(0,0,W,H);
+  x.strokeStyle='#2A3540';x.lineWidth=2;x.strokeRect(20,20,W-40,H-40);
+  var parts=[[40,40,260,180],[320,40,200,180],[540,40,330,120],[540,180,150,200],[710,180,160,200],[40,240,260,140],[320,240,200,140]];
+  var cols=['#6366C8','#06B6D4','#22C55E','#F59E0B','#6366C8','#06B6D4','#22C55E'];
+  parts.forEach(function(p,i){x.fillStyle=cols[i]+'33';x.strokeStyle=cols[i];x.fillRect(p[0],p[1],p[2],p[3]);x.strokeRect(p[0],p[1],p[2],p[3]);});
+  if(simRun)simT=(simT+0.004)%1;
+  var path=[[40,40],[300,40],[300,220],[520,220],[520,40],[860,40],[860,400],[40,400],[40,40]];
+  var segs=[],total=0;for(var i=1;i<path.length;i++){var dd=Math.hypot(path[i][0]-path[i-1][0],path[i][1]-path[i-1][1]);segs.push(dd);total+=dd;}
+  var target=simT*total,acc=0,tx=path[0][0],ty=path[0][1];
+  x.beginPath();x.strokeStyle='#6366C8';x.lineWidth=2.5;x.setLineDash([6,4]);x.moveTo(path[0][0],path[0][1]);
+  for(var i=1;i<path.length;i++){if(acc+segs[i-1]<target){x.lineTo(path[i][0],path[i][1]);acc+=segs[i-1];tx=path[i][0];ty=path[i][1];}else{var r=(target-acc)/segs[i-1];tx=path[i-1][0]+(path[i][0]-path[i-1][0])*r;ty=path[i-1][1]+(path[i][1]-path[i-1][1])*r;x.lineTo(tx,ty);break;}}
+  x.stroke();x.setLineDash([]);
+  x.beginPath();x.fillStyle='#fff';x.arc(tx,ty,7,0,7);x.fill();x.strokeStyle='#6366C8';x.lineWidth=3;x.stroke();
+  var set=function(id,v){var e=$('#sim_'+id);if(e)e.textContent=v;};
+  set('X',(tx*3.4).toFixed(0));set('Y',(ty*3.4).toFixed(0));set('Z','-12');
+  set('A',(Math.sin(simT*6.28)*45).toFixed(1));set('B',(Math.cos(simT*6.28)*15).toFixed(1));
+}
+
+function startCanvasLoop(fn){stopCanvasLoop();(function loop(){fn();canvasRAF=requestAnimationFrame(loop);})();}
+function stopCanvasLoop(){if(canvasRAF)cancelAnimationFrame(canvasRAF);canvasRAF=null;}
+
+/* ===== NESTING ===== */
+var pods=[];for(var pi=0;pi<24;pi++)pods.push(true);
+function renderNest(c){
+  var d=ce('div');
+  d.innerHTML='<div class="gridhead"><h2>Nesting Plan — NS-3200</h2><button class="btn primary" onclick="optimizeNest()">Optimize Et</button></div>'+
+    '<div class="cards"><div class="card"><h4>Dizilim (Panel 3210×1580)</h4><canvas id="nestCanvas" class="fluid" width="640" height="320"></canvas><div class="legend"><span><i style="background:#6366C8"></i>Parça</span><span><i style="background:#2A3540"></i>Atık</span></div></div>'+
+    '<div class="card"><h4>Vakum Pod Sistemi (6×4)</h4><div class="podgrid" id="podGrid"></div><div class="hint">Açmak/kapatmak için poda dokunun.</div></div></div>'+
+    '<div class="cards" style="margin-top:16px">'+
+    '<div class="card"><h4>Verimlilik</h4><div class="kpi" id="nestEff" style="color:var(--green)">91%</div><div class="bar"><i id="nestEffBar" style="width:91%;background:var(--green)"></i></div></div>'+
+    '<div class="card"><h4>Atık Oranı</h4><div class="kpi" id="nestWaste" style="color:var(--amber)">9%</div><div class="bar"><i id="nestWasteBar" style="width:9%;background:var(--amber)"></i></div></div>'+
+    '<div class="card"><h4>Parça Sayısı</h4><div class="kpi">14 <small>/ panel</small></div></div>'+
+    '<div class="card"><h4>İlerleme</h4><div class="kpi" id="nestPct">0%</div><div class="bar"><i id="nestBar" style="width:0%"></i></div></div></div>';
+  c.appendChild(d);buildPods();drawNest();
+}
+function buildPods(){
+  var g=$('#podGrid');if(!g)return;g.innerHTML='';
+  pods.forEach(function(on,i){var d=ce('div');d.className='pod'+(on?' on':'');d.textContent='P'+(i+1);d.onclick=function(){pods[i]=!pods[i];buildPods();};g.appendChild(d);});
+}
+function drawNest(){
+  var cv=$('#nestCanvas');if(!cv)return;var x=cv.getContext('2d'),W=cv.width,H=cv.height;
+  x.fillStyle='#0e161b';x.fillRect(0,0,W,H);x.strokeStyle='#2A3540';x.lineWidth=2;x.strokeRect(8,8,W-16,H-16);
+  var parts=[[16,16,200,140],[224,16,180,90],[412,16,210,90],[224,114,180,42],[412,114,100,42],[16,164,140,140],[164,164,120,140],[292,164,160,90],[460,164,160,90],[292,262,160,42],[460,262,160,42],[520,114,102,42]];
+  var cols=['#6366C8','#06B6D4','#22C55E','#F59E0B'];
+  parts.forEach(function(p,i){x.fillStyle=cols[i%4]+'55';x.fillRect(p[0],p[1],p[2],p[3]);x.strokeStyle=cols[i%4];x.strokeRect(p[0],p[1],p[2],p[3]);x.fillStyle='#E3E6FF';x.font='10px sans-serif';x.fillText('P'+(i+1),p[0]+5,p[1]+14);});
+}
+function optimizeNest(){
+  var e=88+Math.floor(Math.random()*8),w=100-e;
+  $('#nestEff').textContent=e+'%';$('#nestEffBar').style.width=e+'%';
+  $('#nestWaste').textContent=w+'%';$('#nestWasteBar').style.width=w+'%';drawNest();toast('Optimizasyon tamam — verim %'+e);
+}
+
+/* ===== EDGE PARAMS ===== */
+var ebState={feed:12,temp:180,thick:1,premill:true,flush:true,scrape:true,buff:false};
+function renderParams(c){
+  var d=ce('div');
+  d.innerHTML='<div class="gridhead"><h2>Parametreler — EB-800</h2><button class="btn primary" onclick="toast(\'Parametreler kaydedildi\')">Kaydet</button></div>'+
+    '<div class="cards"><div class="card"><h4>Proses Ayarları</h4>'+
+    '<div class="field"><label>Besleme Hızı <b id="lFeed">'+ebState.feed+' m/dk</b></label><input type="range" min="5" max="25" value="'+ebState.feed+'" oninput="ebState.feed=+this.value;$(\'#lFeed\').textContent=this.value+\' m/dk\'"></div>'+
+    '<div class="field"><label>Tutkal Sıcaklığı <b id="lTemp">'+ebState.temp+' °C</b></label><input type="range" min="160" max="200" value="'+ebState.temp+'" oninput="ebState.temp=+this.value;$(\'#lTemp\').textContent=this.value+\' °C\'"></div>'+
+    '<div class="field"><label>Bant Kalınlığı <b id="lThick">'+ebState.thick+' mm</b></label><input type="range" min="0.4" max="3" step="0.1" value="'+ebState.thick+'" oninput="ebState.thick=+this.value;$(\'#lThick\').textContent=this.value+\' mm\'"></div></div>'+
+    '<div class="card"><h4>İstasyon Anahtarları</h4>'+
+    [['premill','Ön Frezeleme'],['flush','Flush Trim'],['scrape','Kazıma (Scraping)'],['buff','Parlatma (Buffing)']].map(function(t){return '<div class="toggrow"><span>'+t[1]+'</span><div class="toggle '+(ebState[t[0]]?'on':'')+'" onclick="ebState.'+t[0]+'=!ebState.'+t[0]+';this.classList.toggle(\'on\')"></div></div>';}).join('')+'</div></div>'+
+    '<div class="cards" style="margin-top:16px">'+
+    '<div class="card"><h4>Bugün Parça</h4><div class="kpi" id="ebPieces">248</div></div>'+
+    '<div class="card"><h4>Toplam Bant</h4><div class="kpi">412 <small>m</small></div></div>'+
+    '<div class="card"><h4>Tutkal Seviyesi</h4><div class="kpi" style="color:var(--amber)">55%</div><div class="bar"><i style="width:55%;background:var(--amber)"></i></div></div>'+
+    '<div class="card"><h4>Sıcaklık Eğrisi</h4><canvas id="ebTempChart" class="fluid" height="120"></canvas></div></div>';
+  c.appendChild(d);makeTempChart();
+}
+function makeTempChart(){
+  var cv=$('#ebTempChart');if(!cv||!window.Chart)return;
+  var data=[];for(var i=0;i<20;i++)data.push(178+Math.sin(i/2)*3+Math.random()*2);
+  charts.ebTemp=new Chart(cv,{type:'line',data:{labels:data.map(function(_,i){return i;}),datasets:[{data:data,borderColor:'#F59E0B',backgroundColor:'#f59e0b22',fill:true,tension:.4,pointRadius:0,borderWidth:2}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{min:160,max:200,grid:{color:'#2A3540'},ticks:{color:'#8899AA'}}}}});
+}
+function renderDiag(c){
+  var d=ce('div');
+  var stages=[['Besleme','ok'],['Ön Frezeleme',ebState.premill?'ok':'off'],['Tutkal','ok'],['Bant Uygulama','ok'],['Flush Trim',ebState.flush?'ok':'off'],['Kazıma',ebState.scrape?'ok':'off'],['Parlatma',ebState.buff?'ok':'off'],['Çıkış','ok']];
+  d.innerHTML='<div class="gridhead"><h2>Tanılama — Lineer Proses Akışı</h2></div>'+
+    '<div class="card"><h4>İstasyon Durumu</h4><div class="process">'+stages.map(function(s){return '<div class="stage '+s[1]+'"><div class="si"></div><b>'+s[0]+'</b><small>'+(s[1]==='ok'?'Aktif':'Kapalı')+'</small></div>';}).join('')+'</div></div>'+
+    '<div class="cards" style="margin-top:16px">'+
+    '<div class="card"><h4>Motor Yükleri</h4>'+['Konveyör','Ön Freze','Flush Motor','Buffing'].map(function(n,i){return '<div class="row"><span>'+n+'</span><span class="v">'+(40+i*12)+'%</span></div>';}).join('')+'</div>'+
+    '<div class="card"><h4>Sensör Değerleri</h4><div class="row"><span>Tutkal Sıcaklık</span><span class="v">'+ebState.temp+'°C</span></div><div class="row"><span>Tutkal Basınç</span><span class="v">2.4 bar</span></div><div class="row"><span>Bant Mevcut</span><span class="v" style="color:var(--green)">EVET</span></div><div class="row"><span>Parça Sensörü</span><span class="v" style="color:var(--green)">OK</span></div></div>'+
+    '<div class="card"><h4>Hızlı Eylem</h4><div class="btn-row"><button class="btn green" onclick="toast(\'Konveyör başlatıldı\')">Başlat</button><button class="btn red" onclick="toast(\'Durduruldu\')">Durdur</button><button class="btn" onclick="toast(\'Tutkal ısıtma açıldı\')">Tutkal Isıt</button></div></div></div>';
+  c.appendChild(d);
+}
+
+/* ===== BEAM SAW ===== */
+function renderCutProg(c){
+  var d=ce('div');
+  d.innerHTML='<div class="gridhead"><h2>Kesim Programı — BS-4500</h2><button class="btn primary" onclick="newCutPattern()">Yeni Optimizasyon</button></div>'+
+    '<div class="cards"><div class="card" style="grid-column:1/-1"><h4>Kesim Optimizasyonu (Panel 2440×1220)</h4><canvas id="cutCanvas" class="fluid" width="800" height="420"></canvas>'+
+    '<div class="legend"><span><i style="background:#EF4444"></i>Rip kesim (boyuna)</span><span><i style="background:#06B6D4"></i>Cross kesim (enine)</span><span><i style="background:#22C55E"></i>Parça</span></div></div></div>'+
+    '<div class="cards" style="margin-top:16px">'+
+    '<div class="card"><h4>Bıçak Yüksekliği</h4><div class="field"><label>Z <b id="lZ">18.0 mm</b></label><input type="range" min="0" max="80" value="18" oninput="$(\'#lZ\').textContent=this.value+\'.0 mm\'"></div></div>'+
+    '<div class="card"><h4>Fence Pozisyonu</h4><div class="field"><label>X <b id="lFence">612 mm</b></label><input type="range" min="0" max="2440" value="612" oninput="$(\'#lFence\').textContent=this.value+\' mm\'"></div></div>'+
+    '<div class="card"><h4>Baskı Kirişi</h4><div class="toggrow"><span>Baskı Kirişi Aktif</span><div class="toggle on" onclick="this.classList.toggle(\'on\')"></div></div><div class="toggrow"><span>Çizici Bıçak</span><div class="toggle on" onclick="this.classList.toggle(\'on\')"></div></div></div>'+
+    '<div class="card"><h4>Verim</h4><div class="kpi" style="color:var(--green)" id="cutEff">92%</div><div class="bar"><i id="cutEffBar" style="width:92%;background:var(--green)"></i></div></div></div>';
+  c.appendChild(d);drawCut();
+}
+function drawCut(){
+  var cv=$('#cutCanvas');if(!cv)return;var x=cv.getContext('2d'),W=cv.width,H=cv.height;
+  x.fillStyle='#0e161b';x.fillRect(0,0,W,H);var px=20,py=20,pw=W-40,ph=H-40;
+  x.fillStyle='#22c55e22';x.fillRect(px,py,pw,ph);x.strokeStyle='#2A3540';x.lineWidth=2;x.strokeRect(px,py,pw,ph);
+  var rips=[0.28,0.55,0.78];x.strokeStyle='#EF4444';x.lineWidth=3;x.font='bold 12px sans-serif';x.fillStyle='#EF4444';
+  rips.forEach(function(r,i){var cx=px+pw*r;x.beginPath();x.moveTo(cx,py);x.lineTo(cx,py+ph);x.stroke();x.fillText('R'+(i+1),cx-8,py+14);});
+  x.strokeStyle='#06B6D4';x.fillStyle='#06B6D4';
+  var cross=[[0,0.28,0.4],[0.28,0.55,0.6],[0.55,0.78,0.35],[0.78,1,0.5]];
+  cross.forEach(function(cs,i){var x1=px+pw*cs[0],x2=px+pw*cs[1],cy=py+ph*cs[2];x.beginPath();x.moveTo(x1,cy);x.lineTo(x2,cy);x.stroke();x.fillText('C'+(i+1),x1+6,cy-5);});
+  x.fillStyle='#E3E6FF';x.font='12px sans-serif';x.fillText('2440 mm',W/2-25,H-4);
+}
+function newCutPattern(){var e=88+Math.floor(Math.random()*9);$('#cutEff').textContent=e+'%';$('#cutEffBar').style.width=e+'%';drawCut();toast('Yeni kesim planı — verim %'+e);}
+
+/* ===== BORING ===== */
+var boreSeed=1;
+function renderPattern(c){
+  var d=ce('div');
+  d.innerHTML='<div class="gridhead"><h2>Delik Deseni — BD-21</h2><button class="btn primary" onclick="randomPattern()">Yeni Desen</button></div>'+
+    '<div class="cards"><div class="card" style="grid-column:1/-1"><h4>Tahta Görünümü — Delik Pozisyonları</h4><canvas id="boreCanvas" class="fluid" width="800" height="360"></canvas>'+
+    '<div class="legend"><span><i style="background:#6366C8"></i>Ø8 sistem deliği</span><span><i style="background:#F59E0B"></i>Ø5 dübel</span><span><i style="background:#06B6D4"></i>Ø35 menteşe</span></div></div></div>'+
+    '<div class="cards" style="margin-top:16px">'+
+    '<div class="card"><h4>Delme Derinliği</h4><div class="field"><label>Z <b id="lDepth">13.0 mm</b></label><input type="range" min="5" max="35" value="13" oninput="$(\'#lDepth\').textContent=this.value+\'.0 mm\'"></div><div class="toggrow"><span>Step Delme</span><div class="toggle" onclick="this.classList.toggle(\'on\')"></div></div><div class="toggrow"><span>Havşa</span><div class="toggle" onclick="this.classList.toggle(\'on\')"></div></div></div>'+
+    '<div class="card"><h4>Spindle Grubu</h4><div class="row"><span>Dikey Spindle</span><span class="v">21 adet</span></div><div class="row"><span>Yatay Spindle</span><span class="v">4 adet</span></div><div class="row"><span>Devir</span><span class="v">2800 RPM</span></div></div>'+
+    '<div class="card"><h4>Parça Delik Sayıları</h4><div class="row"><span>Yan Gövde</span><span class="v">32 delik</span></div><div class="row"><span>Alt Tabla</span><span class="v">16 delik</span></div><div class="row"><span>Üst Tabla</span><span class="v">16 delik</span></div><div class="row"><span>Bugün Toplam</span><span class="v" id="boreTotal" style="color:var(--blue)">1.280</span></div></div></div>';
+  c.appendChild(d);drawBore();
+}
+function drawBore(){
+  var cv=$('#boreCanvas');if(!cv)return;var x=cv.getContext('2d'),W=cv.width,H=cv.height;
+  x.fillStyle='#0e161b';x.fillRect(0,0,W,H);x.fillStyle='#22303d';x.fillRect(40,40,W-80,H-80);x.strokeStyle='#2A3540';x.lineWidth=2;x.strokeRect(40,40,W-80,H-80);
+  var s=boreSeed,rnd=function(){s=(s*9301+49297)%233280;return s/233280;};
+  x.fillStyle='#6366C8';for(var r=0;r<2;r++){var cy=80+r*(H-160);for(var i=0;i<14;i++){var cx=80+i*((W-160)/13);x.beginPath();x.arc(cx,cy,5,0,7);x.fill();}}
+  x.fillStyle='#F59E0B';for(var i=0;i<6;i++){var cx=90+rnd()*(W-180),cy2=120+rnd()*(H-240);x.beginPath();x.arc(cx,cy2,4,0,7);x.fill();}
+  x.fillStyle='#06B6D4';[0.2,0.8].forEach(function(p){x.beginPath();x.arc(80,40+H*p*0.8,11,0,7);x.fill();});
+}
+function randomPattern(){boreSeed=Math.floor(Math.random()*9999)+1;drawBore();toast('Yeni delik deseni yüklendi');}
+
+/* ===== LASER ===== */
+var lmState={power:40,speed:300,freq:20,passes:1,material:'MDF'},lmRun=true,lmProg=0;
+var LM_PRESETS={MDF:[40,350,1],Plywood:[45,300,1],'Solid Oak':[35,280,1],Walnut:[38,260,1],Pine:[42,320,1],Aluminum:[80,150,3]};
+function renderPreview(c){
+  var d=ce('div');
+  d.innerHTML='<div class="gridhead"><h2>Gravür Önizleme — LM-2000</h2><div class="btn-row"><button class="btn green" onclick="lmRun=true">Başlat</button><button class="btn" onclick="lmRun=false">Duraklat</button></div></div>'+
+    '<div class="cards"><div class="card"><h4>Gravür Önizleme (1300×900)</h4><canvas id="lmCanvas" class="fluid" width="520" height="360"></canvas><div class="hint" id="lmProg">İlerleme %0</div></div>'+
+    '<div class="card"><h4>Fokus Asistan Kamera</h4><div style="aspect-ratio:4/3;background:#06080a;border:1px solid var(--border);border-radius:10px;position:relative;overflow:hidden">'+
+    '<div style="position:absolute;inset:0;background:radial-gradient(circle,#06B6D422,transparent 60%)"></div>'+
+    '<div style="position:absolute;top:50%;left:0;right:0;height:1px;background:#06B6D4"></div>'+
+    '<div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:#06B6D4"></div>'+
+    '<div style="position:absolute;top:50%;left:50%;width:40px;height:40px;border:2px solid #06B6D4;border-radius:50%;transform:translate(-50%,-50%)"></div>'+
+    '<div style="position:absolute;bottom:8px;left:8px;font-size:.7rem;color:#06B6D4">FOKUS: 5.0mm · MERKEZLI</div></div></div></div>'+
+    '<div class="cards" style="margin-top:16px">'+
+    '<div class="card"><h4>Lazer Parametreleri</h4>'+
+    '<div class="field"><label>Güç <b id="lP">'+lmState.power+'%</b></label><input id="iP" type="range" min="0" max="100" value="'+lmState.power+'" oninput="lmState.power=+this.value;$(\'#lP\').textContent=this.value+\'%\'"></div>'+
+    '<div class="field"><label>Hız <b id="lS">'+lmState.speed+' mm/s</b></label><input id="iS" type="range" min="0" max="500" value="'+lmState.speed+'" oninput="lmState.speed=+this.value;$(\'#lS\').textContent=this.value+\' mm/s\'"></div>'+
+    '<div class="field"><label>Frekans <b id="lFr">'+lmState.freq+' kHz</b></label><input type="range" min="1" max="100" value="'+lmState.freq+'" oninput="lmState.freq=+this.value;$(\'#lFr\').textContent=this.value+\' kHz\'"></div>'+
+    '<div class="field"><label>Geçiş <b id="lPa">'+lmState.passes+'</b></label><input id="iPa" type="range" min="1" max="10" value="'+lmState.passes+'" oninput="lmState.passes=+this.value;$(\'#lPa\').textContent=this.value"></div>'+
+    '<div class="field"><label>Fokus Offset <b id="lFo">0.0 mm</b></label><input type="range" min="-10" max="10" step="0.5" value="0" oninput="$(\'#lFo\').textContent=(+this.value).toFixed(1)+\' mm\'"></div></div>'+
+    '<div class="card"><h4>Malzeme Presetleri</h4><div class="presets" id="lmPresets">'+Object.keys(LM_PRESETS).map(function(m){return '<button class="preset '+(m===lmState.material?'active':'')+'" onclick="setMaterial(\''+m+'\')">'+m+'</button>';}).join('')+'</div>'+
+    '<h4 style="margin-top:18px">Canlı Güç / Hız</h4><canvas id="lmChart" class="fluid" height="120"></canvas></div></div>';
+  c.appendChild(d);lmRun=true;lmProg=0;drawLM();makeLMChart();
+}
+function setMaterial(m){
+  lmState.material=m;var p=LM_PRESETS[m];lmState.power=p[0];lmState.speed=p[1];lmState.passes=p[2];
+  $('#iP').value=p[0];$('#lP').textContent=p[0]+'%';$('#iS').value=p[1];$('#lS').textContent=p[1]+' mm/s';$('#iPa').value=p[2];$('#lPa').textContent=p[2];
+  document.querySelectorAll('#lmPresets .preset').forEach(function(b){b.classList.toggle('active',b.textContent===m);});toast(m+' preseti uygulandı');
+}
+function drawLM(){
+  var cv=$('#lmCanvas');if(!cv)return;var x=cv.getContext('2d'),W=cv.width,H=cv.height;
+  x.fillStyle='#0e161b';x.fillRect(0,0,W,H);x.strokeStyle='#2A3540';x.strokeRect(10,10,W-20,H-20);
+  x.save();x.translate(W/2,H/2-30);x.strokeStyle='#06B6D4';x.lineWidth=3;
+  for(var i=0;i<8;i++){var a=i*Math.PI/4,prog=Math.min(1,Math.max(0,(lmProg*8)-i));if(prog<=0)continue;x.globalAlpha=prog;x.beginPath();x.moveTo(0,0);x.lineTo(Math.cos(a)*60,Math.sin(a)*60);x.stroke();}
+  x.globalAlpha=1;x.restore();
+  x.fillStyle='#06B6D4';x.font='bold 28px sans-serif';x.textAlign='center';x.globalAlpha=Math.min(1,lmProg*1.5);x.fillText('AXTEA',W/2,H-50);x.globalAlpha=1;x.textAlign='left';
+}
+function makeLMChart(){
+  var cv=$('#lmChart');if(!cv||!window.Chart)return;
+  charts.lm=new Chart(cv,{type:'line',data:{labels:Array(20).fill(''),datasets:[
+    {label:'Güç',data:Array(20).fill(lmState.power),borderColor:'#EF4444',pointRadius:0,borderWidth:2,tension:.3},
+    {label:'Hız',data:Array(20).fill(lmState.speed/5),borderColor:'#06B6D4',pointRadius:0,borderWidth:2,tension:.3}]},
+    options:{plugins:{legend:{labels:{color:'#8899AA'}}},scales:{x:{display:false},y:{grid:{color:'#2A3540'},ticks:{color:'#8899AA'}}}}});
+}
+
+/* ===== SIMULATION ENGINE ===== */
+function startSim(){stopSim();var t=0;sim=setInterval(function(){t+=0.05;simStep(t);},120);}
+function stopSim(){if(sim)clearInterval(sim);sim=null;stopCanvasLoop();Object.keys(charts).forEach(function(k){try{charts[k].destroy();}catch(e){}});charts={};}
+function simStep(t){
+  var m=current;if(!m)return;var set=function(id,v){var e=$('#'+id);if(e)e.textContent=v;};
+  if($('#jobBar')){var p=Math.floor((34+t*2)%100);$('#jobBar').style.width=p+'%';if($('#jobPct'))$('#jobPct').textContent='İlerleme %'+p;}
+  if($('#runBar')){var p2=Math.floor((t*3)%100);$('#runBar').style.width=p2+'%';if($('#runPct'))$('#runPct').textContent=p2+'%';}
+  if($('#rpmBar')){var base=({router:24000,nesting:18000,saw:3800,boring:2800})[m.type]||0;var rpm=m.status==='RUNNING'?base:0;if($('#rpmVal'))$('#rpmVal').innerHTML=rpm.toLocaleString('tr-TR')+' <small>RPM</small>';$('#rpmBar').style.width=(rpm/(base||1)*100)+'%';}
+  var ld=$('#liveData');
+  if(ld){
+    var data=({
+      router:[['Spindle RPM',(m.status==='RUNNING'?'24.000':'0')],['Spindle Yük',Math.floor(45+Math.sin(t)*10)+'%'],['Aktif Takım','T7'],['A Ekseni',(Math.sin(t)*45).toFixed(1)+'°'],['B Ekseni',(Math.cos(t)*15).toFixed(1)+'°']],
+      nesting:[['Vakum','-0.82 bar'],['Aktif Pod',pods.filter(Boolean).length+'/24'],['Verim','89%'],['Spindle Yük',Math.floor(50+Math.sin(t)*8)+'%']],
+      edge:[['Tutkal Sıcaklık',(180+Math.sin(t)*2).toFixed(0)+'°C'],['Besleme','12 m/dk'],['Bugün Parça',(248+Math.floor(t*0.3))],['Tutkal Seviye','55%']],
+      saw:[['Bıçak RPM',(m.status==='RUNNING'?'3.800':'0')],['Fence X',(600+Math.sin(t)*15).toFixed(0)+' mm'],['Kesim Sayısı',(340+Math.floor(t*0.2))],['Baskı Kirişi','İndi']],
+      boring:[['Dikey Spindle','21 aktif'],['Yatay Spindle','4 aktif'],['Çevrim',Math.floor(t*0.5)+' / dk'],['Bugün Delik',(1280+Math.floor(t*2)).toLocaleString('tr-TR')]],
+      laserm:[['Lazer Güç','%40'],['Tarama Hız','300 mm/s'],['Tüp Sıcaklık','22°C'],['Durum','Çevrimdışı']]
+    })[m.type];
+    ld.innerHTML=data.map(function(a){return '<div class="row"><span>'+a[0]+'</span><span class="v">'+a[1]+'</span></div>';}).join('');
   }
-  if(lim>0&&parsedMoves[lim-1]){const m=parsedMoves[lim-1];const tx=ox+m.x1*sc,ty=oy-m.y1*sc;
-    ctx.fillStyle='#22C55E';ctx.beginPath();ctx.arc(tx,ty,5,0,7);ctx.fill();
-    ctx.strokeStyle='#22C55E55';ctx.beginPath();ctx.arc(tx,ty,10,0,7);ctx.stroke();}
+  var ax=function(a,v){var e=$('#ax_'+a);if(e)e.textContent=v;};
+  if($('#ax_X')){
+    if(m.type==='router'){ax('X',(1500+Math.sin(t)*800).toFixed(3));ax('Y',(750+Math.cos(t)*400).toFixed(3));ax('Z','-12.000');ax('A',(Math.sin(t)*45).toFixed(3));ax('B',(Math.cos(t)*15).toFixed(3));}
+    else if(m.type==='saw'){ax('X',(600+Math.sin(t)*20).toFixed(3));ax('Y',(Math.cos(t)*300+400).toFixed(3));ax('Z','18.000');}
+    else if(m.type==='boring'){ax('X',(Math.abs(Math.sin(t))*1200).toFixed(3));ax('Y',(Math.abs(Math.cos(t))*600).toFixed(3));ax('Z',(13-Math.abs(Math.sin(t*4))*13).toFixed(3));}
+    else{ax('X',(650+Math.sin(t)*300).toFixed(3));ax('Y',(450+Math.cos(t)*200).toFixed(3));ax('Z','5.000');}
+  }
+  if($('#orientBox'))drawOrient(Math.sin(t)*45,Math.cos(t)*15);
+  if($('#carousel'))buildCarousel(7);
+  if($('#ebPieces'))set('ebPieces',248+Math.floor(t*0.3));
+  if($('#nestBar')){var pn=Math.floor((t*2)%100);$('#nestBar').style.width=pn+'%';if($('#nestPct'))$('#nestPct').textContent=pn+'%';}
+  if($('#boreTotal'))set('boreTotal',(1280+Math.floor(t*2)).toLocaleString('tr-TR'));
+  if($('#lmCanvas')&&lmRun){lmProg=Math.min(1,lmProg+0.006);drawLM();if($('#lmProg'))$('#lmProg').textContent='İlerleme %'+Math.floor(lmProg*100);if(lmProg>=1)lmProg=0;}
+  if(charts.lm){var cc=charts.lm;cc.data.datasets[0].data.push(lmState.power);cc.data.datasets[0].data.shift();cc.data.datasets[1].data.push(lmState.speed/5);cc.data.datasets[1].data.shift();cc.update('none');}
+  if(charts.ebTemp){var ce2=charts.ebTemp;ce2.data.datasets[0].data.push(ebState.temp+Math.sin(t)*2);ce2.data.datasets[0].data.shift();ce2.update('none');}
 }
-function simPlay(){if(simTimer)return;if(simIdx>=parsedMoves.length)simIdx=0;
-  const speed=+document.getElementById('simSpeed').value;
-  simTimer=setInterval(()=>{
-    if(simIdx>=parsedMoves.length){simPause();return;}
-    simIdx++;drawToolpath(simIdx);renderGLines(parsedMoves[simIdx-1]?parsedMoves[simIdx-1].line:-1);
-  },Math.max(30,300/speed));toast('Simülasyon başladı','green');}
-function simPause(){if(simTimer){clearInterval(simTimer);simTimer=null;}}
-function simStop(){simPause();simIdx=0;drawToolpath(0);renderGLines(-1);}
-function simReset(){simPause();simIdx=parsedMoves.length;drawToolpath();renderGLines(-1);toast('Reset');}
-
-/* ============ MAINTENANCE ============ */
-const maintItems=[
-  {task:'Yağlama (Lubrication)',last:'2026-05-20',next:'2026-06-03',hours:48},
-  {task:'Filtre Değişimi',last:'2026-04-15',next:'2026-06-15',hours:160},
-  {task:'Eksen Kalibrasyonu',last:'2026-03-01',next:'2026-06-01',hours:18},
-  {task:'Mil Kontrolü (Spindle)',last:'2026-05-01',next:'2026-08-01',hours:520},
-  {task:'Vakum Pompası Servisi',last:'2026-05-25',next:'2026-06-08',hours:96}
-];
-const healthItems=[{n:'Spindle Rulman',v:92},{n:'X Eksen Vidası',v:78},{n:'Y Eksen Vidası',v:85},{n:'Vakum Sistemi',v:64},{n:'Soğutma Sistemi',v:96}];
-let alarmHistory=[
-  {time:'09:14:22',code:'ALM 101',desc:'X ekseni limit aşımı',res:'Yazılım limiti ayarlandı'},
-  {time:'08:47:10',code:'ALM 220',desc:'Spindle aşırı yük',res:'İlerleme hızı düşürüldü'},
-  {time:'07:30:55',code:'ALM 305',desc:'Vakum basınç düşük',res:'Conta değiştirildi'}
-];
-let notes=[{t:'2026-05-29 16:00',txt:'Yağ seviyesi kontrol edildi, normal.'}];
-function renderMaint(){
-  document.getElementById('maintBody').innerHTML=maintItems.map(m=>{
-    const st=m.hours<24?'<span class="badge b-cancel">Acil</span>':m.hours<72?'<span class="badge b-wait">Yakında</span>':'<span class="badge b-run">OK</span>';
-    return '<tr><td>'+m.task+'</td><td>'+m.last+'</td><td>'+m.next+'</td><td>'+m.hours+' sa</td><td>'+st+'</td></tr>';}).join('');
-  document.getElementById('healthBox').innerHTML=healthItems.map(h=>{
-    const col=h.v>80?'var(--green)':h.v>60?'var(--amber)':'var(--red)';
-    return '<div class="health"><span style="min-width:130px;font-size:12px">'+h.n+'</span><div class="bar"><div class="f" style="width:'+h.v+'%;background:'+col+'"></div></div><b style="color:'+col+'">'+h.v+'%</b></div>';}).join('');
-  renderNotes();
+function drawOrient(A,B){
+  var svg=$('#orientBox');if(!svg)return;
+  var cx=110,cy=100,s=45,rad=Math.PI/180,ca=Math.cos(A*rad),sa=Math.sin(A*rad),cb=Math.cos(B*rad),sb=Math.sin(B*rad);
+  var corners=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
+  var pts=corners.map(function(c){var X=c[0]*ca-c[2]*sa,Z=c[0]*sa+c[2]*ca;var Y=c[1]*cb-Z*sb;Z=c[1]*sb+Z*cb;return [cx+X*s+Z*s*0.4,cy+Y*s-Z*s*0.25];});
+  var edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  var html='';edges.forEach(function(e){html+='<line x1="'+pts[e[0]][0]+'" y1="'+pts[e[0]][1]+'" x2="'+pts[e[1]][0]+'" y2="'+pts[e[1]][1]+'" stroke="#6366C8" stroke-width="2"/>';});
+  html+='<line x1="'+cx+'" y1="'+cy+'" x2="'+pts[4][0]+'" y2="'+pts[4][1]+'" stroke="#22C55E" stroke-width="3"/>';
+  html+='<text x="10" y="180" fill="#8899AA" font-size="11">A: '+A.toFixed(1)+'°  B: '+B.toFixed(1)+'°</text>';
+  svg.innerHTML=html;
 }
-function renderNotes(){document.getElementById('noteList').innerHTML=notes.map(n=>'<div style="padding:6px;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">'+n.t+'</span><br>'+n.txt+'</div>').join('');}
-function addNote(){const v=document.getElementById('maintNotes').value.trim();if(!v)return;
-  notes.unshift({t:new Date().toLocaleString('tr'),txt:v});document.getElementById('maintNotes').value='';renderNotes();toast('Not eklendi','green');}
-
-/* ============ AI KNOWLEDGE BASE ============ */
-const KB=[
-  {k:['alarm 101','alm 101','101'],a:'<b>Alarm 101 - Eksen Limit Aşımı</b><br>Bir eksen yazılım veya donanım limitini aştı.<br><br><b>Çözüm:</b><br>1. Acil stop\'u kontrol edin<br>2. Ekseni manuel olarak limit dışına alın (JOG)<br>3. Home (G28) işlemi yapın<br>4. Yazılım limitlerini kontrol edin (parametre 2200)'},
-  {k:['alarm 220','220','spindle yük','mil aşırı'],a:'<b>Alarm 220 - Spindle Aşırı Yük</b><br>Mil motoru aşırı akım çekiyor.<br><br><b>Çözüm:</b><br>1. İlerleme hızını (feed) %20 düşürün<br>2. Takım keskinliğini kontrol edin<br>3. Talaş derinliğini azaltın<br>4. Mil rulmanlarını kontrol edin'},
-  {k:['alarm 305','305','vakum','basınç'],a:'<b>Alarm 305 - Vakum Basınç Düşük</b><br>Parça tutma vakumu yetersiz.<br><br><b>Çözüm:</b><br>1. Conta ve keçeleri kontrol edin<br>2. Pompa filtresini temizleyin<br>3. Parça yüzeyinin düz olduğundan emin olun'},
-  {k:['alarm','alm','hata kodu','alarm kod'],a:'<b>OSAI Alarm Kodları:</b><br>• <b>ALM 101</b>: Eksen limit aşımı<br>• <b>ALM 220</b>: Spindle aşırı yük<br>• <b>ALM 305</b>: Vakum basınç düşük<br>• <b>ALM 410</b>: Servo hatası<br>• <b>ALM 520</b>: Acil stop aktif<br><br>Belirli bir alarm için "Alarm 101" gibi sorun.'},
-  {k:['g0','g00','rapid'],a:'<b>G0 - Hızlı Konumlama (Rapid)</b><br>Takımı kesim yapmadan maksimum hızda hareket ettirir. Boşta hareket için kullanılır.<br>Örnek: <code>G0 X100 Y50</code>'},
-  {k:['g1','g01','doğrusal'],a:'<b>G1 - Doğrusal Kesim</b><br>Belirtilen F (feed) hızında düz çizgi kesimi yapar.<br>Örnek: <code>G1 X200 F2400</code>'},
-  {k:['g2','g02'],a:'<b>G2 - Saat Yönü Yay (CW Arc)</b><br>Saat yönünde dairesel hareket. I/J merkez ofseti veya R yarıçap ile.<br>Örnek: <code>G2 X140 Y75 I20 J0</code>'},
-  {k:['g3','g03'],a:'<b>G3 - Saat Yönü Tersi Yay (CCW Arc)</b><br>Saat yönü tersinde dairesel hareket.<br>Örnek: <code>G3 X40 Y110 I-60 J0</code>'},
-  {k:['g28','eve git','home'],a:'<b>G28 - Referans Noktasına Dönüş (Home)</b><br>Makineyi makine sıfır noktasına gönderir. Her vardiya başında önerilir.<br>Örnek: <code>G28 Z0</code> önce Z, sonra XY.'},
-  {k:['g54','iş koordinat','work offset'],a:'<b>G54 - İş Koordinat Sistemi</b><br>İş parçası sıfır noktasını tanımlar (G54-G59 arası 6 ofset).<br>Probe ile parça köşesi sıfırlanır.'},
-  {k:['m3','mil çalıştır','spindle çalıştır'],a:'<b>M3 - Spindle Saat Yönü Çalıştır</b><br>Mili belirtilen S devirde çalıştırır.<br>Örnek: <code>M3 S18000</code>'},
-  {k:['m5','mil durdur'],a:'<b>M5 - Spindle Durdur</b><br>Mil motorunu durdurur.'},
-  {k:['m6','takım değiş','tool change','takım değişim'],a:'<b>M6 - Takım Değişimi</b><br>Otomatik takım değiştiriciyi tetikler.<br><br><b>Manuel takım değişimi:</b><br>1. M5 ile mili durdurun<br>2. Z eksenini güvenli yüksekliğe alın<br>3. Pens somununu gevşetin<br>4. Yeni takımı takın, sıkın<br>5. Takım uzunluğunu ölçün (probe)<br>Örnek: <code>M6 T2</code>'},
-  {k:['m8','soğutma aç','coolant'],a:'<b>M8 - Soğutma Aç</b><br>Soğutma sıvısını/havayı açar. M9 ile kapatılır.'},
-  {k:['m30','program son'],a:'<b>M30 - Program Sonu</b><br>Programı bitirir ve başa sarar.'},
-  {k:['g-code','gcode','g code','g-code yardım'],a:'<b>Temel G-Code Komutları:</b><br>• <b>G0</b>: Hızlı hareket<br>• <b>G1</b>: Doğrusal kesim<br>• <b>G2/G3</b>: Yay (CW/CCW)<br>• <b>G28</b>: Home<br>• <b>G54</b>: İş koordinatı<br>• <b>M3/M5</b>: Mil aç/kapa<br>• <b>M6</b>: Takım değişimi<br>• <b>M8/M9</b>: Soğutma<br>• <b>M30</b>: Program sonu<br><br>Detay için "G1 nedir" gibi sorun.'},
-  {k:['titreşim','vibrasyon','chatter','çıtırtı'],a:'<b>Titreşim / Chatter Giderme</b><br><b>Nedenler:</b> yüksek devir, gevşek parça, körelmiş takım, uzun takım çıkıntısı.<br><b>Çözümler:</b><br>1. Mil devrini değiştirin (azaltın veya artırın)<br>2. İlerleme hızını ayarlayın<br>3. Takım çıkıntısını kısaltın<br>4. Parça sabitlemesini güçlendirin<br>5. Talaş derinliğini azaltın'},
-  {k:['yüzey','pürüz','kötü yüzey','surface','finish'],a:'<b>Kötü Yüzey Kalitesi</b><br><b>Nedenler:</b> körelmiş takım, yanlış feed/speed, titreşim.<br><b>Çözümler:</b><br>1. Keskin takım kullanın<br>2. Finish pasosu ekleyin (düşük talaş)<br>3. İlerlemeyi düşürün, devri optimize edin<br>4. Doğru takım geometrisi seçin (kompresyon freze)'},
-  {k:['takım kırıl','tool break','uç kırıl'],a:'<b>Takım Kırılması</b><br><b>Nedenler:</b> aşırı feed, fazla talaş, yanlış takım, soğutma yok.<br><b>Çözümler:</b><br>1. İlerleme ve talaş derinliğini azaltın<br>2. Soğutma/hava kullanın<br>3. Doğru takım malzemesi seçin<br>4. Mil devrini malzemeye göre ayarlayın'},
-  {k:['arıza','sorun','problem','giderme'],a:'<b>Arıza Giderme Konuları:</b><br>• Titreşim / chatter<br>• Kötü yüzey kalitesi<br>• Takım kırılması<br>• Ölçü sapması<br><br>Hangi sorunu yaşıyorsunuz? Örn: "titreşim var" yazın.'},
-  {k:['yağlama','lubrication','yağla'],a:'<b>Yağlama Rehberi</b><br>• Lineer kızaklar: her 40 çalışma saatinde<br>• Vidalı miller: haftada 1<br>• Otomatik yağlayıcı seviyesi: günlük kontrol<br>• ISO VG 68 kızak yağı önerilir.'},
-  {k:['filtre','filter'],a:'<b>Filtre Değişim Aralıkları</b><br>• Vakum pompası filtresi: 160 saat veya 2 ayda bir<br>• Pano hava filtresi: aylık temizlik<br>• Soğutma sıvısı filtresi: 3 ayda bir'},
-  {k:['kalibrasyon','calibration','kalibre'],a:'<b>Kalibrasyon Prosedürü</b><br>1. Makineyi ısıtın (15 dk boşta)<br>2. Home alın (G28)<br>3. Mastar/komparatör ile eksen doğruluğunu ölçün<br>4. Backlash kompanzasyonu ayarlayın<br>5. 3 ayda bir tekrarlayın'},
-  {k:['bakım','maintenance','bakım zaman','servis'],a:'<b>Bakım Rehberi</b><br>• <b>Günlük:</b> temizlik, yağ seviyesi, hava basıncı<br>• <b>Haftalık:</b> vidalı mil yağlama, kayış gerginliği<br>• <b>Aylık:</b> filtre temizliği, kalibrasyon kontrolü<br>• <b>3 Aylık:</b> tam kalibrasyon, rulman kontrolü<br><br>Mevcut durum için BAKIM sekmesine bakın.'},
-  {k:['mdf'],a:'<b>MDF Kesim Parametreleri</b><br>• Mil devri: 16.000-18.000 RPM<br>• İlerleme: 3.000-4.500 mm/min<br>• Talaş derinliği: takım çapının %50\'si<br>• Takım: kompresyon veya düz freze<br>• Toz emme şart (sağlık)'},
-  {k:['masif','solid wood','ahşap','sert ahşap'],a:'<b>Masif Ahşap Parametreleri</b><br>• Mil devri: 14.000-16.000 RPM<br>• İlerleme: 2.000-3.500 mm/min<br>• Lif yönüne dikkat (yırtılma)<br>• Keskin spiral freze kullanın<br>• Birden fazla hafif paso önerilir'},
-  {k:['kontrplak','plywood'],a:'<b>Kontrplak Parametreleri</b><br>• Mil devri: 16.000-18.000 RPM<br>• İlerleme: 2.500-4.000 mm/min<br>• Kompresyon freze (üst/alt temiz kenar)<br>• Tutkal katmanları takımı aşındırır, sık kontrol'},
-  {k:['alüminyum','aluminum','alu'],a:'<b>Alüminyum Parametreleri</b><br>• Mil devri: 12.000-18.000 RPM<br>• İlerleme: 800-1.500 mm/min<br>• MUTLAKA soğutma/yağlama (sıvanma önleme)<br>• Tek/çift ağızlı alüminyum frezesi<br>• Düşük talaş, yüksek devir<br>• Hava üfleme ile talaş tahliyesi'},
-  {k:['malzeme','material','hız ilerleme','feed speed','speeds feeds'],a:'<b>Malzeme Önerileri</b><br>Hangi malzeme için parametre istiyorsunuz?<br>• MDF<br>• Masif Ahşap<br>• Kontrplak<br>• Alüminyum<br><br>Malzeme adını yazın.'},
-  {k:['homing','referans','home al','sıfırlama prosedür'],a:'<b>Homing Prosedürü</b><br>1. Çevrede engel olmadığından emin olun<br>2. Acil stop\'u serbest bırakın<br>3. HOME tuşuna basın (veya G28)<br>4. Önce Z, sonra X ve Y sıfırlanır<br>5. Makine referans noktasına ulaşır'},
-  {k:['parça setup','iş parça','workpiece','parça bağla'],a:'<b>İş Parçası Kurulumu</b><br>1. Tablayı temizleyin<br>2. Parçayı vakum/kelepçe ile sabitleyin<br>3. Spoilboard düzlüğünü kontrol edin<br>4. Probe ile köşe sıfırı alın (G54)<br>5. Z yüzey sıfırını ayarlayın<br>6. İlk pasoyu havada test edin'},
-  {k:['operatör','rehber','nasıl','prosedür'],a:'<b>Operatör Rehberi</b><br>Konular:<br>• Homing prosedürü<br>• Takım değişimi<br>• İş parçası kurulumu<br>• İş başlatma<br><br>Hangi konuda yardım istersiniz?'},
-  {k:['merhaba','selam','hello','hi'],a:'Merhaba! Ben AXTEA AI Asistanı. Size alarm kodları, G-code, bakım, arıza giderme ve malzeme parametreleri konusunda yardımcı olabilirim. Nasıl yardımcı olabilirim?'}
-];
-function aiAnswer(q){
-  const t=q.toLowerCase().replace('soru:','').trim();
-  let best=null,bestScore=0;
-  KB.forEach(e=>{e.k.forEach(k=>{if(t.indexOf(k)>=0&&k.length>bestScore){best=e;bestScore=k.length;}});});
-  if(best)return best.a;
-  return 'Bu konuda kesin bilgim yok, ancak yardımcı olmaya çalışabilirim. Şu konularda detaylı bilgi verebilirim:<br><br>• <b>Alarm kodları</b> (örn: "Alarm 101")<br>• <b>G-code komutları</b> (örn: "G2 nedir")<br>• <b>Arıza giderme</b> (örn: "titreşim")<br>• <b>Bakım rehberi</b><br>• <b>Malzeme parametreleri</b> (örn: "MDF")<br>• <b>Operatör rehberi</b>';
-}
-const AVATAR='<div class="av"><svg width="20" height="20" viewBox="0 0 100 100"><path d="M50 8 L58 38 L88 30 L62 50 L88 70 L58 62 L50 92 L42 62 L12 70 L38 50 L12 30 L42 38 Z" fill="#6366C8"/></svg></div>';
-function addMsg(text,who){
-  const m=document.createElement('div');m.className='msg '+who;
-  const av=who==='ai'?AVATAR:'<div class="av">👤</div>';
-  m.innerHTML=av+'<div class="bubble">'+text+'</div>';
-  document.getElementById('chatMsgs').appendChild(m);
-  document.getElementById('chatMsgs').scrollTop=99999;
-}
-function showTyping(){
-  const m=document.createElement('div');m.className='msg ai';m.id='typingMsg';
-  m.innerHTML=AVATAR+'<div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
-  document.getElementById('chatMsgs').appendChild(m);document.getElementById('chatMsgs').scrollTop=99999;
-}
-function hideTyping(){const t=document.getElementById('typingMsg');if(t)t.remove();}
-function sendChat(){
-  const inp=document.getElementById('chatInput');const v=inp.value.trim();if(!v)return;
-  inp.value='';addMsg(v,'user');
-  showTyping();
-  setTimeout(()=>{hideTyping();addMsg(aiAnswer(v),'ai');},500);
-}
-function quickAsk(q){document.getElementById('chatInput').value=q;sendChat();}
-
-/* ============ VOICE ============ */
-let recog=null,listening=false;
-function initVoice(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){document.getElementById('micBtn').title='Tarayıcı sesli komutu desteklemiyor';return;}
-  recog=new SR();recog.lang=lang==='tr'?'tr-TR':'en-US';recog.continuous=false;recog.interimResults=false;
-  recog.onresult=e=>{const txt=e.results[0][0].transcript;handleVoice(txt);};
-  recog.onend=()=>{listening=false;document.getElementById('micBtn').classList.remove('listening');};
-  recog.onerror=()=>{listening=false;document.getElementById('micBtn').classList.remove('listening');toast('Ses tanıma hatası','red');};
-}
-function toggleVoice(){
-  if(!recog){toast('Sesli komut bu tarayıcıda desteklenmiyor','amber');return;}
-  if(listening){recog.stop();return;}
-  recog.lang=lang==='tr'?'tr-TR':'en-US';
-  listening=true;document.getElementById('micBtn').classList.add('listening');
-  toast('Dinleniyor...','');recog.start();
-}
-function handleVoice(txt){
-  addMsg(txt+' 🎤','user');
-  const t=txt.toLowerCase();
-  let handled=true;
-  if(/(soru:|question:)/.test(t)){showTyping();setTimeout(()=>{hideTyping();addMsg(aiAnswer(txt),'ai');},500);return;}
-  else if(/(başlat|start|çalıştır)/.test(t)){machineStart();addMsg('Program başlatıldı. ✅','ai');}
-  else if(/(durdur|dur\b|stop)/.test(t)){machineStop();addMsg('Makine durduruldu. ⏹','ai');}
-  else if(/(beklet|duraklat|pause)/.test(t)){machinePause();addMsg('Duraklatıldı. ⏸','ai');}
-  else if(/(sıfırla|reset)/.test(t)){machineReset();addMsg('Makine sıfırlandı. ↺','ai');}
-  else if(/(x sıfır|zero x|x zero)/.test(t)){zeroAxis('x');addMsg('X ekseni sıfırlandı.','ai');}
-  else if(/(y sıfır|zero y|y zero)/.test(t)){zeroAxis('y');addMsg('Y ekseni sıfırlandı.','ai');}
-  else if(/(z sıfır|zero z|z zero)/.test(t)){zeroAxis('z');addMsg('Z ekseni sıfırlandı.','ai');}
-  else if(/(eve git|home|referans)/.test(t)){machineHome();addMsg('Home alınıyor. 🏠','ai');}
-  else handled=false;
-  if(!handled){showTyping();setTimeout(()=>{hideTyping();addMsg(aiAnswer(txt),'ai');},500);}
+function buildCarousel(active){
+  var el=$('#carousel');if(!el)return;
+  if(el.children.length!==24){el.innerHTML='';for(var i=0;i<24;i++){var d=ce('div');d.className='slot'+([3,11,18].indexOf(i)>=0?' empty':'');var a=(i/24)*2*Math.PI-Math.PI/2;d.style.left=(50+Math.cos(a)*45)+'%';d.style.top=(50+Math.sin(a)*45)+'%';d.textContent='T'+(i+1);el.appendChild(d);}}
+  var slots=el.querySelectorAll('.slot');for(var i=0;i<slots.length;i++)slots[i].classList.toggle('active',i===active-1);
+  var at=$('#activeTool');if(at)at.textContent='Aktif takım: T'+active;
 }
 
-/* ============ ENERGY CHART ============ */
-let energyChart=null;
-function initChart(){
-  const ctx=document.getElementById('energyChart');
-  energyChart=new Chart(ctx,{type:'line',data:{labels:[],datasets:[{data:[],borderColor:'#6366C8',backgroundColor:'rgba(99,102,200,.15)',fill:true,tension:.4,pointRadius:0,borderWidth:2}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:'Enerji Tüketimi (kW)',color:'#8899AA',font:{size:11}}},
-      scales:{x:{display:false},y:{ticks:{color:'#8899AA',font:{size:9}},grid:{color:'rgba(42,53,64,.4)'},beginAtZero:true,max:8}}}});
-}
-
-/* ============ INIT ============ */
-window.addEventListener('DOMContentLoaded',()=>{
-  renderJobs();renderMaint();renderAlarms();initChart();initVoice();
-  loadDemo();
-  addMsg('Merhaba! Ben <b>AXTEA AI Asistanı</b>. Alarm kodları, G-code, bakım, arıza giderme ve malzeme parametreleri konusunda size yardımcı olabilirim. Sesli komut için 🎤 butonunu kullanabilirsiniz.','ai');
-  setInterval(tick,200);
-  drawGauge('feedGauge',0);drawGauge('spinGauge',0);
-  toast('AXTEA HMI başlatıldı · SİMÜLASYON modu','green');
-});
+/* ===== INIT ===== */
+buildSelector();
 </script>
 </body>
 </html>
