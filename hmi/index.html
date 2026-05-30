@@ -1,1161 +1,1077 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AXTEA CNC HMI</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<title>AXTEA CNC HMI v2.0</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-/* ── Reset & Base ───────────────────────────────────────────────────── */
-*{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0D1117;
-  --surface:#141E23;
-  --surface2:#1A2730;
-  --border:#232F38;
-  --primary:#535DDC;
-  --primary-dim:#3A44B0;
-  --primary-light:#E3E6FF;
-  --accent:#00B581;
-  --warn:#F5A623;
-  --error:#E84040;
-  --text:#FFFFFF;
-  --text-dim:#8899AA;
-  --text-muted:#4A5A6A;
-  --wood:#D8AD7D;
+  --blue:#6366C8; --navy:#141E23; --bg:#0D1418; --card:#1A2530;
+  --border:#2A3540; --text:#E3E6FF; --text2:#8899AA;
+  --green:#22C55E; --amber:#F59E0B; --red:#EF4444;
 }
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;overflow:hidden;height:100vh;display:flex;flex-direction:column}
-
-/* ── Scrollbar ──────────────────────────────────────────────────────── */
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:var(--surface)}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-
-/* ── Top Bar ────────────────────────────────────────────────────────── */
-#topbar{
-  display:flex;align-items:center;gap:0;
-  background:var(--surface);border-bottom:1px solid var(--border);
-  height:62px;padding:0 16px;flex-shrink:0;
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  font-family:'Segoe UI',Roboto,system-ui,sans-serif;
+  background:var(--bg); color:var(--text); font-size:14px;
+  -webkit-font-smoothing:antialiased;
 }
-.logo{display:flex;align-items:center;gap:8px;width:165px;flex-shrink:0}
-.logo-sym{color:var(--primary);font-size:22px;font-weight:900;line-height:1}
-.logo-name{color:var(--text);font-size:20px;font-weight:900;letter-spacing:3px}
-.logo-sub{color:var(--text-dim);font-size:8px;letter-spacing:1.5px;margin-top:2px}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
+::-webkit-scrollbar-thumb:hover{background:var(--blue);}
 
-/* ── Nav ────────────────────────────────────────────────────────────── */
-#nav{display:flex;gap:2px;margin-left:12px}
-.nav-btn{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  width:90px;height:62px;cursor:pointer;border:none;background:transparent;
-  color:var(--text-dim);gap:2px;position:relative;transition:color .2s;
+/* HEADER */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(90deg,var(--navy),#0F171C);
+  padding:10px 18px;border-bottom:2px solid var(--blue);
+  position:sticky;top:0;z-index:50;
 }
-.nav-btn:hover{color:var(--text);background:rgba(255,255,255,.04)}
-.nav-btn.active{color:var(--primary)}
-.nav-btn.active::after{
-  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
-  background:var(--primary);border-radius:2px 2px 0 0;
+.logo-wrap{display:flex;align-items:center;gap:12px;}
+.logo-text-wrap{display:flex;flex-direction:column;line-height:1;}
+.logo-axtea{font-size:26px;font-weight:900;letter-spacing:3px;color:var(--text);}
+.logo-sub{font-size:8px;letter-spacing:2px;color:var(--text2);margin-top:3px;font-weight:600;}
+.header-right{display:flex;align-items:center;gap:14px;}
+.hmi-ver{font-size:13px;color:var(--blue);font-weight:700;}
+.badge-sim{
+  background:rgba(99,102,200,.15);color:var(--blue);
+  border:1px solid var(--blue);padding:4px 10px;border-radius:14px;
+  font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;
 }
-.nav-btn .nav-icon{font-size:18px;line-height:1}
-.nav-btn .nav-label{font-size:9px;letter-spacing:.5px;font-weight:600}
+.dot-pulse{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6);}70%{box-shadow:0 0 0 8px rgba(34,197,94,0);}100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}}
+.lang-switch{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.lang-switch button{background:transparent;border:none;color:var(--text2);padding:6px 12px;cursor:pointer;font-weight:700;font-size:12px;}
+.lang-switch button.active{background:var(--blue);color:#fff;}
+.help-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);width:32px;height:32px;border-radius:8px;cursor:pointer;font-weight:700;}
 
-#topbar-right{display:flex;align-items:center;gap:10px;margin-left:auto}
-.status-chip{font-size:11px;font-weight:600;white-space:nowrap}
-.status-chip.connected{color:var(--accent)}
-.status-chip.disconnected{color:var(--error)}
-.status-chip.running{color:var(--primary)}
-.status-chip.paused{color:var(--warn)}
-.status-chip.alarm{color:var(--error)}
-.status-chip.homing{color:var(--primary)}
-
-select.lang-sel{
-  background:var(--surface2);border:1px solid var(--border);color:var(--text);
-  border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;width:110px;
+/* TABS */
+nav.tabs{display:flex;background:var(--navy);border-bottom:1px solid var(--border);overflow-x:auto;}
+nav.tabs button{
+  background:transparent;border:none;color:var(--text2);
+  padding:14px 22px;cursor:pointer;font-weight:700;font-size:13px;
+  border-bottom:3px solid transparent;white-space:nowrap;transition:.2s;
 }
-select.lang-sel option{background:var(--surface)}
+nav.tabs button:hover{color:var(--text);background:rgba(99,102,200,.08);}
+nav.tabs button.active{color:var(--blue);border-bottom-color:var(--blue);}
 
-.btn{
-  background:var(--surface2);color:var(--text);border:1px solid var(--border);
-  border-radius:8px;padding:7px 14px;cursor:pointer;font-size:12px;
-  transition:background .15s,border-color .15s;white-space:nowrap;
+main{padding:18px;max-width:1500px;margin:0 auto;}
+.tabpanel{display:none;animation:fade .3s;}
+.tabpanel.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+.grid{display:grid;gap:16px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.card h3{font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:700;}
+.row{display:flex;gap:16px;flex-wrap:wrap;}
+
+/* STATUS */
+.status-big{display:flex;align-items:center;gap:14px;}
+.status-light{width:46px;height:46px;border-radius:50%;}
+.status-light.RUNNING{background:var(--green);animation:pulse 1.5s infinite;}
+.status-light.IDLE{background:var(--text2);}
+.status-light.PAUSED{background:var(--amber);}
+.status-light.HOMING{background:var(--blue);animation:pulse 1s infinite;}
+.status-light.ALARM{background:var(--red);animation:pulse .6s infinite;}
+.status-label{font-size:30px;font-weight:900;letter-spacing:1px;}
+
+.axis-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.axis-box{background:var(--navy);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.axis-name{font-size:14px;color:var(--blue);font-weight:800;}
+.axis-val{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:4px;}
+.axis-unit{font-size:13px;color:var(--text2);}
+
+.gauge-wrap{display:flex;gap:20px;justify-content:space-around;flex-wrap:wrap;}
+.gauge{text-align:center;}
+.gauge .gv{font-size:20px;font-weight:800;margin-top:-58px;position:relative;}
+.gauge .gl{font-size:11px;color:var(--text2);margin-top:36px;text-transform:uppercase;letter-spacing:1px;}
+
+.loadbar{margin-bottom:10px;}
+.loadbar .lbl{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;}
+.loadbar .track{height:10px;background:var(--navy);border-radius:5px;overflow:hidden;}
+.loadbar .fill{height:100%;border-radius:5px;transition:width .2s,background .2s;}
+
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.stat{background:var(--navy);border-radius:10px;padding:14px;text-align:center;}
+.stat .v{font-size:26px;font-weight:800;color:var(--blue);}
+.stat .l{font-size:11px;color:var(--text2);margin-top:4px;}
+
+.alarm-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;background:var(--navy);margin-bottom:6px;font-size:12px;}
+.alarm-item .ac{color:var(--red);font-weight:800;min-width:62px;}
+.alarm-item .at{color:var(--text2);font-size:11px;}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);}
+th{color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+tr:hover td{background:rgba(99,102,200,.05);}
+.badge{padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;display:inline-block;}
+.b-wait{background:rgba(245,158,11,.15);color:var(--amber);}
+.b-run{background:rgba(34,197,94,.15);color:var(--green);}
+.b-done{background:rgba(99,102,200,.15);color:var(--blue);}
+.b-cancel{background:rgba(239,68,68,.15);color:var(--red);}
+.prio-H{color:var(--red);font-weight:800;}.prio-M{color:var(--amber);font-weight:700;}.prio-L{color:var(--text2);}
+
+button.btn{background:var(--blue);color:#fff;border:none;padding:9px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px;transition:.15s;}
+button.btn:hover{filter:brightness(1.1);}
+button.btn.sec{background:var(--card);border:1px solid var(--border);color:var(--text);}
+button.btn.dng{background:var(--red);}
+button.btn.grn{background:var(--green);}
+button.btn:disabled{opacity:.4;cursor:not-allowed;}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+select,input[type=text],input[type=number],textarea{
+  background:var(--navy);border:1px solid var(--border);color:var(--text);
+  padding:8px 10px;border-radius:8px;font-size:13px;font-family:inherit;
 }
-.btn:hover{background:var(--primary-dim);border-color:var(--primary)}
-.btn.primary{background:var(--primary);border-color:transparent;font-weight:700}
-.btn.primary:hover{background:var(--primary-dim)}
-.btn.success{background:var(--accent);border-color:transparent;font-weight:700;color:#fff}
-.btn.danger{background:var(--error);border-color:transparent;font-weight:700}
-.btn.warn{background:var(--warn);border-color:transparent;font-weight:700;color:#111}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);}
 
-#clock{color:var(--text-dim);font-family:'Consolas',monospace;font-size:12px;min-width:72px;text-align:right}
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;width:440px;max-width:92vw;max-height:90vh;overflow:auto;}
+.modal h3{margin-bottom:16px;color:var(--text);font-size:18px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;}
+.field input,.field select{width:100%;}
 
-/* ── Content ────────────────────────────────────────────────────────── */
-#screens{flex:1;overflow:hidden;position:relative}
-.screen{position:absolute;inset:0;overflow:hidden;display:none}
-.screen.active{display:flex}
+/* SIM CANVAS */
+.sim-layout{display:grid;grid-template-columns:1fr 360px;gap:16px;}
+canvas#toolpath{background:#0A1013;border:1px solid var(--border);border-radius:10px;width:100%;display:block;}
+.sim-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;}
+.gcode-editor{width:100%;height:300px;font-family:monospace;font-size:12px;white-space:pre;overflow:auto;resize:vertical;line-height:1.5;}
+.gcode-lines{height:300px;overflow:auto;background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:8px;font-family:monospace;font-size:12px;}
+.gcode-lines .gl-line{padding:2px 6px;border-radius:4px;white-space:pre;}
+.gcode-lines .gl-line.cur{background:var(--blue);color:#fff;}
+.simstat{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.simstat div{background:var(--navy);padding:8px;border-radius:8px;font-size:12px;}
+.simstat b{color:var(--blue);display:block;font-size:16px;}
+input[type=range]{accent-color:var(--blue);}
 
-/* ── Cards ──────────────────────────────────────────────────────────── */
-.card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:12px;padding:14px 16px;
-}
-.card-title{
-  color:var(--text-dim);font-size:10px;font-weight:600;
-  letter-spacing:2px;margin-bottom:10px;text-transform:uppercase;
-}
+/* RUN */
+.run-btns{display:flex;gap:14px;margin:16px 0;}
+.run-btns button{flex:1;padding:22px;font-size:18px;font-weight:900;border-radius:12px;border:none;cursor:pointer;}
+.over-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.over-row label{min-width:90px;font-size:13px;}
+.over-row span{min-width:50px;font-weight:800;color:var(--blue);}
+.toggle{position:relative;width:50px;height:26px;background:var(--navy);border-radius:13px;cursor:pointer;border:1px solid var(--border);}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;}
+.toggle.on::after{left:26px;}
+.indicator{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--navy);border-radius:8px;}
+.indicator .d{width:12px;height:12px;border-radius:50%;}
 
-/* ══════════════════════════════════════════════════════════════════════
-   HOME SCREEN
-══════════════════════════════════════════════════════════════════════ */
-#screen-home{
-  display:grid;
-  grid-template-columns:200px 1fr 185px;
-  grid-template-rows:1fr;
-  gap:10px;padding:10px;
-}
+/* CHAT */
+.chat-layout{display:grid;grid-template-columns:1fr 300px;gap:16px;}
+.chat-box{display:flex;flex-direction:column;height:560px;}
+.chat-msgs{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:12px;}
+.msg{display:flex;gap:8px;max-width:80%;}
+.msg.user{align-self:flex-end;flex-direction:row-reverse;}
+.msg .av{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--navy);border:1px solid var(--border);}
+.msg .bubble{padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.55;}
+.msg.ai .bubble{background:var(--navy);border:1px solid var(--border);border-top-left-radius:4px;}
+.msg.user .bubble{background:var(--blue);color:#fff;border-top-right-radius:4px;}
+.msg .bubble b{color:var(--blue);}
+.msg.user .bubble b{color:#fff;}
+.typing{display:flex;gap:4px;padding:12px;}
+.typing span{width:8px;height:8px;border-radius:50%;background:var(--text2);animation:typing 1.2s infinite;}
+.typing span:nth-child(2){animation-delay:.2s;}.typing span:nth-child(3){animation-delay:.4s;}
+@keyframes typing{0%,60%,100%{opacity:.3;transform:translateY(0);}30%{opacity:1;transform:translateY(-4px);}}
+.chat-input{display:flex;gap:8px;margin-top:10px;}
+.chat-input input{flex:1;}
+.mic-btn{background:var(--card);border:1px solid var(--border);color:var(--text);width:42px;border-radius:8px;cursor:pointer;font-size:18px;}
+.mic-btn.listening{background:var(--red);animation:pulse .8s infinite;}
+.suggestions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.suggestions button{background:var(--navy);border:1px solid var(--border);color:var(--text2);padding:6px 12px;border-radius:16px;cursor:pointer;font-size:12px;}
+.suggestions button:hover{border-color:var(--blue);color:var(--blue);}
+.collapsible{background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;font-weight:700;font-size:13px;}
+.collapsible-body{display:none;padding:10px;font-size:12px;line-height:1.7;color:var(--text2);}
+.collapsible-body.show{display:block;}
+.cmd-ref{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);}
+.cmd-ref code{color:var(--blue);}
 
-/* LEFT col */
-#col-left{display:flex;flex-direction:column;gap:8px;overflow:hidden}
+/* TOAST */
+#toasts{position:fixed;top:70px;right:18px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--blue);padding:12px 16px;border-radius:8px;font-size:13px;min-width:220px;animation:slidein .3s;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+.toast.green{border-left-color:var(--green);}.toast.red{border-left-color:var(--red);}.toast.amber{border-left-color:var(--amber);}
+@keyframes slidein{from{transform:translateX(120%);}to{transform:none;}}
 
-/* Axis cards */
-.axis-card{padding:10px 14px}
-.axis-letter{font-size:22px;font-weight:900;line-height:1;margin-bottom:4px}
-.axis-machine{font-family:'Consolas',monospace;font-size:26px;font-weight:700;line-height:1;letter-spacing:-1px}
-.axis-sep{height:1px;background:var(--border);margin:6px 0}
-.axis-work{font-family:'Consolas',monospace;font-size:14px;color:var(--text-dim)}
+.health{display:flex;align-items:center;gap:10px;padding:10px;background:var(--navy);border-radius:8px;margin-bottom:8px;}
+.health .bar{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.health .bar .f{height:100%;border-radius:4px;}
 
-/* Load bars */
-.load-row{display:flex;align-items:center;gap:8px;height:28px}
-.load-label{width:16px;font-size:10px;color:var(--text-dim);font-weight:600;flex-shrink:0}
-.load-track{flex:1;height:7px;background:var(--border);border-radius:4px;overflow:hidden}
-.load-fill{height:100%;border-radius:4px;transition:width .3s ease}
-.load-val{width:36px;font-family:'Consolas',monospace;font-size:10px;text-align:right;flex-shrink:0}
+/* ── RESPONSIVE ── */
 
-/* Gauge row */
-.gauge-row{display:flex;justify-content:space-around;align-items:center;padding:8px 4px}
-.gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
-.gauge-val{font-family:'Consolas',monospace;font-size:13px;font-weight:700;text-align:center}
-.gauge-unit{font-size:9px;color:var(--text-dim);text-align:center}
-canvas.gauge-arc{display:block}
-
-/* CENTER col */
-#col-center{display:flex;flex-direction:column;gap:8px;overflow:hidden}
-
-/* Notes */
-#notes-header{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-#notes-header h3{font-size:13px;font-weight:700}
-#add-note-btn{width:28px;height:28px;border-radius:6px;padding:0;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center}
-#notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-shrink:0}
-.note-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:10px;
-  padding:10px 12px;position:relative;border-left-width:3px;
-}
-.note-ts{font-size:9px;color:var(--text-muted);margin-bottom:4px}
-.note-body{font-size:11px;line-height:1.4;margin-bottom:4px}
-.note-author{font-size:9px;color:var(--text-dim)}
-.note-del{
-  position:absolute;top:6px;right:6px;background:transparent;border:none;
-  color:var(--text-muted);cursor:pointer;font-size:11px;line-height:1;padding:2px 4px;
-}
-.note-del:hover{color:var(--error)}
-
-/* Monitoring */
-#mon-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex-shrink:0}
-.mon-card{padding:10px 12px}
-.mon-icon{font-size:10px;color:var(--text-dim);margin-bottom:4px}
-.mon-val{font-family:'Consolas',monospace;font-size:22px;font-weight:700;line-height:1}
-.mon-delta{font-size:11px;font-weight:600;margin:2px 0}
-.mon-sub{font-size:9px;color:var(--text-muted)}
-
-/* Energy chart */
-#energy-wrap{flex:1;min-height:0;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
-#energy-canvas-wrap{flex:1;min-height:0}
-
-/* RIGHT col */
-#col-right{display:flex;flex-direction:column;gap:8px;overflow-y:auto;overflow-x:hidden}
-
-/* Smart links */
-.smart-link{
-  display:flex;align-items:center;gap:10px;
-  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-  padding:8px 12px;cursor:pointer;font-size:12px;color:var(--text);
-  transition:border-color .15s,color .15s;white-space:nowrap;
-  text-decoration:none;
-}
-.smart-link:hover{border-color:var(--primary);color:var(--primary)}
-.smart-link-icon{font-size:14px;width:18px;text-align:center}
-
-/* Override sliders */
-.ovr-label{font-size:10px;color:var(--text-dim);margin-bottom:2px}
-.ovr-val{font-family:'Consolas',monospace;font-size:14px;font-weight:700;margin-bottom:6px}
-input[type=range]{
-  width:100%;accent-color:var(--primary);cursor:pointer;height:4px;
-}
-
-/* Tool info */
-.tool-num{font-size:18px;font-weight:700;color:var(--text);letter-spacing:1px}
-
-/* ══════════════════════════════════════════════════════════════════════
-   WORK SCREEN
-══════════════════════════════════════════════════════════════════════ */
-#screen-work{flex-direction:column;padding:12px;gap:10px}
-
-#prog-card{display:flex;flex-direction:column;gap:8px}
-#prog-name{font-size:18px;font-weight:700}
-#prog-bar{height:10px;background:var(--border);border-radius:5px;overflow:hidden}
-#prog-bar-fill{height:100%;background:var(--primary);border-radius:5px;width:0%;transition:width .5s}
-#prog-line{font-size:11px;color:var(--text-dim)}
-
-#ctrl-row{display:flex;gap:10px}
-#ctrl-row .btn{flex:1;height:52px;font-size:13px;font-weight:700;border-radius:10px}
-
-#work-lower{display:grid;grid-template-columns:2fr 1fr;gap:10px;flex:1;min-height:0}
-#state-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
-#state-big{font-size:40px;font-weight:900;letter-spacing:4px;transition:color .3s}
-#tool-info{font-size:12px;color:var(--text-dim);text-align:center}
-#ax-card{display:flex;flex-direction:column;gap:8px;padding:16px}
-.ax-row{display:flex;align-items:baseline;gap:10px}
-.ax-ltr{font-size:16px;font-weight:800;min-width:20px}
-.ax-v{font-family:'Consolas',monospace;font-size:22px;font-weight:600;flex:1}
-.ax-mm{font-size:11px;color:var(--text-dim)}
-
-/* ══════════════════════════════════════════════════════════════════════
-   INSPECT SCREEN
-══════════════════════════════════════════════════════════════════════ */
-#screen-inspect{flex-direction:column;padding:16px;gap:10px}
-#alarm-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
-.alarm-item{
-  background:var(--surface);border:1px solid var(--error);border-radius:8px;
-  padding:10px 14px;color:var(--error);font-size:13px;
-}
-.no-alarm{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  font-size:16px;color:var(--accent);gap:10px;
+/* 4K / Large screens */
+@media(min-width:2560px){
+  html{font-size:18px;}
+  header{padding:0 48px;height:72px;}
+  .tab-bar{padding:0 48px;}
+  .tab-btn{font-size:15px;padding:14px 28px;}
+  .content{padding:40px 48px;max-width:2400px;margin:0 auto;}
+  .axis-val{font-size:3rem;}
+  .gauge-ring{width:140px;height:140px;}
 }
 
-/* ══════════════════════════════════════════════════════════════════════
-   ANALYZE SCREEN
-══════════════════════════════════════════════════════════════════════ */
-#screen-analyze{flex-direction:column;padding:12px;gap:10px}
-#kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex-shrink:0}
-.kpi-card{padding:14px}
-.kpi-label{font-size:10px;color:var(--text-dim);font-weight:600;letter-spacing:1px;margin-bottom:6px;text-transform:uppercase}
-.kpi-val{font-family:'Consolas',monospace;font-size:28px;font-weight:800;line-height:1}
-#chart-card{flex:1;min-height:0;padding:14px;display:flex;flex-direction:column;gap:8px}
-#chart-card h3{font-size:13px;font-weight:700}
-#analyze-canvas-wrap{flex:1;min-height:0}
+/* Large desktop (1440px+) */
+@media(min-width:1440px){
+  .content{max-width:1400px;margin:0 auto;}
+  .axis-grid{grid-template-columns:repeat(3,1fr);}
+  .stat-grid{grid-template-columns:repeat(4,1fr);}
+}
 
-/* ══════════════════════════════════════════════════════════════════════
-   STATUS BAR
-══════════════════════════════════════════════════════════════════════ */
-#statusbar{
-  background:var(--surface);border-top:1px solid var(--border);
-  height:26px;display:flex;align-items:center;padding:0 16px;gap:16px;flex-shrink:0;
-  font-size:10px;color:var(--text-dim);font-family:'Consolas',monospace;
+/* Desktop (1024-1440px) — default */
+@media(max-width:1280px){
+  .content{padding:20px 24px;}
+  .axis-val{font-size:2.2rem;}
 }
-#sb-left{margin-right:auto}
-#sb-pos{flex:1;text-align:center}
-#sb-prog{color:var(--primary);margin-left:auto}
 
-/* ══════════════════════════════════════════════════════════════════════
-   MODAL
-══════════════════════════════════════════════════════════════════════ */
-.modal-bg{
-  position:fixed;inset:0;background:rgba(0,0,0,.7);
-  display:flex;align-items:center;justify-content:center;z-index:9999;
-  backdrop-filter:blur(4px);
+/* Tablet landscape (980-1024px) */
+@media(max-width:1024px){
+  .tab-btn{font-size:11px;padding:10px 14px;}
+  .sim-layout{grid-template-columns:1fr;}
+  .chat-layout{grid-template-columns:1fr;}
+  .axis-grid{grid-template-columns:repeat(3,1fr);}
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .gauge-row{gap:16px;}
 }
-.modal-bg.hidden{display:none}
-.modal{
-  background:var(--surface);border:1px solid var(--border);border-radius:14px;
-  padding:24px;width:360px;display:flex;flex-direction:column;gap:14px;
-  box-shadow:0 20px 60px rgba(0,0,0,.6);
-}
-.modal h2{font-size:18px;font-weight:700}
-.modal label{font-size:11px;color:var(--text-dim);display:block;margin-bottom:4px}
-.modal input[type=text]{
-  width:100%;background:var(--surface2);border:1px solid var(--border);
-  color:var(--text);border-radius:6px;padding:7px 10px;font-size:13px;
-}
-.modal input[type=text]:focus{outline:none;border-color:var(--primary)}
-.modal textarea{
-  width:100%;background:var(--surface2);border:1px solid var(--border);
-  color:var(--text);border-radius:6px;padding:8px 10px;font-size:12px;
-  resize:none;height:80px;font-family:inherit;
-}
-.modal textarea:focus{outline:none;border-color:var(--primary)}
-.modal-row{display:flex;gap:10px;align-items:center}
-.modal-row label{margin:0;cursor:pointer;display:flex;align-items:center;gap:6px}
-.modal-btns{display:flex;gap:10px;justify-content:flex-end}
-.modal-btns .btn{min-width:90px;justify-content:center}
 
-/* Checkbox style */
-input[type=checkbox]{accent-color:var(--primary);cursor:pointer;width:14px;height:14px}
+/* Tablet portrait (768-980px) */
+@media(max-width:980px){
+  .sim-layout,.chat-layout{grid-template-columns:1fr;}
+  .axis-grid{grid-template-columns:repeat(3,1fr);}
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .load-grid{grid-template-columns:1fr 1fr;}
+  header{padding:0 16px;}
+  .logo-sub{display:none;}
+  .tab-btn span.tab-label{display:none;}
+  .tab-btn span.tab-icon{display:inline;}
+}
+
+/* Mobile landscape (600-768px) */
+@media(max-width:768px){
+  header{height:52px;}
+  .logo-axtea{font-size:18px;}
+  .tab-bar{overflow-x:auto;gap:2px;padding:0 8px;}
+  .tab-btn{font-size:10px;padding:8px 10px;min-width:48px;}
+  .content{padding:12px;}
+  .axis-grid{grid-template-columns:1fr 1fr 1fr;}
+  .axis-val{font-size:1.8rem;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .gauge-row{flex-direction:column;align-items:center;}
+  .gauge-ring{width:100px;height:100px;}
+  .gauge-ring text{font-size:18px;}
+  .card{padding:14px;}
+  .load-grid{grid-template-columns:1fr;}
+  .btn-row{flex-wrap:wrap;gap:8px;}
+  #gcode-canvas{max-height:280px;}
+  .modal-body{padding:16px;}
+  table{font-size:12px;}
+  th,td{padding:6px 8px;}
+  #chat-msgs{height:280px;}
+  .run-controls{grid-template-columns:1fr;}
+}
+
+/* Mobile portrait (320-600px) */
+@media(max-width:600px){
+  header{height:48px;padding:0 10px;}
+  .logo-axtea{font-size:15px;}
+  .hmi-ver{display:none;}
+  .tab-bar{padding:0 4px;gap:1px;}
+  .tab-btn{padding:6px 8px;font-size:9px;}
+  .content{padding:8px;}
+  .axis-grid{grid-template-columns:1fr 1fr 1fr;gap:6px;}
+  .axis-val{font-size:1.4rem;}
+  .axis-label{font-size:10px;}
+  .stat-grid{grid-template-columns:1fr 1fr;gap:6px;}
+  .card{padding:10px;border-radius:8px;}
+  .card-title{font-size:11px;}
+  h2{font-size:14px;}
+  .gauge-ring{width:80px;height:80px;}
+  .btn{padding:8px 14px;font-size:12px;}
+  .btn-lg{padding:14px 24px;font-size:16px;}
+  .run-btn{width:100%;padding:16px;}
+  #gcode-canvas{max-height:220px;}
+  .sim-stats{grid-template-columns:1fr 1fr;}
+  #ai-input{font-size:14px;}
+  .alarm-row td{font-size:11px;}
+  .badge-sim{font-size:10px;padding:3px 8px;}
+  .lang-switch button{padding:3px 7px;font-size:10px;}
+  #toasts{right:8px;top:56px;}
+  .toast{min-width:160px;font-size:12px;}
+  .override-row{flex-direction:column;gap:8px;}
+  .maint-grid{grid-template-columns:1fr;}
+  .job-table-wrap{overflow-x:auto;}
+  .health{flex-wrap:wrap;}
+}
+
+/* Touch/hover states for mobile */
+@media(hover:none){
+  .tab-btn:hover,.btn:hover,.btn-lg:hover{opacity:1;}
+  .tab-btn:active,.btn:active{opacity:.75;transform:scale(.97);}
+}
+
+/* Ensure canvas is always square-ish and responsive */
+#gcode-canvas{
+  width:100%!important;
+  max-width:600px;
+  height:auto!important;
+  aspect-ratio:1/1;
+  display:block;
+  margin:0 auto;
+}
+
+/* Scrollable tab bar on small screens */
+.tab-bar{scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+
+/* Fluid typography */
+@media(max-width:480px){
+  :root{font-size:13px;}
+}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════ TOP BAR ═══════════════════ -->
-<div id="topbar">
-  <div class="logo">
-    <span class="logo-sym">✦</span>
-    <div>
-      <div class="logo-name">AXTEA</div>
-      <div class="logo-sub">INTEGRATED WOODWORKING SOLUTIONS</div>
+<header>
+  <div class="logo-wrap">
+    <svg width="40" height="40" viewBox="0 0 100 100">
+      <g fill="#6366C8">
+        <path d="M50 8 L58 38 L88 30 L62 50 L88 70 L58 62 L50 92 L42 62 L12 70 L38 50 L12 30 L42 38 Z"/>
+      </g>
+      <circle cx="50" cy="50" r="7" fill="#0D1418"/>
+    </svg>
+    <div class="logo-text-wrap">
+      <span class="logo-axtea">AXTEA</span>
+      <span class="logo-sub">INTEGRATED WOODWORKING SOLUTIONS</span>
     </div>
   </div>
-
-  <nav id="nav">
-    <button class="nav-btn active" data-screen="home"   onclick="showScreen('home')">
-      <span class="nav-icon">⌂</span><span class="nav-label" data-i18n="nav_home">Home</span>
-    </button>
-    <button class="nav-btn" data-screen="design" onclick="showScreen('design')">
-      <span class="nav-icon">◧</span><span class="nav-label" data-i18n="nav_design">Design</span>
-    </button>
-    <button class="nav-btn" data-screen="work"   onclick="showScreen('work')">
-      <span class="nav-icon">⚙</span><span class="nav-label" data-i18n="nav_work">Work</span>
-    </button>
-    <button class="nav-btn" data-screen="inspect" onclick="showScreen('inspect')">
-      <span class="nav-icon">◉</span><span class="nav-label" data-i18n="nav_inspect">Inspect</span>
-    </button>
-    <button class="nav-btn" data-screen="analyze" onclick="showScreen('analyze')">
-      <span class="nav-icon">◈</span><span class="nav-label" data-i18n="nav_analyze">Analyze</span>
-    </button>
-  </nav>
-
-  <div id="topbar-right">
-    <span id="status-chip" class="status-chip connected">● IDLE</span>
-    <select class="lang-sel" id="lang-sel" onchange="setLang(this.value)">
-      <option value="TR">Türkçe</option>
-      <option value="EN" selected>English</option>
-      <option value="DE">Deutsch</option>
-      <option value="FR">Français</option>
-      <option value="IT">Italiano</option>
-      <option value="ES">Español</option>
-      <option value="ZH">中文</option>
-    </select>
-    <button class="btn primary" onclick="openConnModal()" data-i18n-btn="connect">⟳ Connect</button>
-    <span id="clock"></span>
+  <div class="header-right">
+    <span class="hmi-ver">CNC HMI v2.0</span>
+    <span class="badge-sim"><span class="dot-pulse"></span><span data-i18n="sim">SİMÜLASYON</span></span>
+    <div class="lang-switch">
+      <button id="lng-tr" class="active" onclick="setLang('tr')">TR</button>
+      <button id="lng-en" onclick="setLang('en')">EN</button>
+    </div>
+    <button class="help-btn" title="Kısayollar: Space=Başlat/Dur, S=Stop, R=Reset, H=Home, 1-6=Sekmeler" onclick="showHelp()">?</button>
   </div>
-</div>
+</header>
 
-<!-- ═══════════════════ SCREENS ═══════════════════ -->
-<div id="screens">
+<nav class="tabs">
+  <button class="active" data-tab="home" onclick="switchTab('home')" data-i18n="t_home">ANA SAYFA</button>
+  <button data-tab="jobs" onclick="switchTab('jobs')" data-i18n="t_jobs">İŞ LİSTESİ</button>
+  <button data-tab="sim" onclick="switchTab('sim')" data-i18n="t_sim">G-CODE SİMÜLASYON</button>
+  <button data-tab="run" onclick="switchTab('run')" data-i18n="t_run">ÇALIŞMA</button>
+  <button data-tab="maint" onclick="switchTab('maint')" data-i18n="t_maint">BAKIM</button>
+  <button data-tab="ai" onclick="switchTab('ai')" data-i18n="t_ai">AI ASİSTAN</button>
+</nav>
 
-  <!-- ── HOME ──────────────────────────────────────────── -->
-  <div id="screen-home" class="screen active">
-
-    <!-- LEFT -->
-    <div id="col-left">
-      <!-- Axis X -->
-      <div class="card axis-card">
-        <div class="axis-letter" style="color:var(--primary)">X</div>
-        <div class="axis-machine" id="ax-x-m">+0.000</div>
-        <div class="axis-sep"></div>
-        <div class="axis-work"  id="ax-x-w">W +0.000</div>
-      </div>
-      <!-- Axis Y -->
-      <div class="card axis-card">
-        <div class="axis-letter" style="color:var(--accent)">Y</div>
-        <div class="axis-machine" id="ax-y-m">+0.000</div>
-        <div class="axis-sep"></div>
-        <div class="axis-work"  id="ax-y-w">W +0.000</div>
-      </div>
-      <!-- Axis Z -->
-      <div class="card axis-card">
-        <div class="axis-letter" style="color:var(--wood)">Z</div>
-        <div class="axis-machine" id="ax-z-m">+0.000</div>
-        <div class="axis-sep"></div>
-        <div class="axis-work"  id="ax-z-w">W +0.000</div>
-      </div>
-
-      <!-- Load bars -->
-      <div class="card" style="flex:1;min-height:0">
-        <div class="card-title" data-i18n="absorption">LOAD</div>
-        <div class="load-row"><span class="load-label">X</span><div class="load-track"><div class="load-fill" id="load-x" style="width:0%;background:var(--primary)"></div></div><span class="load-val" id="load-x-v">0%</span></div>
-        <div class="load-row"><span class="load-label">Y</span><div class="load-track"><div class="load-fill" id="load-y" style="width:0%;background:var(--accent)"></div></div><span class="load-val" id="load-y-v">0%</span></div>
-        <div class="load-row"><span class="load-label">Z</span><div class="load-track"><div class="load-fill" id="load-z" style="width:0%;background:var(--wood)"></div></div><span class="load-val" id="load-z-v">0%</span></div>
-        <div class="load-row"><span class="load-label">S</span><div class="load-track"><div class="load-fill" id="load-s" style="width:0%;background:var(--warn)"></div></div><span class="load-val" id="load-s-v">0%</span></div>
-      </div>
-
-      <!-- Gauges -->
-      <div class="card gauge-row" style="flex-shrink:0">
-        <div class="gauge-wrap">
-          <canvas class="gauge-arc" id="gauge-feed" width="100" height="100"></canvas>
-          <div class="gauge-val" style="color:var(--primary)" id="gv-feed">0</div>
-          <div class="gauge-unit">mm/min  FEED</div>
-        </div>
-        <div class="gauge-wrap">
-          <canvas class="gauge-arc" id="gauge-spn" width="100" height="100"></canvas>
-          <div class="gauge-val" style="color:var(--wood)" id="gv-spn">0</div>
-          <div class="gauge-unit">RPM  SPINDLE</div>
+<main>
+<!-- ============ HOME ============ -->
+<section id="home" class="tabpanel active">
+  <div class="grid" style="grid-template-columns:1fr 1fr 1fr;">
+    <div class="card">
+      <h3 data-i18n="machine_status">Makine Durumu</h3>
+      <div class="status-big">
+        <div id="statusLight" class="status-light IDLE"></div>
+        <div>
+          <div id="statusLabel" class="status-label">IDLE</div>
+          <div id="statusProg" style="color:var(--text2);font-size:12px;">—</div>
         </div>
       </div>
     </div>
-
-    <!-- CENTER -->
-    <div id="col-center">
-      <div id="notes-header">
-        <h3 data-i18n="notes">Notes</h3>
-        <button class="btn primary" id="add-note-btn" onclick="openNoteModal()" title="Add Note">＋</button>
-      </div>
-
-      <div id="notes-grid">
-        <!-- seeded by JS -->
-      </div>
-
-      <div style="flex-shrink:0">
-        <h3 style="font-size:13px;font-weight:700;margin-bottom:8px" data-i18n="monitoring">Monitoring</h3>
-        <div id="mon-grid">
-          <div class="card mon-card">
-            <div class="mon-icon">⬛ <span data-i18n="pieces_produced">Pieces Produced</span></div>
-            <div class="mon-val" id="mon-pieces">0</div>
-            <div class="mon-delta" style="color:var(--accent)">+0%</div>
-            <div class="mon-sub" data-i18n="last_24h">Last 24 hours</div>
-          </div>
-          <div class="card mon-card">
-            <div class="mon-icon">⚠ <span data-i18n="errors">Errors</span></div>
-            <div class="mon-val" id="mon-errors" style="color:var(--error)">0</div>
-            <div class="mon-delta" style="color:var(--error)">+0%</div>
-            <div class="mon-sub" data-i18n="last_24h">Last 24 hours</div>
-          </div>
-          <div class="card mon-card">
-            <div class="mon-icon">△ <span data-i18n="warnings">Warnings</span></div>
-            <div class="mon-val" id="mon-warns" style="color:var(--warn)">0</div>
-            <div class="mon-delta" style="color:var(--warn)">0</div>
-            <div class="mon-sub" data-i18n="last_24h">Last 24 hours</div>
-          </div>
-          <div class="card mon-card">
-            <div class="mon-icon">◎ <span data-i18n="availability">Availability</span></div>
-            <div class="mon-val" id="mon-avail" style="color:var(--accent)">98%</div>
-            <div class="mon-delta" style="color:var(--accent)">+1%</div>
-            <div class="mon-sub" data-i18n="last_24h">Last 24 hours</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Energy sparkline -->
-      <div class="card energy-wrap" id="energy-wrap" style="flex:1;min-height:80px">
-        <div class="card-title" data-i18n="energy_management">ENERGY MANAGEMENT</div>
-        <div id="energy-canvas-wrap" style="flex:1;position:relative;min-height:60px">
-          <canvas id="energy-canvas"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT -->
-    <div id="col-right">
-      <h3 style="font-size:13px;font-weight:700;flex-shrink:0" data-i18n="smart_links">Smart Links</h3>
-      <a class="smart-link" href="#" onclick="return false" data-i18n-link="homing"><span class="smart-link-icon">⌖</span><span data-i18n="homing">Homing</span></a>
-      <a class="smart-link" href="#" onclick="return false" data-i18n-link="detections"><span class="smart-link-icon">◈</span><span data-i18n="detections">Detections</span></a>
-      <a class="smart-link" href="#" onclick="return false" data-i18n-link="manuals"><span class="smart-link-icon">📖</span><span data-i18n="manuals">Manuals</span></a>
-      <a class="smart-link" href="#" onclick="return false" data-i18n-link="issues"><span class="smart-link-icon">⚑</span><span data-i18n="issues">Issues</span></a>
-      <a class="smart-link" href="#" onclick="return false" data-i18n-link="task"><span class="smart-link-icon">✓</span><span data-i18n="task">Task</span></a>
-      <a class="smart-link" href="#" onclick="return false" data-i18n-link="worklist"><span class="smart-link-icon">☰</span><span data-i18n="worklist">Worklist</span></a>
-      <a class="smart-link" href="#" onclick="return false" data-i18n-link="functions"><span class="smart-link-icon">⚙</span><span data-i18n="functions">Functions</span></a>
-      <a class="smart-link" href="#" onclick="return false" data-i18n-link="machine_data"><span class="smart-link-icon">📊</span><span data-i18n="machine_data">Machine Data</span></a>
-
-      <!-- Override -->
-      <div class="card" style="flex-shrink:0;margin-top:4px">
-        <div class="card-title">OVERRIDE</div>
-        <div class="ovr-label" data-i18n="feed_override">Feed Override</div>
-        <div class="ovr-val" id="feed-ovr-val" style="color:var(--primary)">100 %</div>
-        <input type="range" min="0" max="200" value="100" id="feed-slider"
-               oninput="feedOvrChange(this.value)">
-
-        <div class="ovr-label" style="margin-top:10px" data-i18n="spindle_override">Spindle Override</div>
-        <div class="ovr-val" id="spn-ovr-val" style="color:var(--wood)">100 %</div>
-        <input type="range" min="0" max="200" value="100" id="spn-slider"
-               oninput="spnOvrChange(this.value)">
-      </div>
-
-      <!-- Tool -->
-      <div class="card" style="flex-shrink:0">
-        <div class="card-title" data-i18n="tool">TOOL</div>
-        <div class="tool-num" id="tool-disp">T1 – TP1 700</div>
-        <div style="font-size:10px;color:var(--text-dim);margin-top:4px" id="tool-rpm">Ø 70mm  Nx: 18000</div>
+    <div class="card" style="grid-column:span 2;">
+      <h3 data-i18n="positions">Eksen Pozisyonları (mm)</h3>
+      <div class="axis-grid">
+        <div class="axis-box"><div class="axis-name">X</div><div class="axis-val" id="hX">0.000</div><div class="axis-unit">mm</div></div>
+        <div class="axis-box"><div class="axis-name">Y</div><div class="axis-val" id="hY">0.000</div><div class="axis-unit">mm</div></div>
+        <div class="axis-box"><div class="axis-name">Z</div><div class="axis-val" id="hZ">0.000</div><div class="axis-unit">mm</div></div>
       </div>
     </div>
   </div>
 
-  <!-- ── DESIGN (placeholder) ─────────────────────────── -->
-  <div id="screen-design" class="screen" style="align-items:center;justify-content:center;flex-direction:column;gap:12px">
-    <div style="font-size:64px;color:var(--primary)">◧</div>
-    <div style="font-size:18px;font-weight:600;color:var(--text-dim)" data-i18n="nav_design">Design</div>
-    <div style="color:var(--text-muted);font-size:13px">G-code editor & toolpath viewer</div>
-  </div>
-
-  <!-- ── WORK ──────────────────────────────────────────── -->
-  <div id="screen-work" class="screen">
-    <!-- Program card -->
-    <div class="card" id="prog-card">
-      <div id="prog-name" data-i18n-placeholder="program">—</div>
-      <div id="prog-bar"><div id="prog-bar-fill"></div></div>
-      <div id="prog-line">Line 0 / 0</div>
-    </div>
-
-    <!-- Control buttons -->
-    <div id="ctrl-row">
-      <button class="btn success" onclick="simStart()">▶ <span data-i18n="program_start">Start</span></button>
-      <button class="btn warn"    onclick="simPause()">⏸ <span data-i18n="program_pause">Pause</span></button>
-      <button class="btn danger"  onclick="simStop()">⏹ <span data-i18n="program_stop">Stop</span></button>
-      <button class="btn"         onclick="simReset()">↺ <span data-i18n="program_reset">Reset</span></button>
-      <button class="btn primary" onclick="simHome()">⌖ <span data-i18n="homing">Homing</span></button>
-    </div>
-
-    <div id="work-lower">
-      <div class="card" id="state-card">
-        <div id="state-big" style="color:var(--text-dim)">IDLE</div>
-        <div id="tool-info">Tool: —    Feed: — mm/min    Spindle: — RPM</div>
-      </div>
-      <div class="card" id="ax-card">
-        <div class="ax-row"><span class="ax-ltr" style="color:var(--primary)">X</span><span class="ax-v" id="wax-x">+0.000</span><span class="ax-mm">mm</span></div>
-        <div class="ax-row"><span class="ax-ltr" style="color:var(--accent)">Y</span><span class="ax-v" id="wax-y">+0.000</span><span class="ax-mm">mm</span></div>
-        <div class="ax-row"><span class="ax-ltr" style="color:var(--wood)">Z</span><span class="ax-v" id="wax-z">+0.000</span><span class="ax-mm">mm</span></div>
+  <div class="row" style="margin-top:16px;">
+    <div class="card" style="flex:1;min-width:280px;">
+      <h3 data-i18n="gauges">Feed & Spindle</h3>
+      <div class="gauge-wrap">
+        <div class="gauge"><svg width="120" height="80" id="feedGauge"></svg><div class="gv" id="feedVal">0</div><div class="gl">Feed mm/min</div></div>
+        <div class="gauge"><svg width="120" height="80" id="spinGauge"></svg><div class="gv" id="spinVal">0</div><div class="gl">Spindle RPM</div></div>
       </div>
     </div>
-  </div>
-
-  <!-- ── INSPECT ───────────────────────────────────────── -->
-  <div id="screen-inspect" class="screen">
-    <h2 style="font-size:16px;font-weight:700;flex-shrink:0" data-i18n="alarm_title">Alarm List</h2>
-    <div id="alarm-list">
-      <div class="no-alarm"><span style="font-size:28px">✅</span><span data-i18n="no_alarms">No active alarms</span></div>
+    <div class="card" style="flex:1;min-width:280px;">
+      <h3 data-i18n="motor_load">Motor Yükleri</h3>
+      <div class="loadbar"><div class="lbl"><span>X</span><span id="lXt">0%</span></div><div class="track"><div class="fill" id="lX"></div></div></div>
+      <div class="loadbar"><div class="lbl"><span>Y</span><span id="lYt">0%</span></div><div class="track"><div class="fill" id="lY"></div></div></div>
+      <div class="loadbar"><div class="lbl"><span>Z</span><span id="lZt">0%</span></div><div class="track"><div class="fill" id="lZ"></div></div></div>
+      <div class="loadbar"><div class="lbl"><span>Spindle</span><span id="lSt">0%</span></div><div class="track"><div class="fill" id="lS"></div></div></div>
     </div>
   </div>
 
-  <!-- ── ANALYZE ───────────────────────────────────────── -->
-  <div id="screen-analyze" class="screen">
-    <div id="kpi-row">
-      <div class="card kpi-card"><div class="kpi-label" data-i18n="pieces_produced">Pieces Produced</div><div class="kpi-val" style="color:var(--primary)" id="kpi-pieces">0</div></div>
-      <div class="card kpi-card"><div class="kpi-label" data-i18n="errors">Errors</div><div class="kpi-val" style="color:var(--error)" id="kpi-errors">0</div></div>
-      <div class="card kpi-card"><div class="kpi-label" data-i18n="availability">Availability</div><div class="kpi-val" style="color:var(--accent)" id="kpi-avail">98.2%</div></div>
-      <div class="card kpi-card"><div class="kpi-label" data-i18n="power_kw">Power (kW)</div><div class="kpi-val" style="color:var(--wood)" id="kpi-power">0.0</div></div>
+  <div class="row" style="margin-top:16px;">
+    <div class="card" style="flex:1;min-width:280px;">
+      <h3 data-i18n="quick_stats">Hızlı İstatistikler</h3>
+      <div class="stat-grid">
+        <div class="stat"><div class="v" id="sUptime">0:00</div><div class="l" data-i18n="uptime">Çalışma süresi</div></div>
+        <div class="stat"><div class="v" id="sParts">0</div><div class="l" data-i18n="parts">Bugün parça</div></div>
+        <div class="stat"><div class="v" id="sEff">0%</div><div class="l" data-i18n="eff">Verimlilik</div></div>
+      </div>
+      <div style="margin-top:14px;"><canvas id="energyChart" height="70"></canvas></div>
     </div>
-    <div class="card chart-card" style="flex:1;min-height:0;padding:14px;display:flex;flex-direction:column;gap:8px">
-      <h3 style="font-size:13px;font-weight:700" data-i18n="pieces_produced">Weekly Production</h3>
-      <div style="flex:1;position:relative;min-height:0">
-        <canvas id="analyze-canvas"></canvas>
+    <div class="card" style="flex:1;min-width:280px;">
+      <h3 data-i18n="recent_alarms">Son Alarmlar</h3>
+      <div id="homeAlarms"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ JOBS ============ -->
+<section id="jobs" class="tabpanel">
+  <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">
+    <div class="stat"><div class="v" id="jTotal">0</div><div class="l" data-i18n="total">Toplam</div></div>
+    <div class="stat"><div class="v" style="color:var(--green)" id="jRun">0</div><div class="l" data-i18n="running">Çalışıyor</div></div>
+    <div class="stat"><div class="v" style="color:var(--amber)" id="jWait">0</div><div class="l" data-i18n="waiting">Bekliyor</div></div>
+    <div class="stat"><div class="v" style="color:var(--blue)" id="jDone">0</div><div class="l" data-i18n="done">Tamamlandı</div></div>
+  </div>
+  <div class="card">
+    <div class="toolbar">
+      <button class="btn" onclick="openJobModal()">+ <span data-i18n="add_job">Yeni İş Ekle</span></button>
+      <button class="btn sec" onclick="editSelectedJob()" data-i18n="edit">Düzenle</button>
+      <button class="btn dng" onclick="deleteSelectedJob()" data-i18n="delete">Sil</button>
+      <button class="btn grn" onclick="startSelectedJob()" data-i18n="start_job">Başlat</button>
+      <span style="flex:1"></span>
+      <label data-i18n="filter">Filtre:</label>
+      <select id="jobFilter" onchange="renderJobs()">
+        <option value="all" data-i18n="all">Tümü</option>
+        <option value="Bekliyor">Bekliyor</option>
+        <option value="Çalışıyor">Çalışıyor</option>
+        <option value="Tamamlandı">Tamamlandı</option>
+        <option value="İptal">İptal</option>
+      </select>
+    </div>
+    <table>
+      <thead><tr><th></th><th>ID</th><th data-i18n="part">Parça</th><th data-i18n="material">Malzeme</th><th>G-Code</th><th data-i18n="status">Durum</th><th data-i18n="priority">Öncelik</th><th data-i18n="est_time">Süre</th><th>Operatör</th></tr></thead>
+      <tbody id="jobBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ SIM ============ -->
+<section id="sim" class="tabpanel">
+  <div class="toolbar">
+    <input type="file" id="gfile" accept=".nc,.gcode,.txt" onchange="loadGFile(event)">
+    <button class="btn sec" onclick="loadDemo()" data-i18n="demo">Demo Program</button>
+  </div>
+  <div class="sim-layout">
+    <div class="card">
+      <h3>Toolpath (XY Top View)</h3>
+      <canvas id="toolpath" width="700" height="500"></canvas>
+      <div class="sim-controls">
+        <button class="btn grn" onclick="simPlay()">▶ <span data-i18n="play">Play</span></button>
+        <button class="btn sec" onclick="simPause()">⏸ <span data-i18n="pause">Pause</span></button>
+        <button class="btn dng" onclick="simStop()">⏹ <span data-i18n="stop">Stop</span></button>
+        <button class="btn sec" onclick="simReset()">↺ <span data-i18n="reset">Reset</span></button>
+        <label>Hız: <span id="simSpeedV">1x</span></label>
+        <input type="range" min="1" max="10" value="1" id="simSpeed" oninput="document.getElementById('simSpeedV').textContent=this.value+'x'">
+      </div>
+      <div class="simstat" style="margin-top:14px;">
+        <div data-i18n="lines">Satır <b id="ssLines">0</b></div>
+        <div>Rapid <b id="ssRapid">0 mm</b></div>
+        <div>Cut <b id="ssCut">0 mm</b></div>
+        <div data-i18n="est">Tahmini <b id="ssTime">0:00</b></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>G-Code Editor</h3>
+      <textarea class="gcode-editor" id="gEditor" oninput="parseGCode()"></textarea>
+      <h3 style="margin-top:14px;" data-i18n="execution">Satır Bazlı Çalışma</h3>
+      <div class="gcode-lines" id="gLines"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RUN ============ -->
+<section id="run" class="tabpanel">
+  <div class="row">
+    <div class="card" style="flex:2;min-width:320px;">
+      <h3 data-i18n="program">Program</h3>
+      <div style="font-size:20px;font-weight:800;" id="runProg">demo_kapak.nc</div>
+      <div style="color:var(--text2);margin-top:4px;" id="runStatus">IDLE</div>
+      <div class="run-btns">
+        <button class="btn grn" onclick="machineStart()">▶ START</button>
+        <button class="btn" style="background:var(--amber)" onclick="machinePause()">⏸ PAUSE</button>
+        <button class="btn dng" onclick="machineStop()">⏹ STOP</button>
+      </div>
+      <div class="card" style="background:var(--navy);">
+        <h3 data-i18n="current_line">Mevcut Satır</h3>
+        <div style="font-family:monospace;font-size:16px;color:var(--green)" id="runLine">—</div>
+      </div>
+      <div class="axis-grid" style="margin-top:14px;">
+        <div class="axis-box"><div class="axis-name">X</div><div class="axis-val" id="rX">0.000</div></div>
+        <div class="axis-box"><div class="axis-name">Y</div><div class="axis-val" id="rY">0.000</div></div>
+        <div class="axis-box"><div class="axis-name">Z</div><div class="axis-val" id="rZ">0.000</div></div>
+      </div>
+    </div>
+    <div class="card" style="flex:1;min-width:280px;">
+      <h3 data-i18n="overrides">Override & Durum</h3>
+      <div class="over-row"><label>Feed %</label><input type="range" min="0" max="200" value="100" id="feedOv" oninput="document.getElementById('feedOvV').textContent=this.value+'%'"><span id="feedOvV">100%</span></div>
+      <div class="over-row"><label>Spindle %</label><input type="range" min="0" max="150" value="100" id="spinOv" oninput="document.getElementById('spinOvV').textContent=this.value+'%'"><span id="spinOvV">100%</span></div>
+      <div class="over-row"><label data-i18n="coolant">Soğutma</label><div class="toggle" id="coolant" onclick="this.classList.toggle('on');toast('Soğutma '+(this.classList.contains('on')?'açık':'kapalı'))"></div></div>
+      <hr style="border-color:var(--border);margin:12px 0;">
+      <div class="indicator" style="margin-bottom:8px;"><div class="d" id="doorD" style="background:var(--green)"></div><span data-i18n="door">Kapı:</span> <b id="doorS">Kapalı</b></div>
+      <div class="indicator" style="margin-bottom:8px;"><div class="d" id="estopD" style="background:var(--green)"></div><span>E-Stop:</span> <b id="estopS">OK</b></div>
+      <div class="indicator"><div class="d" style="background:var(--blue)"></div><span data-i18n="cycle">Kalan süre:</span> <b id="cycleT">--:--</b></div>
+      <hr style="border-color:var(--border);margin:12px 0;">
+      <h3 data-i18n="tool_info">Takım Bilgisi</h3>
+      <div style="font-size:13px;line-height:1.9;">
+        <div>Takım No: <b id="toolNo">T1</b></div>
+        <div data-i18n="diameter">Çap: <b id="toolDia">6 mm</b></div>
+        <div data-i18n="material">Malzeme: <b id="toolMat">MDF</b></div>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ═══════════════════ STATUS BAR ═══════════════════ -->
-<div id="statusbar">
-  <span id="sb-left">OSAI C07  |  <span data-i18n="simulation">Simulation</span> MODE</span>
-  <span id="sb-pos">X: +0.000   Y: +0.000   Z: +0.000</span>
-  <span id="sb-prog"></span>
-</div>
+<!-- ============ MAINT ============ -->
+<section id="maint" class="tabpanel">
+  <div class="row">
+    <div class="card" style="flex:2;min-width:320px;">
+      <h3 data-i18n="maint_sched">Bakım Takvimi</h3>
+      <table>
+        <thead><tr><th data-i18n="task">İşlem</th><th data-i18n="last">Son</th><th data-i18n="next">Sonraki</th><th data-i18n="hours_left">Kalan Saat</th><th>Durum</th></tr></thead>
+        <tbody id="maintBody"></tbody>
+      </table>
+    </div>
+    <div class="card" style="flex:1;min-width:260px;">
+      <h3 data-i18n="health">Makine Sağlığı</h3>
+      <div id="healthBox"></div>
+    </div>
+  </div>
+  <div class="row" style="margin-top:16px;">
+    <div class="card" style="flex:2;min-width:320px;">
+      <h3 data-i18n="alarm_hist">Alarm Geçmişi</h3>
+      <table>
+        <thead><tr><th data-i18n="time">Zaman</th><th>Kod</th><th data-i18n="desc">Açıklama</th><th data-i18n="resolution">Çözüm</th></tr></thead>
+        <tbody id="alarmHistBody"></tbody>
+      </table>
+    </div>
+    <div class="card" style="flex:1;min-width:260px;">
+      <h3 data-i18n="notes">Notlar / Log</h3>
+      <textarea id="maintNotes" style="width:100%;height:160px;" placeholder="Bakım notu ekleyin..."></textarea>
+      <button class="btn" style="margin-top:8px;" onclick="addNote()" data-i18n="add_note">Not Ekle</button>
+      <div id="noteList" style="margin-top:10px;font-size:12px;"></div>
+    </div>
+  </div>
+</section>
 
-<!-- ═══════════════════ MODALS ═══════════════════ -->
-<!-- Connection modal -->
-<div class="modal-bg hidden" id="conn-modal">
+<!-- ============ AI ============ -->
+<section id="ai" class="tabpanel">
+  <div class="chat-layout">
+    <div class="card chat-box">
+      <h3>AXTEA AI ASİSTAN</h3>
+      <div class="chat-msgs" id="chatMsgs"></div>
+      <div class="suggestions">
+        <button onclick="quickAsk('Alarm nedir?')">Alarm nedir?</button>
+        <button onclick="quickAsk('G-code yardım')">G-code yardım</button>
+        <button onclick="quickAsk('Bakım zamanı?')">Bakım zamanı?</button>
+        <button onclick="quickAsk('Takım değişimi')">Takım değişimi</button>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Mesaj veya komut yazın..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="mic-btn" id="micBtn" onclick="toggleVoice()" title="Sesli komut">🎤</button>
+        <button class="btn" onclick="sendChat()">Gönder</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3 data-i18n="voice_ref">Sesli Komutlar</h3>
+      <div class="collapsible" onclick="this.nextElementSibling.classList.toggle('show')">📋 Komut Referansı ▾</div>
+      <div class="collapsible-body show">
+        <div class="cmd-ref"><span data-i18n="start">Başlat</span><code>"başlat"</code></div>
+        <div class="cmd-ref"><span>Durdur</span><code>"dur" / "durdur"</code></div>
+        <div class="cmd-ref"><span>Duraklat</span><code>"beklet"</code></div>
+        <div class="cmd-ref"><span>Sıfırla</span><code>"sıfırla"</code></div>
+        <div class="cmd-ref"><span>X Sıfır</span><code>"X sıfır"</code></div>
+        <div class="cmd-ref"><span>Eve Git</span><code>"eve git"</code></div>
+        <div class="cmd-ref"><span>Soru Sor</span><code>"soru: ..."</code></div>
+      </div>
+      <h3 style="margin-top:16px;">Bilgi Bankası</h3>
+      <div style="font-size:12px;color:var(--text2);line-height:1.9;">
+        • Alarm kodları (OSAI)<br>
+        • Operatör rehberi<br>
+        • Arıza giderme<br>
+        • G-code komutları<br>
+        • Bakım rehberi<br>
+        • Malzeme hız/ilerleme
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- JOB MODAL -->
+<div class="modal-bg" id="jobModal">
   <div class="modal">
-    <h2 data-i18n="connection">Connection</h2>
-    <div>
-      <label data-i18n="ip_address">IP Address</label>
-      <input type="text" id="conn-ip" value="192.168.1.10">
-    </div>
-    <div>
-      <label data-i18n="port">Port</label>
-      <input type="text" id="conn-port" value="5050">
-    </div>
-    <div class="modal-row">
-      <input type="checkbox" id="conn-sim" checked>
-      <label for="conn-sim" data-i18n="simulation">Simulation Mode</label>
-    </div>
-    <div class="modal-btns">
-      <button class="btn" onclick="closeModal('conn-modal')" data-i18n="cancel">Cancel</button>
-      <button class="btn primary" onclick="doConnect()" data-i18n="connect">Connect</button>
+    <h3 id="jobModalTitle">Yeni İş</h3>
+    <div class="field"><label>Parça Adı</label><input type="text" id="jmName"></div>
+    <div class="field"><label>Malzeme</label><select id="jmMat"><option>MDF</option><option>Masif Ahşap</option><option>Kontrplak</option><option>Alüminyum</option></select></div>
+    <div class="field"><label>G-Code Dosyası</label><input type="text" id="jmFile" value="program.nc"></div>
+    <div class="field"><label>Durum</label><select id="jmStatus"><option>Bekliyor</option><option>Çalışıyor</option><option>Tamamlandı</option><option>İptal</option></select></div>
+    <div class="field"><label>Öncelik</label><select id="jmPrio"><option value="H">Yüksek</option><option value="M" selected>Orta</option><option value="L">Düşük</option></select></div>
+    <div class="field"><label>Tahmini Süre (dk)</label><input type="number" id="jmTime" value="30"></div>
+    <div class="field"><label>Operatör</label><input type="text" id="jmOp" value="Operatör"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+      <button class="btn sec" onclick="closeJobModal()">İptal</button>
+      <button class="btn" onclick="saveJob()">Kaydet</button>
     </div>
   </div>
 </div>
 
-<!-- Note modal -->
-<div class="modal-bg hidden" id="note-modal">
-  <div class="modal">
-    <h2 data-i18n="add_note">Add Note</h2>
-    <div>
-      <label data-i18n="notes">Note</label>
-      <textarea id="note-text" placeholder="…"></textarea>
-    </div>
-    <div class="modal-btns">
-      <button class="btn" onclick="closeModal('note-modal')" data-i18n="cancel">Cancel</button>
-      <button class="btn primary" onclick="saveNote()" data-i18n="ok">OK</button>
-    </div>
-  </div>
-</div>
+<div id="toasts"></div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════════════════
-   i18n
-═══════════════════════════════════════════════════════════════════════ */
-const TR_DATA = {
-  nav_home:"Ana Sayfa", nav_design:"Tasarım", nav_work:"Çalışma",
-  nav_inspect:"Denetim", nav_analyze:"Analiz",
-  notes:"Notlar", add_note:"Not Ekle", monitoring:"İzleme",
-  pieces_produced:"Üretilen Parça", errors:"Hatalar", warnings:"Uyarılar",
-  availability:"Kullanılabilirlik", last_24h:"Son 24 Saat",
-  energy_management:"Enerji Yönetimi", smart_links:"Hızlı Erişim",
-  homing:"Referans Al", detections:"Tespitler", manuals:"Kılavuzlar",
-  issues:"Sorunlar", task:"Görev", worklist:"İş Listesi",
-  functions:"Fonksiyonlar", machine_data:"Makine Verileri",
-  feed_override:"İlerleme Oranı", spindle_override:"Mil Hızı Oranı",
-  tool:"Takım", absorption:"YÜK", program:"Program",
-  program_start:"Başlat", program_stop:"Durdur", program_pause:"Beklet",
-  program_reset:"Sıfırla", alarm_title:"Alarm Listesi",
-  no_alarms:"Aktif alarm yok", connection:"Bağlantı",
-  ip_address:"IP Adresi", port:"Port", connect:"Bağlan",
-  cancel:"İptal", ok:"Tamam", simulation:"Simülasyon",
-  disconnect:"Bağlantıyı Kes", language:"Dil", settings:"Ayarlar",
-  power_kw:"Güç (kW)", idle:"Beklemede", running:"Çalışıyor",
-  paused:"Duraklatıldı", alarm:"Alarm", connected:"Bağlı",
-  disconnected:"Bağlantı Yok",
+/* ============ I18N ============ */
+const I18N={
+  tr:{sim:'SİMÜLASYON',t_home:'ANA SAYFA',t_jobs:'İŞ LİSTESİ',t_sim:'G-CODE SİMÜLASYON',t_run:'ÇALIŞMA',t_maint:'BAKIM',t_ai:'AI ASİSTAN',
+    machine_status:'Makine Durumu',positions:'Eksen Pozisyonları (mm)',gauges:'Feed & Spindle',motor_load:'Motor Yükleri',quick_stats:'Hızlı İstatistikler',
+    uptime:'Çalışma süresi',parts:'Bugün parça',eff:'Verimlilik',recent_alarms:'Son Alarmlar',total:'Toplam',running:'Çalışıyor',waiting:'Bekliyor',done:'Tamamlandı',
+    add_job:'Yeni İş Ekle',edit:'Düzenle',delete:'Sil',start_job:'Başlat',filter:'Filtre:',all:'Tümü',part:'Parça',material:'Malzeme',status:'Durum',priority:'Öncelik',est_time:'Süre',
+    demo:'Demo Program',play:'Play',pause:'Pause',stop:'Stop',reset:'Reset',lines:'Satır',est:'Tahmini',execution:'Satır Bazlı Çalışma',
+    program:'Program',current_line:'Mevcut Satır',overrides:'Override & Durum',coolant:'Soğutma',door:'Kapı:',cycle:'Kalan süre:',tool_info:'Takım Bilgisi',diameter:'Çap:',
+    maint_sched:'Bakım Takvimi',task:'İşlem',last:'Son',next:'Sonraki',hours_left:'Kalan Saat',health:'Makine Sağlığı',alarm_hist:'Alarm Geçmişi',time:'Zaman',desc:'Açıklama',resolution:'Çözüm',notes:'Notlar / Log',add_note:'Not Ekle',voice_ref:'Sesli Komutlar',start:'Başlat'},
+  en:{sim:'SIMULATION',t_home:'HOME',t_jobs:'JOB LIST',t_sim:'G-CODE SIM',t_run:'RUN',t_maint:'MAINTENANCE',t_ai:'AI ASSISTANT',
+    machine_status:'Machine Status',positions:'Axis Positions (mm)',gauges:'Feed & Spindle',motor_load:'Motor Loads',quick_stats:'Quick Stats',
+    uptime:'Uptime',parts:'Parts today',eff:'Efficiency',recent_alarms:'Recent Alarms',total:'Total',running:'Running',waiting:'Waiting',done:'Done',
+    add_job:'Add Job',edit:'Edit',delete:'Delete',start_job:'Start',filter:'Filter:',all:'All',part:'Part',material:'Material',status:'Status',priority:'Priority',est_time:'Time',
+    demo:'Demo Program',play:'Play',pause:'Pause',stop:'Stop',reset:'Reset',lines:'Lines',est:'Est.',execution:'Line Execution',
+    program:'Program',current_line:'Current Line',overrides:'Override & Status',coolant:'Coolant',door:'Door:',cycle:'Time left:',tool_info:'Tool Info',diameter:'Dia:',
+    maint_sched:'Maint. Schedule',task:'Task',last:'Last',next:'Next',hours_left:'Hours Left',health:'Health',alarm_hist:'Alarm History',time:'Time',desc:'Description',resolution:'Resolution',notes:'Notes / Log',add_note:'Add Note',voice_ref:'Voice Commands',start:'Start'}
 };
-const EN_DATA = {
-  nav_home:"Home", nav_design:"Design", nav_work:"Work",
-  nav_inspect:"Inspect", nav_analyze:"Analyze",
-  notes:"Notes", add_note:"Add Note", monitoring:"Monitoring",
-  pieces_produced:"Pieces Produced", errors:"Errors", warnings:"Warnings",
-  availability:"Availability", last_24h:"Last 24 Hours",
-  energy_management:"Energy Management", smart_links:"Smart Links",
-  homing:"Homing", detections:"Detections", manuals:"Manuals",
-  issues:"Issues", task:"Task", worklist:"Worklist",
-  functions:"Functions", machine_data:"Machine Data",
-  feed_override:"Feed Override", spindle_override:"Spindle Override",
-  tool:"Tool", absorption:"LOAD", program:"Program",
-  program_start:"Start", program_stop:"Stop", program_pause:"Pause",
-  program_reset:"Reset", alarm_title:"Alarm List",
-  no_alarms:"No active alarms", connection:"Connection",
-  ip_address:"IP Address", port:"Port", connect:"Connect",
-  cancel:"Cancel", ok:"OK", simulation:"Simulation",
-  disconnect:"Disconnect", language:"Language", settings:"Settings",
-  power_kw:"Power (kW)", idle:"Idle", running:"Running",
-  paused:"Paused", alarm:"Alarm", connected:"Connected",
-  disconnected:"Disconnected",
-};
-const DE_DATA = {
-  nav_home:"Startseite", nav_design:"Design", nav_work:"Arbeit",
-  nav_inspect:"Inspektion", nav_analyze:"Analysieren",
-  notes:"Notizen", add_note:"Notiz hinzufügen", monitoring:"Überwachung",
-  pieces_produced:"Produzierte Teile", errors:"Fehler", warnings:"Warnungen",
-  availability:"Verfügbarkeit", last_24h:"Letzte 24 Stunden",
-  energy_management:"Energiemanagement", smart_links:"Schnellzugriff",
-  homing:"Referenzfahrt", detections:"Erkennungen", manuals:"Handbücher",
-  issues:"Probleme", task:"Aufgabe", worklist:"Arbeitsliste",
-  functions:"Funktionen", machine_data:"Maschinendaten",
-  feed_override:"Vorschuboverride", spindle_override:"Spindeloverride",
-  tool:"Werkzeug", absorption:"LAST", program:"Programm",
-  program_start:"Starten", program_stop:"Stoppen", program_pause:"Pause",
-  program_reset:"Reset", alarm_title:"Alarmliste",
-  no_alarms:"Keine aktiven Alarme", connection:"Verbindung",
-  ip_address:"IP-Adresse", port:"Port", connect:"Verbinden",
-  cancel:"Abbrechen", ok:"OK", simulation:"Simulation",
-  disconnect:"Trennen", language:"Sprache", settings:"Einstellungen",
-  power_kw:"Leistung (kW)", idle:"Bereit", running:"Läuft",
-  paused:"Pausiert", alarm:"Alarm", connected:"Verbunden",
-  disconnected:"Getrennt",
-};
-const FR_DATA = {
-  nav_home:"Accueil", nav_design:"Conception", nav_work:"Travail",
-  nav_inspect:"Inspection", nav_analyze:"Analyser",
-  notes:"Notes", add_note:"Ajouter note", monitoring:"Surveillance",
-  pieces_produced:"Pièces produites", errors:"Erreurs", warnings:"Avertissements",
-  availability:"Disponibilité", last_24h:"24 dernières heures",
-  energy_management:"Gestion énergie", smart_links:"Liens rapides",
-  homing:"Prise d'origine", detections:"Détections", manuals:"Manuels",
-  issues:"Problèmes", task:"Tâche", worklist:"Liste de travail",
-  functions:"Fonctions", machine_data:"Données machine",
-  feed_override:"Override avance", spindle_override:"Override broche",
-  tool:"Outil", absorption:"CHARGE", program:"Programme",
-  program_start:"Démarrer", program_stop:"Arrêter", program_pause:"Pause",
-  program_reset:"Réinitialiser", alarm_title:"Liste alarmes",
-  no_alarms:"Aucune alarme active", connection:"Connexion",
-  ip_address:"Adresse IP", port:"Port", connect:"Connecter",
-  cancel:"Annuler", ok:"OK", simulation:"Simulation",
-  disconnect:"Déconnecter", language:"Langue", settings:"Paramètres",
-  power_kw:"Puissance (kW)", idle:"En attente", running:"En cours",
-  paused:"En pause", alarm:"Alarme", connected:"Connecté",
-  disconnected:"Déconnecté",
-};
-const IT_DATA = {
-  nav_home:"Home", nav_design:"Design", nav_work:"Lavoro",
-  nav_inspect:"Ispezione", nav_analyze:"Analizza",
-  notes:"Note", add_note:"Aggiungi nota", monitoring:"Monitoraggio",
-  pieces_produced:"Pezzi prodotti", errors:"Errori", warnings:"Avvisi",
-  availability:"Disponibilità", last_24h:"Ultime 24 ore",
-  energy_management:"Gestione energia", smart_links:"Link rapidi",
-  homing:"Homing", detections:"Rilevamenti", manuals:"Manuali",
-  issues:"Problemi", task:"Compito", worklist:"Lista lavori",
-  functions:"Funzioni", machine_data:"Dati macchina",
-  feed_override:"Override avanzamento", spindle_override:"Override mandrino",
-  tool:"Utensile", absorption:"CARICO", program:"Programma",
-  program_start:"Avvia", program_stop:"Ferma", program_pause:"Pausa",
-  program_reset:"Reset", alarm_title:"Lista allarmi",
-  no_alarms:"Nessun allarme attivo", connection:"Connessione",
-  ip_address:"Indirizzo IP", port:"Porta", connect:"Connetti",
-  cancel:"Annulla", ok:"OK", simulation:"Simulazione",
-  disconnect:"Disconnetti", language:"Lingua", settings:"Impostazioni",
-  power_kw:"Potenza (kW)", idle:"In attesa", running:"In esecuzione",
-  paused:"In pausa", alarm:"Allarme", connected:"Connesso",
-  disconnected:"Disconnesso",
-};
-const ES_DATA = {
-  nav_home:"Inicio", nav_design:"Diseño", nav_work:"Trabajo",
-  nav_inspect:"Inspección", nav_analyze:"Analizar",
-  notes:"Notas", add_note:"Añadir nota", monitoring:"Monitoreo",
-  pieces_produced:"Piezas producidas", errors:"Errores", warnings:"Advertencias",
-  availability:"Disponibilidad", last_24h:"Últimas 24 horas",
-  energy_management:"Gestión energía", smart_links:"Accesos rápidos",
-  homing:"Búsqueda origen", detections:"Detecciones", manuals:"Manuales",
-  issues:"Problemas", task:"Tarea", worklist:"Lista de trabajo",
-  functions:"Funciones", machine_data:"Datos máquina",
-  feed_override:"Override avance", spindle_override:"Override husillo",
-  tool:"Herramienta", absorption:"CARGA", program:"Programa",
-  program_start:"Iniciar", program_stop:"Detener", program_pause:"Pausa",
-  program_reset:"Reiniciar", alarm_title:"Lista alarmas",
-  no_alarms:"Sin alarmas activas", connection:"Conexión",
-  ip_address:"Dirección IP", port:"Puerto", connect:"Conectar",
-  cancel:"Cancelar", ok:"OK", simulation:"Simulación",
-  disconnect:"Desconectar", language:"Idioma", settings:"Configuración",
-  power_kw:"Potencia (kW)", idle:"Inactivo", running:"Ejecutando",
-  paused:"En pausa", alarm:"Alarma", connected:"Conectado",
-  disconnected:"Desconectado",
-};
-const ZH_DATA = {
-  nav_home:"主页", nav_design:"设计", nav_work:"工作",
-  nav_inspect:"检查", nav_analyze:"分析",
-  notes:"备注", add_note:"添加备注", monitoring:"监控",
-  pieces_produced:"生产数量", errors:"错误", warnings:"警告",
-  availability:"可用性", last_24h:"过去24小时",
-  energy_management:"能源管理", smart_links:"快捷链接",
-  homing:"回零", detections:"检测", manuals:"手册",
-  issues:"问题", task:"任务", worklist:"工作列表",
-  functions:"功能", machine_data:"机器数据",
-  feed_override:"进给倍率", spindle_override:"主轴倍率",
-  tool:"刀具", absorption:"负载", program:"程序",
-  program_start:"启动", program_stop:"停止", program_pause:"暂停",
-  program_reset:"复位", alarm_title:"报警列表",
-  no_alarms:"无活动报警", connection:"连接",
-  ip_address:"IP地址", port:"端口", connect:"连接",
-  cancel:"取消", ok:"确定", simulation:"仿真",
-  disconnect:"断开", language:"语言", settings:"设置",
-  power_kw:"功率 (kW)", idle:"待机", running:"运行中",
-  paused:"已暂停", alarm:"报警", connected:"已连接",
-  disconnected:"未连接",
-};
-const LANGS = {TR:TR_DATA, EN:EN_DATA, DE:DE_DATA, FR:FR_DATA, IT:IT_DATA, ES:ES_DATA, ZH:ZH_DATA};
-let currentLang = "EN";
+let lang='tr';
+function setLang(l){lang=l;document.getElementById('lng-tr').classList.toggle('active',l==='tr');document.getElementById('lng-en').classList.toggle('active',l==='en');
+  document.querySelectorAll('[data-i18n]').forEach(e=>{const k=e.getAttribute('data-i18n');if(I18N[l][k])e.textContent=I18N[l][k];});}
 
-function t(key){ return (LANGS[currentLang]||EN_DATA)[key] || key; }
-
-function applyI18n(){
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    el.textContent = t(el.dataset.i18n);
-  });
+/* ============ TABS ============ */
+function switchTab(t){
+  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  document.getElementById(t).classList.add('active');
+  if(t==='sim')drawToolpath();
 }
 
-function setLang(code){
-  currentLang = code;
-  applyI18n();
-  updateStatusChip();
+/* ============ TOAST ============ */
+function toast(msg,type=''){
+  const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},3200);
 }
+function showHelp(){toast('Kısayollar: Space=Başlat/Dur · S=Stop · R=Reset · H=Home · 1-6=Sekmeler','amber');}
 
-/* ═══════════════════════════════════════════════════════════════════════
-   SIMULATION STATE
-═══════════════════════════════════════════════════════════════════════ */
-const state = {
-  mode: 'idle',   // idle | running | paused | homing | alarm
-  t: 0,
-  mx: 0, my: 0, mz: 0,
-  wx: 0, wy: 0, wz: 0,
-  feed: 0, spn: 0,
-  feedOvr: 100, spnOvr: 100,
-  lx: 0, ly: 0, lz: 0, ls: 0,
-  power: 0.8,
-  progLine: 0, progTotal: 1200,
-  progName: '',
-  pieces: 0,
-  alarms: [],
-  energyHistory: Array.from({length:60},()=>+(0.8+Math.random()*0.4).toFixed(2)),
-};
+/* ============ SIMULATION ENGINE ============ */
+const M={state:'IDLE',pos:{x:0,y:0,z:0},target:{x:200,y:150,z:-5},feed:0,spindle:0,
+  loads:{x:0,y:0,z:0,s:0},uptime:0,parts:7,energy:[],eff:87,cycleLeft:0,progLine:0};
+const STATES=['IDLE','RUNNING','PAUSED','HOMING','ALARM'];
+let tickCount=0;
 
-function simStart(){
-  if(state.mode==='idle'||state.mode==='paused'){
-    state.mode='running';
-    state.progName='AXTEA_PART_001.NC';
-    state.progTotal=1200;
-    if(state.mode!=='paused') state.progLine=0;
-  }
-}
-function simPause(){
-  if(state.mode==='running') state.mode='paused';
-  else if(state.mode==='paused') state.mode='running';
-}
-function simStop(){
-  state.mode='idle';
-  state.feed=0; state.spn=0;
-  state.progName='';
-}
-function simReset(){
-  state.mode='idle';
-  state.progLine=0; state.feed=0; state.spn=0; state.progName='';
-}
-function simHome(){
-  state.mode='homing';
-}
-
-function feedOvrChange(v){
-  state.feedOvr=+v;
-  document.getElementById('feed-ovr-val').textContent=v+' %';
-}
-function spnOvrChange(v){
-  state.spnOvr=+v;
-  document.getElementById('spn-ovr-val').textContent=v+' %';
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   TICK (200ms)
-═══════════════════════════════════════════════════════════════════════ */
 function tick(){
-  state.t += 0.2;
-  const t2 = state.t;
-
-  if(state.mode==='running'){
-    const fo = state.feedOvr/100, so = state.spnOvr/100;
-    state.mx = 150 + 130*Math.sin(t2*0.15);
-    state.my = -42  + 30 *Math.cos(t2*0.12);
-    state.mz = -10  - 8  *Math.abs(Math.sin(t2*0.25));
-    state.wx = state.mx-50; state.wy = state.my+5; state.wz = state.mz+2;
-    state.feed = Math.round((8000*fo + (Math.random()-0.5)*100)*10)/10;
-    state.spn  = Math.round((18000*so+ (Math.random()-0.5)*40)*10)/10;
-    state.lx   = clamp(Math.abs(30+15*Math.sin(t2*0.3)+(Math.random()-0.5)*6));
-    state.ly   = clamp(Math.abs(25+12*Math.cos(t2*0.25)));
-    state.lz   = clamp(Math.abs(20+10*Math.sin(t2*0.4)));
-    state.ls   = clamp(Math.abs(55+20*Math.sin(t2*0.1)+(Math.random()-0.5)*10));
-    state.power= +(3.5+1.2*Math.sin(t2*0.1)+(Math.random()-0.5)*0.2).toFixed(2);
-    state.progLine = Math.min(state.progTotal, state.progLine + Math.floor(Math.random()*4)+1);
-    if(state.progLine>=state.progTotal){ state.mode='idle'; state.pieces++; state.progLine=0; }
-  } else if(state.mode==='homing'){
-    state.mx = approach(state.mx, 0, 8);
-    state.my = approach(state.my, 0, 5);
-    state.mz = approach(state.mz, 0, 6);
-    if(Math.abs(state.mx)<0.5&&Math.abs(state.my)<0.5&&Math.abs(state.mz)<0.5){
-      state.mx=0;state.my=0;state.mz=0;state.mode='idle';
-    }
-    state.power=0.9;
-  } else {
-    state.feed=0; state.spn=0;
-    state.power=+(0.8+(Math.random()-0.5)*0.1).toFixed(2);
-    state.lx=clamp(Math.abs(state.lx*0.92));
-    state.ly=clamp(Math.abs(state.ly*0.92));
-    state.lz=clamp(Math.abs(state.lz*0.92));
-    state.ls=clamp(Math.abs(state.ls*0.92));
+  tickCount++;
+  const t=tickCount*0.2;
+  if(M.state==='RUNNING'){
+    M.uptime+=0.2;
+    M.pos.x=120+80*Math.sin(t*0.4);
+    M.pos.y=100+60*Math.cos(t*0.3);
+    M.pos.z=-3+2*Math.sin(t*0.7);
+    M.feed=2400+400*Math.sin(t*0.5);
+    M.spindle=18000+800*Math.sin(t*0.2);
+    M.loads.x=40+30*Math.abs(Math.sin(t*0.5));
+    M.loads.y=35+28*Math.abs(Math.cos(t*0.4));
+    M.loads.z=25+20*Math.abs(Math.sin(t*0.6));
+    M.loads.s=55+25*Math.abs(Math.sin(t*0.3));
+    if(M.cycleLeft>0)M.cycleLeft-=0.2;
+    M.progLine=(M.progLine+1)%demoProgram.length;
+    if(Math.random()<0.0015){triggerAlarm();}
+  }else if(M.state==='HOMING'){
+    M.pos.x*=0.85;M.pos.y*=0.85;M.pos.z*=0.85;
+    M.feed=600;M.spindle=0;
+    if(Math.abs(M.pos.x)<0.5){M.pos={x:0,y:0,z:0};M.state='IDLE';setState('IDLE');toast('Home tamamlandı','green');}
+  }else{
+    M.feed=Math.max(0,M.feed*0.8);M.spindle=Math.max(0,M.spindle*0.9);
+    M.loads.x*=0.8;M.loads.y*=0.8;M.loads.z*=0.8;M.loads.s*=0.8;
   }
-
-  state.energyHistory.push(state.power);
-  if(state.energyHistory.length>60) state.energyHistory.shift();
-
-  renderUI();
+  const e=(M.loads.x+M.loads.y+M.loads.z+M.loads.s)/4*0.12+(M.spindle/18000*4);
+  M.energy.push(e);if(M.energy.length>40)M.energy.shift();
+  renderHome();renderRun();
+  if(energyChart){energyChart.data.datasets[0].data=[...M.energy];energyChart.data.labels=M.energy.map((_,i)=>i);energyChart.update('none');}
+}
+function setState(s){
+  M.state=s;
+  document.getElementById('statusLight').className='status-light '+s;
+  document.getElementById('statusLabel').textContent=s;
+  document.getElementById('runStatus').textContent=s;
+}
+function triggerAlarm(){
+  setState('ALARM');
+  const al={code:'ALM '+(100+Math.floor(Math.random()*30)),desc:'Eksen limit aşımı',time:new Date().toLocaleTimeString('tr'),res:'Eksen sınırı kontrol edildi'};
+  alarmHistory.unshift(al);renderAlarms();toast('ALARM: '+al.code+' '+al.desc,'red');
 }
 
-function clamp(v){ return Math.max(0,Math.min(100,v)); }
-function approach(v, target, step){ return v>target ? Math.max(target,v-step) : Math.min(target,v+step); }
-function fmt(v){ return (v>=0?'+':'')+v.toFixed(3); }
-
-/* ═══════════════════════════════════════════════════════════════════════
-   RENDER
-═══════════════════════════════════════════════════════════════════════ */
-function renderUI(){
-  // Axes
-  setText('ax-x-m', fmt(state.mx)); setText('ax-x-w','W '+fmt(state.wx));
-  setText('ax-y-m', fmt(state.my)); setText('ax-y-w','W '+fmt(state.wy));
-  setText('ax-z-m', fmt(state.mz)); setText('ax-z-w','W '+fmt(state.wz));
-
-  // Load bars
-  setLoad('load-x','load-x-v',state.lx,'var(--primary)');
-  setLoad('load-y','load-y-v',state.ly,'var(--accent)');
-  setLoad('load-z','load-z-v',state.lz,'var(--wood)');
-  setLoad('load-s','load-s-v',state.ls,'var(--warn)');
-
-  // Gauges
-  drawGauge('gauge-feed', state.feed, 20000, '#535DDC');
-  drawGauge('gauge-spn',  state.spn,  24000, '#D8AD7D');
-  setText('gv-feed', Math.round(state.feed).toLocaleString());
-  setText('gv-spn',  Math.round(state.spn).toLocaleString());
-
-  // Monitoring
-  setText('mon-pieces', state.pieces);
-  setText('mon-errors',  state.alarms.length);
-  setText('kpi-pieces', state.pieces);
-  setText('kpi-errors',  state.alarms.length);
-  setText('kpi-power',   state.power+' kW');
-
-  // Energy chart
-  updateEnergyChart();
-
-  // Work screen
-  setText('wax-x', fmt(state.mx));
-  setText('wax-y', fmt(state.my));
-  setText('wax-z', fmt(state.mz));
-
-  const pct = state.progTotal ? Math.round(state.progLine*100/state.progTotal) : 0;
-  document.getElementById('prog-bar-fill').style.width = pct+'%';
-  setText('prog-name', state.progName || '—');
-  setText('prog-line', `Line ${state.progLine} / ${state.progTotal}`);
-  setText('tool-info', `Tool: T1    Feed: ${Math.round(state.feed)} mm/min    Spindle: ${Math.round(state.spn)} RPM`);
-
-  // State display
-  const stateMap = {
-    idle:    {label:t('idle').toUpperCase(),    color:'var(--text-dim)'},
-    running: {label:t('running').toUpperCase(), color:'var(--accent)'},
-    paused:  {label:t('paused').toUpperCase(),  color:'var(--warn)'},
-    homing:  {label:'HOMING',                   color:'var(--primary)'},
-    alarm:   {label:t('alarm').toUpperCase(),   color:'var(--error)'},
-  };
-  const s = stateMap[state.mode]||stateMap.idle;
-  const sb = document.getElementById('state-big');
-  sb.textContent = s.label;
-  sb.style.color  = s.color;
-
-  // Status chip
-  updateStatusChip();
-
-  // Status bar
-  setText('sb-pos', `X: ${fmt(state.mx)}   Y: ${fmt(state.my)}   Z: ${fmt(state.mz)}`);
-  setText('sb-prog', state.progName ? `${state.progName}  ${pct}%` : '');
-
-  // Analyze
-  setText('kpi-power', state.power+' kW');
+function renderHome(){
+  document.getElementById('hX').textContent=M.pos.x.toFixed(3);
+  document.getElementById('hY').textContent=M.pos.y.toFixed(3);
+  document.getElementById('hZ').textContent=M.pos.z.toFixed(3);
+  document.getElementById('feedVal').textContent=Math.round(M.feed);
+  document.getElementById('spinVal').textContent=Math.round(M.spindle);
+  drawGauge('feedGauge',M.feed/4000);
+  drawGauge('spinGauge',M.spindle/24000);
+  setLoad('lX','lXt',M.loads.x);setLoad('lY','lYt',M.loads.y);setLoad('lZ','lZt',M.loads.z);setLoad('lS','lSt',M.loads.s);
+  const h=Math.floor(M.uptime/3600),m=Math.floor((M.uptime%3600)/60);
+  document.getElementById('sUptime').textContent=h+':'+String(m).padStart(2,'0');
+  document.getElementById('sParts').textContent=M.parts;
+  document.getElementById('sEff').textContent=M.eff+'%';
+  document.getElementById('statusProg').textContent=M.state==='RUNNING'?'demo_kapak.nc · satır '+M.progLine:'—';
+}
+function setLoad(id,tid,v){
+  v=Math.min(100,v);const el=document.getElementById(id);
+  el.style.width=v+'%';
+  el.style.background=v>80?'var(--red)':v>55?'var(--amber)':'var(--green)';
+  document.getElementById(tid).textContent=Math.round(v)+'%';
+}
+function drawGauge(id,frac){
+  frac=Math.max(0,Math.min(1,frac));
+  const svg=document.getElementById(id);
+  const cx=60,cy=70,r=48;const a1=Math.PI+Math.PI*frac;
+  const x0=cx+r*Math.cos(Math.PI),y0=cy+r*Math.sin(Math.PI);
+  const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+  const xe=cx+r*Math.cos(0),ye=cy+r*Math.sin(0);
+  const col=frac>0.85?'#EF4444':frac>0.6?'#F59E0B':'#6366C8';
+  svg.innerHTML='<path d="M'+x0+' '+y0+' A'+r+' '+r+' 0 0 1 '+xe+' '+ye+'" fill="none" stroke="#2A3540" stroke-width="9"/>'+
+    '<path d="M'+x0+' '+y0+' A'+r+' '+r+' 0 '+(frac>0.5?1:0)+' 1 '+x1+' '+y1+'" fill="none" stroke="'+col+'" stroke-width="9" stroke-linecap="round"/>';
+}
+function renderRun(){
+  document.getElementById('rX').textContent=M.pos.x.toFixed(3);
+  document.getElementById('rY').textContent=M.pos.y.toFixed(3);
+  document.getElementById('rZ').textContent=M.pos.z.toFixed(3);
+  document.getElementById('runLine').textContent=M.state==='RUNNING'?(demoProgram[M.progLine]||'—'):'—';
+  if(M.cycleLeft>0){const m=Math.floor(M.cycleLeft/60),s=Math.floor(M.cycleLeft%60);document.getElementById('cycleT').textContent=m+':'+String(s).padStart(2,'0');}
+  else document.getElementById('cycleT').textContent='--:--';
+}
+function renderAlarms(){
+  const recent=alarmHistory.slice(0,5).map(a=>'<div class="alarm-item"><span class="ac">'+a.code+'</span><div><div>'+a.desc+'</div><div class="at">'+a.time+'</div></div></div>').join('');
+  document.getElementById('homeAlarms').innerHTML=recent||'<div style="color:var(--text2)">Alarm yok</div>';
+  document.getElementById('alarmHistBody').innerHTML=alarmHistory.map(a=>'<tr><td>'+a.time+'</td><td style="color:var(--red);font-weight:700">'+a.code+'</td><td>'+a.desc+'</td><td>'+a.res+'</td></tr>').join('');
 }
 
-function updateStatusChip(){
-  const chip = document.getElementById('status-chip');
-  const map = {
-    idle:    {cls:'connected', lbl:t('idle')},
-    running: {cls:'running',   lbl:t('running')},
-    paused:  {cls:'paused',    lbl:t('paused')},
-    homing:  {cls:'homing',    lbl:'HOMING'},
-    alarm:   {cls:'alarm',     lbl:t('alarm')},
-  };
-  const m = map[state.mode]||map.idle;
-  chip.className = 'status-chip '+m.cls;
-  chip.textContent = '● '+m.lbl.toUpperCase();
-}
+/* ============ MACHINE CONTROLS ============ */
+function machineStart(){if(M.state==='ALARM'){toast('Önce alarmı temizleyin (Reset)','amber');return;}setState('RUNNING');M.cycleLeft=M.cycleLeft||320;toast('Program başlatıldı','green');}
+function machinePause(){if(M.state==='RUNNING'){setState('PAUSED');toast('Duraklatıldı','amber');}}
+function machineStop(){setState('IDLE');M.cycleLeft=0;M.progLine=0;toast('Durduruldu','red');}
+function machineReset(){M.pos={x:0,y:0,z:0};setState('IDLE');toast('Sıfırlandı','green');}
+function machineHome(){setState('HOMING');toast('Home alınıyor...','');}
+function zeroAxis(ax){M.pos[ax]=0;toast(ax.toUpperCase()+' ekseni sıfırlandı','green');}
 
-function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+document.addEventListener('keydown',e=>{
+  if(['INPUT','TEXTAREA'].includes(e.target.tagName))return;
+  if(e.code==='Space'){e.preventDefault();M.state==='RUNNING'?machinePause():machineStart();}
+  else if(e.key.toLowerCase()==='s')machineStop();
+  else if(e.key.toLowerCase()==='r')machineReset();
+  else if(e.key.toLowerCase()==='h')machineHome();
+  else if('123456'.includes(e.key)){switchTab(['home','jobs','sim','run','maint','ai'][+e.key-1]);}
+});
 
-function setLoad(barId, valId, v, color){
-  const bar = document.getElementById(barId);
-  const val = document.getElementById(valId);
-  if(!bar||!val) return;
-  const pct = Math.round(v);
-  bar.style.width = pct+'%';
-  bar.style.background = v<60 ? 'var(--accent)' : v<85 ? 'var(--warn)' : 'var(--error)';
-  val.textContent = pct+'%';
-  val.style.color  = v<60 ? 'var(--accent)' : v<85 ? 'var(--warn)' : 'var(--error)';
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   GAUGE CANVAS
-═══════════════════════════════════════════════════════════════════════ */
-function drawGauge(id, val, maxVal, color){
-  const canvas = document.getElementById(id);
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W=canvas.width, H=canvas.height, cx=W/2, cy=H/2, R=Math.min(W,H)/2-8;
-  ctx.clearRect(0,0,W,H);
-
-  const startA = Math.PI*1.25, endA = Math.PI*2.75;
-  const pct = maxVal ? Math.min(1, val/maxVal) : 0;
-
-  ctx.beginPath(); ctx.arc(cx,cy,R,startA,endA);
-  ctx.strokeStyle='#232F38'; ctx.lineWidth=6; ctx.lineCap='round'; ctx.stroke();
-
-  if(pct>0){
-    ctx.beginPath(); ctx.arc(cx,cy,R,startA, startA+(endA-startA)*pct);
-    ctx.strokeStyle=color; ctx.lineWidth=6; ctx.lineCap='round'; ctx.stroke();
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   ENERGY SPARKLINE (Chart.js)
-═══════════════════════════════════════════════════════════════════════ */
-let energyChart = null;
-function initEnergyChart(){
-  const canvas = document.getElementById('energy-canvas');
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  energyChart = new Chart(ctx, {
-    type:'line',
-    data:{
-      labels: Array.from({length:60},(_,i)=>i),
-      datasets:[{
-        data: state.energyHistory,
-        borderColor:'#535DDC', borderWidth:2, pointRadius:0,
-        fill:true,
-        backgroundColor: (c)=>{
-          const g = c.chart.ctx.createLinearGradient(0,0,0,c.chart.height);
-          g.addColorStop(0,'rgba(83,93,220,0.4)');
-          g.addColorStop(1,'rgba(83,93,220,0.0)');
-          return g;
-        },
-        tension:0.4,
-      }]
-    },
-    options:{
-      animation:{duration:0}, responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{enabled:false}},
-      scales:{
-        x:{display:false},
-        y:{
-          grid:{color:'rgba(35,47,56,0.8)'},
-          ticks:{color:'#8899AA', font:{size:9}, maxTicksLimit:4},
-          border:{display:false},
-        }
-      }
-    }
-  });
-}
-function updateEnergyChart(){
-  if(!energyChart) return;
-  energyChart.data.datasets[0].data = [...state.energyHistory];
-  energyChart.update('none');
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   ANALYZE BAR CHART
-═══════════════════════════════════════════════════════════════════════ */
-let analyzeChart = null;
-function initAnalyzeChart(){
-  const canvas = document.getElementById('analyze-canvas');
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const vals = [38, 42, 35, 29, 44, 41, 36];
-  analyzeChart = new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels: days,
-      datasets:[{
-        data: vals,
-        backgroundColor:'rgba(83,93,220,0.75)',
-        borderColor:'#535DDC', borderWidth:1, borderRadius:6,
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{
-        x:{grid:{color:'rgba(35,47,56,0.6)'},ticks:{color:'#8899AA'}},
-        y:{grid:{color:'rgba(35,47,56,0.6)'},ticks:{color:'#8899AA',maxTicksLimit:5},border:{display:false}},
-      }
-    }
-  });
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   NAVIGATION
-═══════════════════════════════════════════════════════════════════════ */
-function showScreen(name){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  const sc = document.getElementById('screen-'+name);
-  if(sc) sc.classList.add('active');
-  const btn = document.querySelector(`.nav-btn[data-screen="${name}"]`);
-  if(btn) btn.classList.add('active');
-  // Init charts on first view
-  if(name==='home' && !energyChart) { setTimeout(initEnergyChart, 50); }
-  if(name==='analyze' && !analyzeChart){ setTimeout(initAnalyzeChart, 50); }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   MODALS
-═══════════════════════════════════════════════════════════════════════ */
-function openConnModal(){ document.getElementById('conn-modal').classList.remove('hidden'); }
-function openNoteModal(){ document.getElementById('note-modal').classList.remove('hidden'); document.getElementById('note-text').value=''; }
-function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
-
-function doConnect(){
-  closeModal('conn-modal');
-  state.mode = 'idle';
-  updateStatusChip();
-}
-
-/* ── NOTES ──────────────────────────────────────────────────── */
-const NOTE_COLORS = [
-  'var(--primary)', 'var(--warn)', 'var(--accent)', 'var(--wood)', 'var(--error)'
+/* ============ JOBS ============ */
+let jobs=[
+  {id:'WO-1001',name:'Mutfak Kapağı',mat:'MDF',file:'kapak.nc',status:'Çalışıyor',prio:'H',time:45,op:'Ahmet Y.'},
+  {id:'WO-1002',name:'Raf Paneli',mat:'Kontrplak',file:'raf.nc',status:'Bekliyor',prio:'M',time:30,op:'Mehmet K.'},
+  {id:'WO-1003',name:'Masa Ayağı',mat:'Masif Ahşap',file:'ayak.nc',status:'Bekliyor',prio:'L',time:60,op:'Ayşe T.'},
+  {id:'WO-1004',name:'Dolap Yan',mat:'MDF',file:'yan.nc',status:'Tamamlandı',prio:'M',time:25,op:'Ahmet Y.'},
+  {id:'WO-1005',name:'Montaj Plakası',mat:'Alüminyum',file:'plaka.nc',status:'İptal',prio:'H',time:90,op:'Mehmet K.'}
 ];
-let noteColorIdx = 0;
-
-function saveNote(){
-  const text = document.getElementById('note-text').value.trim();
-  if(!text){ closeModal('note-modal'); return; }
-  addNote(text, 'Operator', new Date().toLocaleDateString('tr-TR')+' '+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}), NOTE_COLORS[noteColorIdx%NOTE_COLORS.length]);
-  noteColorIdx++;
-  closeModal('note-modal');
+let selectedJob=null,editingJob=null;
+const STBADGE={'Bekliyor':'b-wait','Çalışıyor':'b-run','Tamamlandı':'b-done','İptal':'b-cancel'};
+const PRIOLBL={H:'Yüksek',M:'Orta',L:'Düşük'};
+function renderJobs(){
+  const f=document.getElementById('jobFilter').value;
+  const list=jobs.filter(j=>f==='all'||j.status===f);
+  document.getElementById('jobBody').innerHTML=list.map(j=>'<tr onclick="selectJob(\''+j.id+'\')" style="cursor:pointer;'+(selectedJob===j.id?'background:rgba(99,102,200,.12)':'')+'">'+
+    '<td><input type="radio" name="jobsel" '+(selectedJob===j.id?'checked':'')+'></td>'+
+    '<td>'+j.id+'</td><td>'+j.name+'</td><td>'+j.mat+'</td><td>'+j.file+'</td>'+
+    '<td><span class="badge '+STBADGE[j.status]+'">'+j.status+'</span></td>'+
+    '<td class="prio-'+j.prio+'">'+PRIOLBL[j.prio]+'</td><td>'+j.time+' dk</td><td>'+j.op+'</td></tr>').join('');
+  document.getElementById('jTotal').textContent=jobs.length;
+  document.getElementById('jRun').textContent=jobs.filter(j=>j.status==='Çalışıyor').length;
+  document.getElementById('jWait').textContent=jobs.filter(j=>j.status==='Bekliyor').length;
+  document.getElementById('jDone').textContent=jobs.filter(j=>j.status==='Tamamlandı').length;
 }
-
-function addNote(body, author, ts, color){
-  const grid = document.getElementById('notes-grid');
-  if(grid.children.length>=4) grid.removeChild(grid.firstChild);
-  const card = document.createElement('div');
-  card.className='note-card';
-  card.style.borderLeftColor=color;
-  card.innerHTML=`
-    <button class="note-del" onclick="this.parentElement.remove()">✕</button>
-    <div class="note-ts">${ts}</div>
-    <div class="note-body">${body.replace(/\n/g,'<br>')}</div>
-    <div class="note-author">${author}</div>
-  `;
-  grid.appendChild(card);
+function selectJob(id){selectedJob=id;renderJobs();}
+function openJobModal(){editingJob=null;document.getElementById('jobModalTitle').textContent='Yeni İş';
+  document.getElementById('jmName').value='';document.getElementById('jmFile').value='program.nc';
+  document.getElementById('jmTime').value=30;document.getElementById('jmOp').value='Operatör';
+  document.getElementById('jobModal').classList.add('show');}
+function editSelectedJob(){if(!selectedJob){toast('Bir iş seçin','amber');return;}
+  const j=jobs.find(x=>x.id===selectedJob);editingJob=j;
+  document.getElementById('jobModalTitle').textContent='İşi Düzenle';
+  document.getElementById('jmName').value=j.name;document.getElementById('jmMat').value=j.mat;
+  document.getElementById('jmFile').value=j.file;document.getElementById('jmStatus').value=j.status;
+  document.getElementById('jmPrio').value=j.prio;document.getElementById('jmTime').value=j.time;document.getElementById('jmOp').value=j.op;
+  document.getElementById('jobModal').classList.add('show');}
+function closeJobModal(){document.getElementById('jobModal').classList.remove('show');}
+function saveJob(){
+  const data={name:document.getElementById('jmName').value||'Yeni Parça',mat:document.getElementById('jmMat').value,
+    file:document.getElementById('jmFile').value,status:document.getElementById('jmStatus').value,
+    prio:document.getElementById('jmPrio').value,time:+document.getElementById('jmTime').value,op:document.getElementById('jmOp').value};
+  if(editingJob){Object.assign(editingJob,data);toast('İş güncellendi','green');}
+  else{data.id='WO-'+(1000+jobs.length+1);jobs.push(data);toast('İş eklendi','green');}
+  closeJobModal();renderJobs();
 }
+function deleteSelectedJob(){if(!selectedJob){toast('Bir iş seçin','amber');return;}
+  jobs=jobs.filter(j=>j.id!==selectedJob);selectedJob=null;renderJobs();toast('İş silindi','red');}
+function startSelectedJob(){if(!selectedJob){toast('Bir iş seçin','amber');return;}
+  const j=jobs.find(x=>x.id===selectedJob);j.status='Çalışıyor';renderJobs();
+  document.getElementById('runProg').textContent=j.file;document.getElementById('toolMat').textContent=j.mat;
+  machineStart();switchTab('run');toast(j.name+' başlatıldı','green');}
 
-/* ═══════════════════════════════════════════════════════════════════════
-   CLOCK
-═══════════════════════════════════════════════════════════════════════ */
-function updateClock(){
-  const now=new Date();
-  const hh=String(now.getHours()).padStart(2,'0');
-  const mm=String(now.getMinutes()).padStart(2,'0');
-  const ss=String(now.getSeconds()).padStart(2,'0');
-  document.getElementById('clock').textContent=`${hh}:${mm}:${ss}`;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════════════════════════════════ */
-window.addEventListener('load', ()=>{
-  applyI18n();
-  updateClock();
-  setInterval(updateClock, 1000);
-
-  // Seed notes
-  addNote('Grinder dressing scheduling', 'Charlie – Operator Shift 2', '10/01/25 15:06', 'var(--primary)');
-  addNote('Machine maintenance scheduled\n10/04/2025 – 09:00-12:00', 'John – Operator Shift 1', '10/01/25 15:10', 'var(--warn)');
-
-  // Init home charts
-  setTimeout(()=>{ initEnergyChart(); }, 100);
-
-  // Start simulation
-  setInterval(tick, 200);
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', e=>{
-    if(e.key==='F5'||e.key==='r'&&e.ctrlKey) return;
-    if(e.key==='1') showScreen('home');
-    if(e.key==='2') showScreen('design');
-    if(e.key==='3') showScreen('work');
-    if(e.key==='4') showScreen('inspect');
-    if(e.key==='5') showScreen('analyze');
-    if(e.key==='s'||e.key==='S') simStart();
-    if(e.key==='p'||e.key==='P') simPause();
-    if(e.key==='Escape') { simStop(); document.querySelectorAll('.modal-bg').forEach(m=>m.classList.add('hidden')); }
+/* ============ G-CODE SIM ============ */
+const demoProgram=('G21 G90 G54\nG0 Z5\nG0 X10 Y10\nM3 S18000\nG1 Z-2 F600\nG1 X190 F2400\nG1 Y140\nG1 X10\nG1 Y10\nG0 Z5\nG0 X100 Y75\nG1 Z-4 F600\nG2 X140 Y75 I20 J0 F1800\nG2 X100 Y75 I-20 J0\nG0 Z5\nG0 X40 Y40\nG1 Z-3 F600\nG3 X160 Y40 I60 J0\nG1 Y110\nG3 X40 Y110 I-60 J0\nG1 Y40\nG0 Z5\nM5\nG0 X0 Y0\nM30').split('\n');
+let parsedMoves=[],simIdx=0,simTimer=null;
+function loadDemo(){document.getElementById('gEditor').value=demoProgram.join('\n');parseGCode();toast('Demo program yüklendi');}
+function loadGFile(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{document.getElementById('gEditor').value=e.target.result;parseGCode();toast('Dosya yüklendi: '+f.name,'green');};r.readAsText(f);}
+function parseGCode(){
+  const lines=document.getElementById('gEditor').value.split('\n');
+  parsedMoves=[];let cur={x:0,y:0,z:0},mode='G0';
+  let rapidD=0,cutD=0;
+  lines.forEach((raw,i)=>{
+    const line=raw.toUpperCase().replace(/;.*/,'').trim();
+    const g=line.match(/G([0-3])\b/);if(g)mode='G'+g[1];
+    const mx=line.match(/X(-?[\d.]+)/),my=line.match(/Y(-?[\d.]+)/),mz=line.match(/Z(-?[\d.]+)/);
+    const mi=line.match(/I(-?[\d.]+)/),mj=line.match(/J(-?[\d.]+)/);
+    let nx=mx?+mx[1]:cur.x,ny=my?+my[1]:cur.y,nz=mz?+mz[1]:cur.z;
+    if(mx||my||mz){
+      const isArc=mode==='G2'||mode==='G3';
+      const d=Math.hypot(nx-cur.x,ny-cur.y);
+      if(mode==='G0')rapidD+=d;else cutD+=d;
+      if(isArc&&mi&&mj){
+        const cxx=cur.x+ +mi[1],cyy=cur.y+ +mj[1];
+        const a0=Math.atan2(cur.y-cyy,cur.x-cxx),a1=Math.atan2(ny-cyy,nx-cxx);
+        const rr=Math.hypot(cur.x-cxx,cur.y-cyy);
+        let da=a1-a0;const cw=mode==='G2';
+        if(cw&&da>0)da-=2*Math.PI;if(!cw&&da<0)da+=2*Math.PI;
+        const segs=Math.max(6,Math.ceil(Math.abs(da)/0.2));
+        let px=cur.x,py=cur.y;
+        for(let s=1;s<=segs;s++){const a=a0+da*s/segs;const ax=cxx+rr*Math.cos(a),ay=cyy+rr*Math.sin(a);
+          parsedMoves.push({line:i,type:mode,x0:px,y0:py,x1:ax,y1:ay,z:nz});px=ax;py=ay;}
+      }else{
+        parsedMoves.push({line:i,type:mode,x0:cur.x,y0:cur.y,x1:nx,y1:ny,z:nz});
+      }
+      cur={x:nx,y:ny,z:nz};
+    }
   });
+  document.getElementById('ssLines').textContent=lines.length;
+  document.getElementById('ssRapid').textContent=Math.round(rapidD)+' mm';
+  document.getElementById('ssCut').textContent=Math.round(cutD)+' mm';
+  const est=cutD/2400*60+rapidD/8000*60;
+  document.getElementById('ssTime').textContent=Math.floor(est/60)+':'+String(Math.round(est%60)).padStart(2,'0');
+  simIdx=parsedMoves.length;
+  renderGLines();drawToolpath();
+}
+function renderGLines(curLine){
+  if(curLine===undefined)curLine=-1;
+  const lines=document.getElementById('gEditor').value.split('\n');
+  document.getElementById('gLines').innerHTML=lines.map((l,i)=>'<div class="gl-line '+(i===curLine?'cur':'')+'">'+String(i+1).padStart(3,' ')+'  '+(l||' ')+'</div>').join('');
+  const cur=document.querySelector('.gl-line.cur');if(cur)cur.scrollIntoView({block:'nearest'});
+}
+function zColor(z){
+  if(z>=0)return '#6366C8';
+  const d=Math.min(1,-z/8);
+  const r=Math.round(34+(239-34)*d),g=Math.round(197-(197-68)*d),b=Math.round(94-(94-68)*d);
+  return 'rgb('+r+','+g+','+b+')';
+}
+function resizeCanvas(){
+  const cv=document.getElementById('toolpath');if(!cv)return;
+  const w=cv.parentElement.clientWidth||500;
+  const size=Math.min(w,600);
+  cv.width=size;cv.height=size;
+  drawToolpath();
+}
+window.addEventListener('resize',()=>{clearTimeout(window._rsz);window._rsz=setTimeout(resizeCanvas,150);});
 
-  // Close modals on bg click
-  document.querySelectorAll('.modal-bg').forEach(bg=>{
-    bg.addEventListener('click', e=>{ if(e.target===bg) bg.classList.add('hidden'); });
-  });
+function drawToolpath(upto){
+  if(upto===undefined)upto=null;
+  const cv=document.getElementById('toolpath');if(!cv)return;
+  if(!cv.width||cv.width<10)resizeCanvas();
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;ctx.clearRect(0,0,W,H);
+  const sc=Math.min(W,H)/280*1.2,ox=Math.floor(W*0.1),oy=H-Math.floor(H*0.1);
+  ctx.lineWidth=1;ctx.strokeStyle='rgba(42,53,64,.5)';
+  ctx.font='9px monospace';ctx.fillStyle='#8899AA';
+  for(let gx=0;gx<=250;gx+=50){const px=ox+gx*sc;ctx.beginPath();ctx.moveTo(px,20);ctx.lineTo(px,oy);ctx.stroke();ctx.fillText(gx,px-6,oy+14);}
+  for(let gy=0;gy<=200;gy+=50){const py=oy-gy*sc;ctx.beginPath();ctx.moveTo(ox,py);ctx.lineTo(W-20,py);ctx.stroke();ctx.fillText(gy,ox-26,py+3);}
+  ctx.strokeStyle='#6366C880';ctx.setLineDash([4,4]);ctx.strokeRect(ox,oy-200*sc,200*sc,200*sc);ctx.setLineDash([]);
+  ctx.strokeStyle='#F59E0B';ctx.beginPath();ctx.moveTo(ox-8,oy);ctx.lineTo(ox+8,oy);ctx.moveTo(ox,oy-8);ctx.lineTo(ox,oy+8);ctx.stroke();
+  const lim=upto===null?parsedMoves.length:upto;
+  for(let i=0;i<lim;i++){const m=parsedMoves[i];
+    const x0=ox+m.x0*sc,y0=oy-m.y0*sc,x1=ox+m.x1*sc,y1=oy-m.y1*sc;
+    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);
+    if(m.type==='G0'){ctx.strokeStyle='#EF4444';ctx.setLineDash([5,4]);ctx.lineWidth=1;}
+    else{ctx.strokeStyle=zColor(m.z);ctx.setLineDash([]);ctx.lineWidth=2;}
+    ctx.stroke();ctx.setLineDash([]);
+  }
+  if(lim>0&&parsedMoves[lim-1]){const m=parsedMoves[lim-1];const tx=ox+m.x1*sc,ty=oy-m.y1*sc;
+    ctx.fillStyle='#22C55E';ctx.beginPath();ctx.arc(tx,ty,5,0,7);ctx.fill();
+    ctx.strokeStyle='#22C55E55';ctx.beginPath();ctx.arc(tx,ty,10,0,7);ctx.stroke();}
+}
+function simPlay(){if(simTimer)return;if(simIdx>=parsedMoves.length)simIdx=0;
+  const speed=+document.getElementById('simSpeed').value;
+  simTimer=setInterval(()=>{
+    if(simIdx>=parsedMoves.length){simPause();return;}
+    simIdx++;drawToolpath(simIdx);renderGLines(parsedMoves[simIdx-1]?parsedMoves[simIdx-1].line:-1);
+  },Math.max(30,300/speed));toast('Simülasyon başladı','green');}
+function simPause(){if(simTimer){clearInterval(simTimer);simTimer=null;}}
+function simStop(){simPause();simIdx=0;drawToolpath(0);renderGLines(-1);}
+function simReset(){simPause();simIdx=parsedMoves.length;drawToolpath();renderGLines(-1);toast('Reset');}
+
+/* ============ MAINTENANCE ============ */
+const maintItems=[
+  {task:'Yağlama (Lubrication)',last:'2026-05-20',next:'2026-06-03',hours:48},
+  {task:'Filtre Değişimi',last:'2026-04-15',next:'2026-06-15',hours:160},
+  {task:'Eksen Kalibrasyonu',last:'2026-03-01',next:'2026-06-01',hours:18},
+  {task:'Mil Kontrolü (Spindle)',last:'2026-05-01',next:'2026-08-01',hours:520},
+  {task:'Vakum Pompası Servisi',last:'2026-05-25',next:'2026-06-08',hours:96}
+];
+const healthItems=[{n:'Spindle Rulman',v:92},{n:'X Eksen Vidası',v:78},{n:'Y Eksen Vidası',v:85},{n:'Vakum Sistemi',v:64},{n:'Soğutma Sistemi',v:96}];
+let alarmHistory=[
+  {time:'09:14:22',code:'ALM 101',desc:'X ekseni limit aşımı',res:'Yazılım limiti ayarlandı'},
+  {time:'08:47:10',code:'ALM 220',desc:'Spindle aşırı yük',res:'İlerleme hızı düşürüldü'},
+  {time:'07:30:55',code:'ALM 305',desc:'Vakum basınç düşük',res:'Conta değiştirildi'}
+];
+let notes=[{t:'2026-05-29 16:00',txt:'Yağ seviyesi kontrol edildi, normal.'}];
+function renderMaint(){
+  document.getElementById('maintBody').innerHTML=maintItems.map(m=>{
+    const st=m.hours<24?'<span class="badge b-cancel">Acil</span>':m.hours<72?'<span class="badge b-wait">Yakında</span>':'<span class="badge b-run">OK</span>';
+    return '<tr><td>'+m.task+'</td><td>'+m.last+'</td><td>'+m.next+'</td><td>'+m.hours+' sa</td><td>'+st+'</td></tr>';}).join('');
+  document.getElementById('healthBox').innerHTML=healthItems.map(h=>{
+    const col=h.v>80?'var(--green)':h.v>60?'var(--amber)':'var(--red)';
+    return '<div class="health"><span style="min-width:130px;font-size:12px">'+h.n+'</span><div class="bar"><div class="f" style="width:'+h.v+'%;background:'+col+'"></div></div><b style="color:'+col+'">'+h.v+'%</b></div>';}).join('');
+  renderNotes();
+}
+function renderNotes(){document.getElementById('noteList').innerHTML=notes.map(n=>'<div style="padding:6px;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">'+n.t+'</span><br>'+n.txt+'</div>').join('');}
+function addNote(){const v=document.getElementById('maintNotes').value.trim();if(!v)return;
+  notes.unshift({t:new Date().toLocaleString('tr'),txt:v});document.getElementById('maintNotes').value='';renderNotes();toast('Not eklendi','green');}
+
+/* ============ AI KNOWLEDGE BASE ============ */
+const KB=[
+  {k:['alarm 101','alm 101','101'],a:'<b>Alarm 101 - Eksen Limit Aşımı</b><br>Bir eksen yazılım veya donanım limitini aştı.<br><br><b>Çözüm:</b><br>1. Acil stop\'u kontrol edin<br>2. Ekseni manuel olarak limit dışına alın (JOG)<br>3. Home (G28) işlemi yapın<br>4. Yazılım limitlerini kontrol edin (parametre 2200)'},
+  {k:['alarm 220','220','spindle yük','mil aşırı'],a:'<b>Alarm 220 - Spindle Aşırı Yük</b><br>Mil motoru aşırı akım çekiyor.<br><br><b>Çözüm:</b><br>1. İlerleme hızını (feed) %20 düşürün<br>2. Takım keskinliğini kontrol edin<br>3. Talaş derinliğini azaltın<br>4. Mil rulmanlarını kontrol edin'},
+  {k:['alarm 305','305','vakum','basınç'],a:'<b>Alarm 305 - Vakum Basınç Düşük</b><br>Parça tutma vakumu yetersiz.<br><br><b>Çözüm:</b><br>1. Conta ve keçeleri kontrol edin<br>2. Pompa filtresini temizleyin<br>3. Parça yüzeyinin düz olduğundan emin olun'},
+  {k:['alarm','alm','hata kodu','alarm kod'],a:'<b>OSAI Alarm Kodları:</b><br>• <b>ALM 101</b>: Eksen limit aşımı<br>• <b>ALM 220</b>: Spindle aşırı yük<br>• <b>ALM 305</b>: Vakum basınç düşük<br>• <b>ALM 410</b>: Servo hatası<br>• <b>ALM 520</b>: Acil stop aktif<br><br>Belirli bir alarm için "Alarm 101" gibi sorun.'},
+  {k:['g0','g00','rapid'],a:'<b>G0 - Hızlı Konumlama (Rapid)</b><br>Takımı kesim yapmadan maksimum hızda hareket ettirir. Boşta hareket için kullanılır.<br>Örnek: <code>G0 X100 Y50</code>'},
+  {k:['g1','g01','doğrusal'],a:'<b>G1 - Doğrusal Kesim</b><br>Belirtilen F (feed) hızında düz çizgi kesimi yapar.<br>Örnek: <code>G1 X200 F2400</code>'},
+  {k:['g2','g02'],a:'<b>G2 - Saat Yönü Yay (CW Arc)</b><br>Saat yönünde dairesel hareket. I/J merkez ofseti veya R yarıçap ile.<br>Örnek: <code>G2 X140 Y75 I20 J0</code>'},
+  {k:['g3','g03'],a:'<b>G3 - Saat Yönü Tersi Yay (CCW Arc)</b><br>Saat yönü tersinde dairesel hareket.<br>Örnek: <code>G3 X40 Y110 I-60 J0</code>'},
+  {k:['g28','eve git','home'],a:'<b>G28 - Referans Noktasına Dönüş (Home)</b><br>Makineyi makine sıfır noktasına gönderir. Her vardiya başında önerilir.<br>Örnek: <code>G28 Z0</code> önce Z, sonra XY.'},
+  {k:['g54','iş koordinat','work offset'],a:'<b>G54 - İş Koordinat Sistemi</b><br>İş parçası sıfır noktasını tanımlar (G54-G59 arası 6 ofset).<br>Probe ile parça köşesi sıfırlanır.'},
+  {k:['m3','mil çalıştır','spindle çalıştır'],a:'<b>M3 - Spindle Saat Yönü Çalıştır</b><br>Mili belirtilen S devirde çalıştırır.<br>Örnek: <code>M3 S18000</code>'},
+  {k:['m5','mil durdur'],a:'<b>M5 - Spindle Durdur</b><br>Mil motorunu durdurur.'},
+  {k:['m6','takım değiş','tool change','takım değişim'],a:'<b>M6 - Takım Değişimi</b><br>Otomatik takım değiştiriciyi tetikler.<br><br><b>Manuel takım değişimi:</b><br>1. M5 ile mili durdurun<br>2. Z eksenini güvenli yüksekliğe alın<br>3. Pens somununu gevşetin<br>4. Yeni takımı takın, sıkın<br>5. Takım uzunluğunu ölçün (probe)<br>Örnek: <code>M6 T2</code>'},
+  {k:['m8','soğutma aç','coolant'],a:'<b>M8 - Soğutma Aç</b><br>Soğutma sıvısını/havayı açar. M9 ile kapatılır.'},
+  {k:['m30','program son'],a:'<b>M30 - Program Sonu</b><br>Programı bitirir ve başa sarar.'},
+  {k:['g-code','gcode','g code','g-code yardım'],a:'<b>Temel G-Code Komutları:</b><br>• <b>G0</b>: Hızlı hareket<br>• <b>G1</b>: Doğrusal kesim<br>• <b>G2/G3</b>: Yay (CW/CCW)<br>• <b>G28</b>: Home<br>• <b>G54</b>: İş koordinatı<br>• <b>M3/M5</b>: Mil aç/kapa<br>• <b>M6</b>: Takım değişimi<br>• <b>M8/M9</b>: Soğutma<br>• <b>M30</b>: Program sonu<br><br>Detay için "G1 nedir" gibi sorun.'},
+  {k:['titreşim','vibrasyon','chatter','çıtırtı'],a:'<b>Titreşim / Chatter Giderme</b><br><b>Nedenler:</b> yüksek devir, gevşek parça, körelmiş takım, uzun takım çıkıntısı.<br><b>Çözümler:</b><br>1. Mil devrini değiştirin (azaltın veya artırın)<br>2. İlerleme hızını ayarlayın<br>3. Takım çıkıntısını kısaltın<br>4. Parça sabitlemesini güçlendirin<br>5. Talaş derinliğini azaltın'},
+  {k:['yüzey','pürüz','kötü yüzey','surface','finish'],a:'<b>Kötü Yüzey Kalitesi</b><br><b>Nedenler:</b> körelmiş takım, yanlış feed/speed, titreşim.<br><b>Çözümler:</b><br>1. Keskin takım kullanın<br>2. Finish pasosu ekleyin (düşük talaş)<br>3. İlerlemeyi düşürün, devri optimize edin<br>4. Doğru takım geometrisi seçin (kompresyon freze)'},
+  {k:['takım kırıl','tool break','uç kırıl'],a:'<b>Takım Kırılması</b><br><b>Nedenler:</b> aşırı feed, fazla talaş, yanlış takım, soğutma yok.<br><b>Çözümler:</b><br>1. İlerleme ve talaş derinliğini azaltın<br>2. Soğutma/hava kullanın<br>3. Doğru takım malzemesi seçin<br>4. Mil devrini malzemeye göre ayarlayın'},
+  {k:['arıza','sorun','problem','giderme'],a:'<b>Arıza Giderme Konuları:</b><br>• Titreşim / chatter<br>• Kötü yüzey kalitesi<br>• Takım kırılması<br>• Ölçü sapması<br><br>Hangi sorunu yaşıyorsunuz? Örn: "titreşim var" yazın.'},
+  {k:['yağlama','lubrication','yağla'],a:'<b>Yağlama Rehberi</b><br>• Lineer kızaklar: her 40 çalışma saatinde<br>• Vidalı miller: haftada 1<br>• Otomatik yağlayıcı seviyesi: günlük kontrol<br>• ISO VG 68 kızak yağı önerilir.'},
+  {k:['filtre','filter'],a:'<b>Filtre Değişim Aralıkları</b><br>• Vakum pompası filtresi: 160 saat veya 2 ayda bir<br>• Pano hava filtresi: aylık temizlik<br>• Soğutma sıvısı filtresi: 3 ayda bir'},
+  {k:['kalibrasyon','calibration','kalibre'],a:'<b>Kalibrasyon Prosedürü</b><br>1. Makineyi ısıtın (15 dk boşta)<br>2. Home alın (G28)<br>3. Mastar/komparatör ile eksen doğruluğunu ölçün<br>4. Backlash kompanzasyonu ayarlayın<br>5. 3 ayda bir tekrarlayın'},
+  {k:['bakım','maintenance','bakım zaman','servis'],a:'<b>Bakım Rehberi</b><br>• <b>Günlük:</b> temizlik, yağ seviyesi, hava basıncı<br>• <b>Haftalık:</b> vidalı mil yağlama, kayış gerginliği<br>• <b>Aylık:</b> filtre temizliği, kalibrasyon kontrolü<br>• <b>3 Aylık:</b> tam kalibrasyon, rulman kontrolü<br><br>Mevcut durum için BAKIM sekmesine bakın.'},
+  {k:['mdf'],a:'<b>MDF Kesim Parametreleri</b><br>• Mil devri: 16.000-18.000 RPM<br>• İlerleme: 3.000-4.500 mm/min<br>• Talaş derinliği: takım çapının %50\'si<br>• Takım: kompresyon veya düz freze<br>• Toz emme şart (sağlık)'},
+  {k:['masif','solid wood','ahşap','sert ahşap'],a:'<b>Masif Ahşap Parametreleri</b><br>• Mil devri: 14.000-16.000 RPM<br>• İlerleme: 2.000-3.500 mm/min<br>• Lif yönüne dikkat (yırtılma)<br>• Keskin spiral freze kullanın<br>• Birden fazla hafif paso önerilir'},
+  {k:['kontrplak','plywood'],a:'<b>Kontrplak Parametreleri</b><br>• Mil devri: 16.000-18.000 RPM<br>• İlerleme: 2.500-4.000 mm/min<br>• Kompresyon freze (üst/alt temiz kenar)<br>• Tutkal katmanları takımı aşındırır, sık kontrol'},
+  {k:['alüminyum','aluminum','alu'],a:'<b>Alüminyum Parametreleri</b><br>• Mil devri: 12.000-18.000 RPM<br>• İlerleme: 800-1.500 mm/min<br>• MUTLAKA soğutma/yağlama (sıvanma önleme)<br>• Tek/çift ağızlı alüminyum frezesi<br>• Düşük talaş, yüksek devir<br>• Hava üfleme ile talaş tahliyesi'},
+  {k:['malzeme','material','hız ilerleme','feed speed','speeds feeds'],a:'<b>Malzeme Önerileri</b><br>Hangi malzeme için parametre istiyorsunuz?<br>• MDF<br>• Masif Ahşap<br>• Kontrplak<br>• Alüminyum<br><br>Malzeme adını yazın.'},
+  {k:['homing','referans','home al','sıfırlama prosedür'],a:'<b>Homing Prosedürü</b><br>1. Çevrede engel olmadığından emin olun<br>2. Acil stop\'u serbest bırakın<br>3. HOME tuşuna basın (veya G28)<br>4. Önce Z, sonra X ve Y sıfırlanır<br>5. Makine referans noktasına ulaşır'},
+  {k:['parça setup','iş parça','workpiece','parça bağla'],a:'<b>İş Parçası Kurulumu</b><br>1. Tablayı temizleyin<br>2. Parçayı vakum/kelepçe ile sabitleyin<br>3. Spoilboard düzlüğünü kontrol edin<br>4. Probe ile köşe sıfırı alın (G54)<br>5. Z yüzey sıfırını ayarlayın<br>6. İlk pasoyu havada test edin'},
+  {k:['operatör','rehber','nasıl','prosedür'],a:'<b>Operatör Rehberi</b><br>Konular:<br>• Homing prosedürü<br>• Takım değişimi<br>• İş parçası kurulumu<br>• İş başlatma<br><br>Hangi konuda yardım istersiniz?'},
+  {k:['merhaba','selam','hello','hi'],a:'Merhaba! Ben AXTEA AI Asistanı. Size alarm kodları, G-code, bakım, arıza giderme ve malzeme parametreleri konusunda yardımcı olabilirim. Nasıl yardımcı olabilirim?'}
+];
+function aiAnswer(q){
+  const t=q.toLowerCase().replace('soru:','').trim();
+  let best=null,bestScore=0;
+  KB.forEach(e=>{e.k.forEach(k=>{if(t.indexOf(k)>=0&&k.length>bestScore){best=e;bestScore=k.length;}});});
+  if(best)return best.a;
+  return 'Bu konuda kesin bilgim yok, ancak yardımcı olmaya çalışabilirim. Şu konularda detaylı bilgi verebilirim:<br><br>• <b>Alarm kodları</b> (örn: "Alarm 101")<br>• <b>G-code komutları</b> (örn: "G2 nedir")<br>• <b>Arıza giderme</b> (örn: "titreşim")<br>• <b>Bakım rehberi</b><br>• <b>Malzeme parametreleri</b> (örn: "MDF")<br>• <b>Operatör rehberi</b>';
+}
+const AVATAR='<div class="av"><svg width="20" height="20" viewBox="0 0 100 100"><path d="M50 8 L58 38 L88 30 L62 50 L88 70 L58 62 L50 92 L42 62 L12 70 L38 50 L12 30 L42 38 Z" fill="#6366C8"/></svg></div>';
+function addMsg(text,who){
+  const m=document.createElement('div');m.className='msg '+who;
+  const av=who==='ai'?AVATAR:'<div class="av">👤</div>';
+  m.innerHTML=av+'<div class="bubble">'+text+'</div>';
+  document.getElementById('chatMsgs').appendChild(m);
+  document.getElementById('chatMsgs').scrollTop=99999;
+}
+function showTyping(){
+  const m=document.createElement('div');m.className='msg ai';m.id='typingMsg';
+  m.innerHTML=AVATAR+'<div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  document.getElementById('chatMsgs').appendChild(m);document.getElementById('chatMsgs').scrollTop=99999;
+}
+function hideTyping(){const t=document.getElementById('typingMsg');if(t)t.remove();}
+function sendChat(){
+  const inp=document.getElementById('chatInput');const v=inp.value.trim();if(!v)return;
+  inp.value='';addMsg(v,'user');
+  showTyping();
+  setTimeout(()=>{hideTyping();addMsg(aiAnswer(v),'ai');},500);
+}
+function quickAsk(q){document.getElementById('chatInput').value=q;sendChat();}
+
+/* ============ VOICE ============ */
+let recog=null,listening=false;
+function initVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){document.getElementById('micBtn').title='Tarayıcı sesli komutu desteklemiyor';return;}
+  recog=new SR();recog.lang=lang==='tr'?'tr-TR':'en-US';recog.continuous=false;recog.interimResults=false;
+  recog.onresult=e=>{const txt=e.results[0][0].transcript;handleVoice(txt);};
+  recog.onend=()=>{listening=false;document.getElementById('micBtn').classList.remove('listening');};
+  recog.onerror=()=>{listening=false;document.getElementById('micBtn').classList.remove('listening');toast('Ses tanıma hatası','red');};
+}
+function toggleVoice(){
+  if(!recog){toast('Sesli komut bu tarayıcıda desteklenmiyor','amber');return;}
+  if(listening){recog.stop();return;}
+  recog.lang=lang==='tr'?'tr-TR':'en-US';
+  listening=true;document.getElementById('micBtn').classList.add('listening');
+  toast('Dinleniyor...','');recog.start();
+}
+function handleVoice(txt){
+  addMsg(txt+' 🎤','user');
+  const t=txt.toLowerCase();
+  let handled=true;
+  if(/(soru:|question:)/.test(t)){showTyping();setTimeout(()=>{hideTyping();addMsg(aiAnswer(txt),'ai');},500);return;}
+  else if(/(başlat|start|çalıştır)/.test(t)){machineStart();addMsg('Program başlatıldı. ✅','ai');}
+  else if(/(durdur|dur\b|stop)/.test(t)){machineStop();addMsg('Makine durduruldu. ⏹','ai');}
+  else if(/(beklet|duraklat|pause)/.test(t)){machinePause();addMsg('Duraklatıldı. ⏸','ai');}
+  else if(/(sıfırla|reset)/.test(t)){machineReset();addMsg('Makine sıfırlandı. ↺','ai');}
+  else if(/(x sıfır|zero x|x zero)/.test(t)){zeroAxis('x');addMsg('X ekseni sıfırlandı.','ai');}
+  else if(/(y sıfır|zero y|y zero)/.test(t)){zeroAxis('y');addMsg('Y ekseni sıfırlandı.','ai');}
+  else if(/(z sıfır|zero z|z zero)/.test(t)){zeroAxis('z');addMsg('Z ekseni sıfırlandı.','ai');}
+  else if(/(eve git|home|referans)/.test(t)){machineHome();addMsg('Home alınıyor. 🏠','ai');}
+  else handled=false;
+  if(!handled){showTyping();setTimeout(()=>{hideTyping();addMsg(aiAnswer(txt),'ai');},500);}
+}
+
+/* ============ ENERGY CHART ============ */
+let energyChart=null;
+function initChart(){
+  const ctx=document.getElementById('energyChart');
+  energyChart=new Chart(ctx,{type:'line',data:{labels:[],datasets:[{data:[],borderColor:'#6366C8',backgroundColor:'rgba(99,102,200,.15)',fill:true,tension:.4,pointRadius:0,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:'Enerji Tüketimi (kW)',color:'#8899AA',font:{size:11}}},
+      scales:{x:{display:false},y:{ticks:{color:'#8899AA',font:{size:9}},grid:{color:'rgba(42,53,64,.4)'},beginAtZero:true,max:8}}}});
+}
+
+/* ============ INIT ============ */
+window.addEventListener('DOMContentLoaded',()=>{
+  renderJobs();renderMaint();renderAlarms();initChart();initVoice();
+  loadDemo();
+  addMsg('Merhaba! Ben <b>AXTEA AI Asistanı</b>. Alarm kodları, G-code, bakım, arıza giderme ve malzeme parametreleri konusunda size yardımcı olabilirim. Sesli komut için 🎤 butonunu kullanabilirsiniz.','ai');
+  setInterval(tick,200);
+  drawGauge('feedGauge',0);drawGauge('spinGauge',0);
+  toast('AXTEA HMI başlatıldı · SİMÜLASYON modu','green');
 });
 </script>
 </body>
