@@ -175,6 +175,19 @@ tr:hover td{background:#ffffff06}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.75rem;margin-top:10px}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 
+/* G-code simulator */
+.simgrid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:start}
+.simcv canvas{width:100%;height:auto;display:block;border-radius:10px;background:#0e161b;margin-top:8px}
+.simside{display:flex;flex-direction:column;gap:16px;min-width:0}
+.simlegend{display:flex;gap:14px;flex-wrap:wrap;font-size:.74rem;margin-top:10px;color:var(--muted)}
+.simlegend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.simstats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.simstat{background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:.78rem;color:var(--muted)}
+.simstat b{display:block;color:var(--text);font-size:1rem;margin-top:2px}
+.gcode-edit{width:100%;height:170px;background:#0e161b;border:1px solid var(--border);border-radius:8px;color:#9fe0c0;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;line-height:1.5;padding:10px;resize:vertical;white-space:pre}
+.gcode-view{background:#0e161b;border:1px solid var(--border);border-radius:8px;color:#535DDC;font-family:ui-monospace,monospace;font-size:.8rem;padding:10px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+@media(max-width:980px){.simgrid{grid-template-columns:1fr}}
+
 @media(max-width:600px){
   .tab span{display:none}
   .tab{padding:0 14px}
@@ -400,7 +413,7 @@ function buildTabs(){
   });
 }
 function switchTab(key){
-  stopListening();stopCanvasLoop();
+  stopListening();stopCanvasLoop();if(typeof simPause==='function')simPause();
   Object.keys(charts).forEach(function(k){try{charts[k].destroy();}catch(e){}});charts={};
   document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('active',t.dataset.tab===key);});
   var c=$('#tabcontent');c.innerHTML='';
@@ -565,36 +578,154 @@ function routerExtra(){
 
 /* ===== ROUTER G-CODE SIM ===== */
 var simRun=true,simT=0;
+/* ===== G-CODE SIMULATOR (gerçek parser) ===== */
+var DEMO_GCODE=[
+ 'G21 G90 ; mm, mutlak',
+ 'G00 X0 Y0 Z50',
+ 'M03 S18000 ; mil ON',
+ 'G00 X40 Y40',
+ 'G01 Z-8 F1000',
+ 'G01 X680 Y40 F2400',
+ 'G02 X720 Y80 R40',
+ 'G01 X720 Y560',
+ 'G02 X680 Y600 R40',
+ 'G01 X40 Y600',
+ 'G02 X0 Y560 R40',
+ 'G01 Z50 F1500',
+ 'G00 X360 Y300',
+ 'G01 Z-12 F800',
+ 'G03 X360 Y180 I0 J-60',
+ 'G03 X360 Y300 I0 J60',
+ 'G01 Z50',
+ 'M05 ; mil OFF',
+ 'G00 X0 Y0',
+ 'M30'
+].join('\n');
+var simS={moves:[],idx:0,timer:null,running:false,bounds:null};
+
 function renderRouterSim(c){
   var d=ce('div');
-  d.innerHTML='<div class="gridhead"><h2>G-Code Simülasyonu — RT-5000</h2>'+
-    '<div class="btn-row"><button class="btn green" onclick="simRun=true">Oynat</button><button class="btn" onclick="simRun=false">Duraklat</button><button class="btn" onclick="simT=0">Sıfırla</button></div></div>'+
-    '<div class="cards"><div class="card" style="grid-column:1/-1"><h4>Takım Yolu (Nesting Layout)</h4><canvas id="simCanvas" class="fluid" width="900" height="420"></canvas></div></div>'+
-    '<div class="cards" style="margin-top:16px">'+
-    '<div class="card"><h4>5-Eksen Pozisyon</h4><div class="axisgrid">'+['X','Y','Z','A','B'].map(function(a){return '<div class="axisbox"><div class="ax">'+a+'</div><div class="val" id="sim_'+a+'">0</div><div class="u">'+(a>'Z'?'°':'mm')+'</div></div>';}).join('')+'</div></div>'+
-    '<div class="card"><h4>G-Code Önizleme</h4><pre style="font-size:.72rem;color:var(--muted);line-height:1.6;overflow:auto;max-height:160px">G00 X0 Y0 Z50\nG01 Z-12 F1200\nG01 X1200 Y0\nG02 X1280 Y80 R80\nG01 X1280 Y720 A45 B12\nM06 T5\nG01 X80 Y720\nM30</pre></div></div>';
-  c.appendChild(d);simRun=true;simT=0;
-  var cv=$('#simCanvas');startCanvasLoop(function(){drawRouterSim(cv);});
+  d.innerHTML=
+   '<div class="gridhead"><h2>G-Code Simülasyonu — RT-5000</h2>'+
+     '<div class="btn-row" style="flex-wrap:wrap;gap:8px">'+
+       '<button class="btn primary" id="simPlayBtn" onclick="simToggle()">▶ Çalıştır</button>'+
+       '<button class="btn" onclick="simStop()">■ Durdur</button>'+
+       '<button class="btn" onclick="simReset()">↻ Sıfırla</button>'+
+       '<label style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)">Hız '+
+         '<input type="range" id="simSpeed" min="1" max="10" value="4" style="width:90px"></label>'+
+     '</div></div>'+
+   '<div class="simgrid">'+
+     '<div class="card simcv"><h4>Takım Yolu (XY)</h4>'+
+       '<canvas id="toolpath" class="fluid" width="600" height="600"></canvas>'+
+       '<div class="simlegend">'+
+         '<span><i style="background:#EF4444"></i>Hızlı G0</span>'+
+         '<span><i style="background:#535DDC"></i>Kesim G1</span>'+
+         '<span><i style="background:#22C55E"></i>Yay G2/G3</span>'+
+         '<span><i style="background:#F59E0B;border-radius:50%"></i>Takım</span>'+
+       '</div></div>'+
+     '<div class="simside">'+
+       '<div class="card"><h4>5-Eksen Pozisyon</h4><div class="axisgrid">'+
+         ['X','Y','Z','A','B'].map(function(a){return '<div class="axisbox"><div class="ax">'+a+'</div><div class="val" id="sim_'+a+'">0</div><div class="u">'+(a>'Z'?'°':'mm')+'</div></div>';}).join('')+
+       '</div></div>'+
+       '<div class="card"><h4>İstatistik</h4><div id="simStats" class="simstats"></div></div>'+
+       '<div class="card"><h4>G-Code Editörü</h4>'+
+         '<textarea id="gcodeIn" class="gcode-edit" spellcheck="false" oninput="simParse()"></textarea>'+
+         '<div class="btn-row" style="gap:8px;margin-top:8px">'+
+           '<button class="btn" style="flex:1" onclick="simLoadDemo()">Demo</button>'+
+           '<label class="btn" style="flex:1;text-align:center;cursor:pointer">Dosya Aç<input type="file" accept=".nc,.gcode,.tap,.txt,.cnc" style="display:none" onchange="simLoadFile(event)"></label>'+
+         '</div></div>'+
+       '<div class="card"><h4>Aktif Satır</h4><pre id="gcodeView" class="gcode-view">Hazır</pre></div>'+
+     '</div></div>';
+  c.appendChild(d);
+  $('#gcodeIn').value=DEMO_GCODE;
+  simParse();
 }
-function drawRouterSim(cv){
-  if(!cv)return;var x=cv.getContext('2d'),W=cv.width,H=cv.height;
+function gval(s,k,def){var m=s.match(new RegExp(k+'(-?[0-9.]+)'));return m?parseFloat(m[1]):def;}
+function simParse(){
+  var src=($('#gcodeIn')&&$('#gcodeIn').value)||DEMO_GCODE;
+  var lines=src.split('\n'),moves=[],pos={x:0,y:0,z:50,a:0,b:0},mode=0,feed=2000;
+  var minX=0,maxX=0,minY=0,maxY=0;
+  for(var li=0;li<lines.length;li++){
+    var raw=lines[li].split(';')[0].split('(')[0].trim();if(!raw)continue;
+    var up=raw.toUpperCase();
+    var g=up.match(/G0?([0-3])(?![0-9])/);if(g)mode=parseInt(g[1],10);
+    var f=gval(up,'F',null);if(f!==null)feed=f;
+    var hasMove=/[XYZ]/.test(up),isArc=(mode===2||mode===3);
+    if(!hasMove&&!isArc)continue;
+    var nx=gval(up,'X',pos.x),ny=gval(up,'Y',pos.y),nz=gval(up,'Z',pos.z);
+    var na=gval(up,'A',pos.a),nb=gval(up,'B',pos.b);
+    var seg={line:li,type:(mode===0?'G0':mode===1?'G1':'G'+mode),x0:pos.x,y0:pos.y,z0:pos.z,
+      x1:nx,y1:ny,z1:nz,a:na,b:nb,feed:feed,arc:isArc,cw:(mode===2)};
+    if(isArc){var iC=gval(up,'I',null),jC=gval(up,'J',null),r=gval(up,'R',null);
+      if(iC!==null||jC!==null){seg.cx=pos.x+(iC||0);seg.cy=pos.y+(jC||0);}else if(r!==null)seg.r=r;}
+    moves.push(seg);pos={x:nx,y:ny,z:nz,a:na,b:nb};
+    minX=Math.min(minX,nx);maxX=Math.max(maxX,nx);minY=Math.min(minY,ny);maxY=Math.max(maxY,ny);
+  }
+  if(maxX===minX)maxX=minX+100;if(maxY===minY)maxY=minY+100;
+  simS.moves=moves;simS.idx=0;simS.bounds={minX:minX,maxX:maxX,minY:minY,maxY:maxY};
+  simDrawTo(moves.length);simSetAxes();simStats();
+  if($('#gcodeView'))$('#gcodeView').textContent='Hazır — '+moves.length+' hareket';
+}
+function simMap(W,H){var b=simS.bounds,pad=38;
+  var s=Math.min((W-pad*2)/(b.maxX-b.minX||1),(H-pad*2)/(b.maxY-b.minY||1));
+  return {s:s,ox:pad-b.minX*s,oy:H-pad+b.minY*s};}
+function simDrawTo(upto){
+  var cv=$('#toolpath');if(!cv)return;
+  var pw=(cv.parentElement.clientWidth||500),size=Math.min(pw-2,640);
+  if(Math.abs(cv.width-size)>2){cv.width=size;cv.height=size;}
+  var W=cv.width,H=cv.height,x=cv.getContext('2d');
   x.clearRect(0,0,W,H);x.fillStyle='#0e161b';x.fillRect(0,0,W,H);
-  x.strokeStyle='#2A3540';x.lineWidth=2;x.strokeRect(20,20,W-40,H-40);
-  var parts=[[40,40,260,180],[320,40,200,180],[540,40,330,120],[540,180,150,200],[710,180,160,200],[40,240,260,140],[320,240,200,140]];
-  var cols=['#535DDC','#06B6D4','#22C55E','#F59E0B','#535DDC','#06B6D4','#22C55E'];
-  parts.forEach(function(p,i){x.fillStyle=cols[i]+'33';x.strokeStyle=cols[i];x.fillRect(p[0],p[1],p[2],p[3]);x.strokeRect(p[0],p[1],p[2],p[3]);});
-  if(simRun)simT=(simT+0.004)%1;
-  var path=[[40,40],[300,40],[300,220],[520,220],[520,40],[860,40],[860,400],[40,400],[40,40]];
-  var segs=[],total=0;for(var i=1;i<path.length;i++){var dd=Math.hypot(path[i][0]-path[i-1][0],path[i][1]-path[i-1][1]);segs.push(dd);total+=dd;}
-  var target=simT*total,acc=0,tx=path[0][0],ty=path[0][1];
-  x.beginPath();x.strokeStyle='#535DDC';x.lineWidth=2.5;x.setLineDash([6,4]);x.moveTo(path[0][0],path[0][1]);
-  for(var i=1;i<path.length;i++){if(acc+segs[i-1]<target){x.lineTo(path[i][0],path[i][1]);acc+=segs[i-1];tx=path[i][0];ty=path[i][1];}else{var r=(target-acc)/segs[i-1];tx=path[i-1][0]+(path[i][0]-path[i-1][0])*r;ty=path[i-1][1]+(path[i][1]-path[i-1][1])*r;x.lineTo(tx,ty);break;}}
-  x.stroke();x.setLineDash([]);
-  x.beginPath();x.fillStyle='#fff';x.arc(tx,ty,7,0,7);x.fill();x.strokeStyle='#535DDC';x.lineWidth=3;x.stroke();
-  var set=function(id,v){var e=$('#sim_'+id);if(e)e.textContent=v;};
-  set('X',(tx*3.4).toFixed(0));set('Y',(ty*3.4).toFixed(0));set('Z','-12');
-  set('A',(Math.sin(simT*6.28)*45).toFixed(1));set('B',(Math.cos(simT*6.28)*15).toFixed(1));
+  var mp=simMap(W,H),s=mp.s,gst=Math.max(34,W/16);
+  x.strokeStyle='#1c2832';x.lineWidth=1;
+  for(var gx=0;gx<=W;gx+=gst){x.beginPath();x.moveTo(gx,0);x.lineTo(gx,H);x.stroke();}
+  for(var gy=0;gy<=H;gy+=gst){x.beginPath();x.moveTo(0,gy);x.lineTo(W,gy);x.stroke();}
+  x.strokeStyle='#F59E0B99';x.beginPath();x.moveTo(mp.ox-10,mp.oy);x.lineTo(mp.ox+10,mp.oy);x.moveTo(mp.ox,mp.oy-10);x.lineTo(mp.ox,mp.oy+10);x.stroke();
+  var moves=simS.moves,lim=Math.min(upto,moves.length),last=null;
+  for(var i=0;i<lim;i++){var m=moves[i];
+    var X0=mp.ox+m.x0*s,Y0=mp.oy-m.y0*s,X1=mp.ox+m.x1*s,Y1=mp.oy-m.y1*s;
+    if(m.type==='G0'){x.strokeStyle='#EF4444';x.lineWidth=1.5;x.setLineDash([6,5]);}
+    else if(m.arc){x.strokeStyle='#22C55E';x.lineWidth=3;x.setLineDash([]);}
+    else{x.strokeStyle='#535DDC';x.lineWidth=3;x.setLineDash([]);}
+    x.beginPath();x.moveTo(X0,Y0);
+    if(m.arc&&m.cx!=null){var cX=mp.ox+m.cx*s,cY=mp.oy-m.cy*s,r=Math.hypot(X0-cX,Y0-cY);
+      x.arc(cX,cY,r,Math.atan2(Y0-cY,X0-cX),Math.atan2(Y1-cY,X1-cX),!m.cw);}
+    else x.lineTo(X1,Y1);
+    x.stroke();last=m;}
+  x.setLineDash([]);
+  if(last){var tx=mp.ox+last.x1*s,ty=mp.oy-last.y1*s;
+    x.fillStyle='#F59E0B';x.beginPath();x.arc(tx,ty,6,0,7);x.fill();
+    x.strokeStyle='#F59E0B66';x.lineWidth=2;x.beginPath();x.arc(tx,ty,12,0,7);x.stroke();}
 }
+function simToggle(){
+  if(simS.running){simPause();return;}
+  if(!simS.moves.length)simParse();
+  if(simS.idx>=simS.moves.length)simS.idx=0;
+  simS.running=true;var b=$('#simPlayBtn');if(b)b.textContent='⏸ Duraklat';
+  (function step(){
+    if(simS.idx>=simS.moves.length){simPause();toast('Simülasyon tamamlandı','ok');return;}
+    simS.idx++;var m=simS.moves[simS.idx-1];
+    simDrawTo(simS.idx);simSetAxes(m);
+    if($('#gcodeView'))$('#gcodeView').textContent='> '+(($('#gcodeIn').value.split('\n')[m.line])||'').trim();
+    var sp=($('#simSpeed')&&+$('#simSpeed').value)||4;
+    simS.timer=setTimeout(step,Math.max(70,650/sp));
+  })();
+}
+function simPause(){simS.running=false;if(simS.timer){clearTimeout(simS.timer);simS.timer=null;}var b=$('#simPlayBtn');if(b)b.textContent='▶ Çalıştır';}
+function simStop(){simPause();simS.idx=0;simDrawTo(0);simSetAxes();if($('#gcodeView'))$('#gcodeView').textContent='Durduruldu';}
+function simReset(){simPause();simS.idx=simS.moves.length;simDrawTo(simS.moves.length);simSetAxes();if($('#gcodeView'))$('#gcodeView').textContent='Sıfırlandı';toast('Sıfırlandı');}
+function simLoadDemo(){$('#gcodeIn').value=DEMO_GCODE;simParse();toast('Demo program yüklendi');}
+function simLoadFile(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){$('#gcodeIn').value=r.result;simParse();toast(f.name+' yüklendi','ok');};r.readAsText(f);}
+function simSetAxes(m){var p=m?{x:m.x1,y:m.y1,z:m.z1,a:m.a,b:m.b}:{x:0,y:0,z:50,a:0,b:0};
+  var set=function(id,v){var e=$('#sim_'+id);if(e)e.textContent=(v||0).toFixed(1);};
+  set('X',p.x);set('Y',p.y);set('Z',p.z);set('A',p.a);set('B',p.b);}
+function simStats(){var el=$('#simStats');if(!el)return;
+  var moves=simS.moves,rapid=0,cut=0,t=0;
+  for(var i=0;i<moves.length;i++){var m=moves[i],d=Math.hypot(m.x1-m.x0,m.y1-m.y0,m.z1-m.z0);
+    if(m.type==='G0')rapid+=d;else cut+=d;t+=d/(m.type==='G0'?8000:(m.feed||2000))*60;}
+  el.innerHTML='<div class="simstat"><span>Hareket</span><b>'+moves.length+'</b></div>'+
+    '<div class="simstat"><span>Hızlı yol</span><b>'+rapid.toFixed(0)+' mm</b></div>'+
+    '<div class="simstat"><span>Kesim yolu</span><b>'+cut.toFixed(0)+' mm</b></div>'+
+    '<div class="simstat"><span>Tahmini süre</span><b>'+t.toFixed(1)+' sn</b></div>';}
 
 function startCanvasLoop(fn){stopCanvasLoop();(function loop(){fn();canvasRAF=requestAnimationFrame(loop);})();}
 function stopCanvasLoop(){if(canvasRAF)cancelAnimationFrame(canvasRAF);canvasRAF=null;}
