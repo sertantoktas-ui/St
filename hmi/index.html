@@ -22,19 +22,21 @@ body{
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
 ::-webkit-scrollbar-track{background:transparent}
 
-.topbar{display:flex;align-items:center;gap:14px;padding:12px 18px;
+.topbar{display:flex;align-items:center;gap:clamp(8px,2vw,14px);padding:clamp(8px,1.6vw,12px) clamp(10px,2.2vw,18px);
   background:linear-gradient(180deg,var(--navy),#0F171C);border-bottom:1px solid var(--border);
-  position:sticky;top:0;z-index:50}
-.logo{display:flex;align-items:center;gap:12px}
-.logo-img{height:28px;width:auto;display:block}
-@media(max-width:600px){.logo-img{height:22px}}
+  position:sticky;top:0;z-index:50;min-height:52px}
+.logo{display:flex;align-items:center;gap:12px;min-width:0;flex-shrink:1}
+.logo-img{height:clamp(20px,3.4vw,34px);width:auto;max-width:min(58vw,340px);object-fit:contain;display:block}
+@media(max-width:360px){.logo-img{height:18px;max-width:50vw}}
+@media(min-width:2560px){.logo-img{height:42px;max-width:420px}}
 .logo .lt{display:flex;flex-direction:column;line-height:1}
 .logo .lt b{font-size:1.25rem;letter-spacing:3px;font-weight:800}
 .logo .lt span{font-size:.52rem;letter-spacing:1.5px;color:var(--muted);margin-top:3px}
 .spin{animation:spin 14s linear infinite;transform-origin:center}
 @keyframes spin{to{transform:rotate(360deg)}}
 .topbar .grow{flex:1}
-.clock{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.85rem}
+.clock{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.85rem;white-space:nowrap;flex-shrink:0}
+@media(max-width:480px){.clock{display:none}}
 .back-btn{display:none;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);
   border-radius:10px;padding:0 14px;height:var(--tap);font-weight:600}
 .back-btn:hover{border-color:var(--blue)}
