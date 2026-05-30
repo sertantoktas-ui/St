@@ -1,0 +1,10 @@
+hmi-desktop/
+.github/
+*.py
+node_modules/
+dist/
+build/
+.git/
+README_TR.md
+DEPLOYMENT.md
+requirements.txt

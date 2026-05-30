@@ -1,0 +1,108 @@
+name: Build Desktop App
+
+on:
+  push:
+    branches: [claude/nifty-ride-Qmdgb, main]
+    tags:     ['v*']
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Windows 11 (x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: hmi-desktop/package.json
+
+      - name: Install dependencies
+        working-directory: hmi-desktop
+        run: npm ci
+
+      - name: Build Windows installer
+        working-directory: hmi-desktop
+        run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: |
+            hmi-desktop/dist/*.exe
+            hmi-desktop/dist/*.zip
+          retention-days: 30
+
+  build-macos:
+    name: macOS Universal (Apple Silicon + Intel)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: hmi-desktop/package.json
+
+      - name: Install dependencies
+        working-directory: hmi-desktop
+        run: npm ci
+
+      - name: Build macOS DMG (Universal)
+        working-directory: hmi-desktop
+        run: npm run build:mac
+        env:
+          GH_TOKEN:                   ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false  # set to true + add certs for notarization
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: |
+            hmi-desktop/dist/*.dmg
+            hmi-desktop/dist/*.zip
+          retention-days: 30
+
+  release:
+    name: Create GitHub Release
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: AXTEA CNC HMI ${{ github.ref_name }}
+          body: |
+            ## AXTEA CNC HMI ${{ github.ref_name }}
+
+            ### Downloads
+            | Platform | File |
+            |---|---|
+            | Windows 11 (x64) | `AXTEA-CNC-HMI-Setup-*.exe` |
+            | Windows 11 Portable | `AXTEA-CNC-HMI-*.exe` (no install needed) |
+            | macOS Universal | `AXTEA-CNC-HMI-*-mac.dmg` |
+
+            ### Installation
+            **Windows:** Run the Setup `.exe` → Next → Install → Launch
+            **macOS:** Open `.dmg` → Drag to Applications → Open (right-click → Open on first launch)
+
+            ### OSAI Connection
+            Click **Connect** → enter your OSAI unit IP → uncheck Simulation for live mode.
+          files: |
+            windows-installer/*.exe
+            macos-dmg/*.dmg
+          draft: false
+          prerelease: false
