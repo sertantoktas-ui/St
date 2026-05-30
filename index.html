@@ -7,7 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root{
-  --blue:#6366C8; --navy:#141E23; --bg:#0D1418; --card:#1A2530; --border:#2A3540;
+  --blue:#535DDC; --navy:#141E23; --bg:#0D1418; --card:#1A2530; --border:#2A3540;
   --text:#E3E6FF; --muted:#8899AA; --green:#22C55E; --amber:#F59E0B; --red:#EF4444; --cyan:#06B6D4;
   --r:14px; --tap:44px;
 }
@@ -26,6 +26,8 @@ body{
   background:linear-gradient(180deg,var(--navy),#0F171C);border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:50}
 .logo{display:flex;align-items:center;gap:12px}
+.logo-img{height:28px;width:auto;display:block}
+@media(max-width:600px){.logo-img{height:22px}}
 .logo .lt{display:flex;flex-direction:column;line-height:1}
 .logo .lt b{font-size:1.25rem;letter-spacing:3px;font-weight:800}
 .logo .lt span{font-size:.52rem;letter-spacing:1.5px;color:var(--muted);margin-top:3px}
@@ -49,7 +51,7 @@ body.in-machine .back-btn{display:flex}
 .mcard .body{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
 .mcard h3{font-size:1.05rem;font-weight:700}
 .mcard .model{color:var(--muted);font-size:.8rem;margin-top:-4px}
-.badge{display:inline-block;align-self:flex-start;font-size:.65rem;padding:3px 9px;border-radius:20px;background:#6366c833;color:var(--blue);font-weight:700;letter-spacing:.5px}
+.badge{display:inline-block;align-self:flex-start;font-size:.65rem;padding:3px 9px;border-radius:20px;background:#535ddc33;color:var(--blue);font-weight:700;letter-spacing:.5px}
 .statline{display:flex;align-items:center;gap:7px;font-size:.8rem;font-weight:600}
 .dot{width:9px;height:9px;border-radius:50%;flex:none}
 .s-RUNNING .dot{background:var(--green);box-shadow:0 0 8px var(--green)}
@@ -118,7 +120,7 @@ tr:hover td{background:#ffffff06}
 .pill{font-size:.68rem;padding:2px 9px;border-radius:20px;font-weight:700}
 .pill.Bekliyor{background:#8899aa33;color:var(--muted)}
 .pill.Çalışıyor{background:#22c55e33;color:var(--green)}
-.pill.Tamamlandı{background:#6366c833;color:var(--blue)}
+.pill.Tamamlandı{background:#535ddc33;color:var(--blue)}
 .pill.Duraklatıldı{background:#f59e0b33;color:var(--amber)}
 .table-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:6px 12px}
 .iconbtn{background:none;border:none;font-size:1rem;padding:4px 6px;border-radius:6px}
@@ -166,7 +168,7 @@ tr:hover td{background:#ffffff06}
 .stage b{font-size:.78rem}
 .presets{display:flex;gap:8px;flex-wrap:wrap}
 .preset{padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:#0e161b;font-size:.8rem;font-weight:600}
-.preset.active{border-color:var(--blue);background:#6366c822;color:var(--blue)}
+.preset.active{border-color:var(--blue);background:#535ddc22;color:var(--blue)}
 .hint{font-size:.75rem;color:var(--muted);margin-top:8px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.75rem;margin-top:10px}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
@@ -185,20 +187,7 @@ tr:hover td{background:#ffffff06}
 <header class="topbar">
   <button class="back-btn" onclick="goHome()">&#8592; <span>Makineler</span></button>
   <div class="logo">
-    <svg class="spin" width="34" height="34" viewBox="0 0 100 100" aria-hidden="true">
-      <g fill="#6366C8">
-        <rect x="42" y="42" width="16" height="16" rx="2"/>
-        <rect x="46" y="6" width="8" height="30" rx="3"/>
-        <rect x="46" y="64" width="8" height="30" rx="3"/>
-        <rect x="6" y="46" width="30" height="8" rx="3"/>
-        <rect x="64" y="46" width="30" height="8" rx="3"/>
-        <rect x="46" y="6" width="8" height="30" rx="3" transform="rotate(45 50 50)"/>
-        <rect x="46" y="64" width="8" height="30" rx="3" transform="rotate(45 50 50)"/>
-        <rect x="6" y="46" width="30" height="8" rx="3" transform="rotate(45 50 50)"/>
-        <rect x="64" y="46" width="30" height="8" rx="3" transform="rotate(45 50 50)"/>
-      </g>
-    </svg>
-    <div class="lt"><b>AXTEA</b><span>INTEGRATED WOODWORKING SOLUTIONS</span></div>
+    <img src="axtea-logo.svg" alt="AXTEA — Integrated Woodworking Solutions" class="logo-img">
   </div>
   <div class="grow"></div>
   <div class="clock" id="clock"></div>
@@ -262,7 +251,7 @@ const TABDEFS={
 
 /* ===== MACHINE DATA ===== */
 const MACHINES={
-  RT5000:{id:'RT5000',type:'router',name:'AXTEA RT-5000',model:'5 Eksenli CNC Freze',serial:'AX-RT-2024-001',color:'#6366C8',status:'RUNNING',
+  RT5000:{id:'RT5000',type:'router',name:'AXTEA RT-5000',model:'5 Eksenli CNC Freze',serial:'AX-RT-2024-001',color:'#535DDC',status:'RUNNING',
     job:'KAPI-PANEL-A12',uptime:'6s 42dk',eff:'94%',area:'3050 × 1550 × 250 mm',spindle:'24.000 RPM · 22 kW · HSK-63',
     specs:{'Çalışma Alanı':'3050×1550×250 mm','Spindle':'24.000 RPM / 22 kW','Tutucu':'HSK-63','ATC':'24 takım karusel','Eksen':'X Y Z A B (5 eksen)'},
     maint:[['Spindle yatakları','98%','green','1.240 sa'],['A/B döner eksen yağı','62%','amber','840 sa'],['ATC karusel','88%','green','420 değişim'],['Vakum pompası','75%','green','—'],['Lineer kızaklar','91%','green','—']],
@@ -590,16 +579,16 @@ function drawRouterSim(cv){
   x.clearRect(0,0,W,H);x.fillStyle='#0e161b';x.fillRect(0,0,W,H);
   x.strokeStyle='#2A3540';x.lineWidth=2;x.strokeRect(20,20,W-40,H-40);
   var parts=[[40,40,260,180],[320,40,200,180],[540,40,330,120],[540,180,150,200],[710,180,160,200],[40,240,260,140],[320,240,200,140]];
-  var cols=['#6366C8','#06B6D4','#22C55E','#F59E0B','#6366C8','#06B6D4','#22C55E'];
+  var cols=['#535DDC','#06B6D4','#22C55E','#F59E0B','#535DDC','#06B6D4','#22C55E'];
   parts.forEach(function(p,i){x.fillStyle=cols[i]+'33';x.strokeStyle=cols[i];x.fillRect(p[0],p[1],p[2],p[3]);x.strokeRect(p[0],p[1],p[2],p[3]);});
   if(simRun)simT=(simT+0.004)%1;
   var path=[[40,40],[300,40],[300,220],[520,220],[520,40],[860,40],[860,400],[40,400],[40,40]];
   var segs=[],total=0;for(var i=1;i<path.length;i++){var dd=Math.hypot(path[i][0]-path[i-1][0],path[i][1]-path[i-1][1]);segs.push(dd);total+=dd;}
   var target=simT*total,acc=0,tx=path[0][0],ty=path[0][1];
-  x.beginPath();x.strokeStyle='#6366C8';x.lineWidth=2.5;x.setLineDash([6,4]);x.moveTo(path[0][0],path[0][1]);
+  x.beginPath();x.strokeStyle='#535DDC';x.lineWidth=2.5;x.setLineDash([6,4]);x.moveTo(path[0][0],path[0][1]);
   for(var i=1;i<path.length;i++){if(acc+segs[i-1]<target){x.lineTo(path[i][0],path[i][1]);acc+=segs[i-1];tx=path[i][0];ty=path[i][1];}else{var r=(target-acc)/segs[i-1];tx=path[i-1][0]+(path[i][0]-path[i-1][0])*r;ty=path[i-1][1]+(path[i][1]-path[i-1][1])*r;x.lineTo(tx,ty);break;}}
   x.stroke();x.setLineDash([]);
-  x.beginPath();x.fillStyle='#fff';x.arc(tx,ty,7,0,7);x.fill();x.strokeStyle='#6366C8';x.lineWidth=3;x.stroke();
+  x.beginPath();x.fillStyle='#fff';x.arc(tx,ty,7,0,7);x.fill();x.strokeStyle='#535DDC';x.lineWidth=3;x.stroke();
   var set=function(id,v){var e=$('#sim_'+id);if(e)e.textContent=v;};
   set('X',(tx*3.4).toFixed(0));set('Y',(ty*3.4).toFixed(0));set('Z','-12');
   set('A',(Math.sin(simT*6.28)*45).toFixed(1));set('B',(Math.cos(simT*6.28)*15).toFixed(1));
@@ -613,7 +602,7 @@ var pods=[];for(var pi=0;pi<24;pi++)pods.push(true);
 function renderNest(c){
   var d=ce('div');
   d.innerHTML='<div class="gridhead"><h2>Nesting Plan — NS-3200</h2><button class="btn primary" onclick="optimizeNest()">Optimize Et</button></div>'+
-    '<div class="cards"><div class="card"><h4>Dizilim (Panel 3210×1580)</h4><canvas id="nestCanvas" class="fluid" width="640" height="320"></canvas><div class="legend"><span><i style="background:#6366C8"></i>Parça</span><span><i style="background:#2A3540"></i>Atık</span></div></div>'+
+    '<div class="cards"><div class="card"><h4>Dizilim (Panel 3210×1580)</h4><canvas id="nestCanvas" class="fluid" width="640" height="320"></canvas><div class="legend"><span><i style="background:#535DDC"></i>Parça</span><span><i style="background:#2A3540"></i>Atık</span></div></div>'+
     '<div class="card"><h4>Vakum Pod Sistemi (6×4)</h4><div class="podgrid" id="podGrid"></div><div class="hint">Açmak/kapatmak için poda dokunun.</div></div></div>'+
     '<div class="cards" style="margin-top:16px">'+
     '<div class="card"><h4>Verimlilik</h4><div class="kpi" id="nestEff" style="color:var(--green)">91%</div><div class="bar"><i id="nestEffBar" style="width:91%;background:var(--green)"></i></div></div>'+
@@ -630,7 +619,7 @@ function drawNest(){
   var cv=$('#nestCanvas');if(!cv)return;var x=cv.getContext('2d'),W=cv.width,H=cv.height;
   x.fillStyle='#0e161b';x.fillRect(0,0,W,H);x.strokeStyle='#2A3540';x.lineWidth=2;x.strokeRect(8,8,W-16,H-16);
   var parts=[[16,16,200,140],[224,16,180,90],[412,16,210,90],[224,114,180,42],[412,114,100,42],[16,164,140,140],[164,164,120,140],[292,164,160,90],[460,164,160,90],[292,262,160,42],[460,262,160,42],[520,114,102,42]];
-  var cols=['#6366C8','#06B6D4','#22C55E','#F59E0B'];
+  var cols=['#535DDC','#06B6D4','#22C55E','#F59E0B'];
   parts.forEach(function(p,i){x.fillStyle=cols[i%4]+'55';x.fillRect(p[0],p[1],p[2],p[3]);x.strokeStyle=cols[i%4];x.strokeRect(p[0],p[1],p[2],p[3]);x.fillStyle='#E3E6FF';x.font='10px sans-serif';x.fillText('P'+(i+1),p[0]+5,p[1]+14);});
 }
 function optimizeNest(){
@@ -707,7 +696,7 @@ function renderPattern(c){
   var d=ce('div');
   d.innerHTML='<div class="gridhead"><h2>Delik Deseni — BD-21</h2><button class="btn primary" onclick="randomPattern()">Yeni Desen</button></div>'+
     '<div class="cards"><div class="card" style="grid-column:1/-1"><h4>Tahta Görünümü — Delik Pozisyonları</h4><canvas id="boreCanvas" class="fluid" width="800" height="360"></canvas>'+
-    '<div class="legend"><span><i style="background:#6366C8"></i>Ø8 sistem deliği</span><span><i style="background:#F59E0B"></i>Ø5 dübel</span><span><i style="background:#06B6D4"></i>Ø35 menteşe</span></div></div></div>'+
+    '<div class="legend"><span><i style="background:#535DDC"></i>Ø8 sistem deliği</span><span><i style="background:#F59E0B"></i>Ø5 dübel</span><span><i style="background:#06B6D4"></i>Ø35 menteşe</span></div></div></div>'+
     '<div class="cards" style="margin-top:16px">'+
     '<div class="card"><h4>Delme Derinliği</h4><div class="field"><label>Z <b id="lDepth">13.0 mm</b></label><input type="range" min="5" max="35" value="13" oninput="$(\'#lDepth\').textContent=this.value+\'.0 mm\'"></div><div class="toggrow"><span>Step Delme</span><div class="toggle" onclick="this.classList.toggle(\'on\')"></div></div><div class="toggrow"><span>Havşa</span><div class="toggle" onclick="this.classList.toggle(\'on\')"></div></div></div>'+
     '<div class="card"><h4>Spindle Grubu</h4><div class="row"><span>Dikey Spindle</span><span class="v">21 adet</span></div><div class="row"><span>Yatay Spindle</span><span class="v">4 adet</span></div><div class="row"><span>Devir</span><span class="v">2800 RPM</span></div></div>'+
@@ -718,7 +707,7 @@ function drawBore(){
   var cv=$('#boreCanvas');if(!cv)return;var x=cv.getContext('2d'),W=cv.width,H=cv.height;
   x.fillStyle='#0e161b';x.fillRect(0,0,W,H);x.fillStyle='#22303d';x.fillRect(40,40,W-80,H-80);x.strokeStyle='#2A3540';x.lineWidth=2;x.strokeRect(40,40,W-80,H-80);
   var s=boreSeed,rnd=function(){s=(s*9301+49297)%233280;return s/233280;};
-  x.fillStyle='#6366C8';for(var r=0;r<2;r++){var cy=80+r*(H-160);for(var i=0;i<14;i++){var cx=80+i*((W-160)/13);x.beginPath();x.arc(cx,cy,5,0,7);x.fill();}}
+  x.fillStyle='#535DDC';for(var r=0;r<2;r++){var cy=80+r*(H-160);for(var i=0;i<14;i++){var cx=80+i*((W-160)/13);x.beginPath();x.arc(cx,cy,5,0,7);x.fill();}}
   x.fillStyle='#F59E0B';for(var i=0;i<6;i++){var cx=90+rnd()*(W-180),cy2=120+rnd()*(H-240);x.beginPath();x.arc(cx,cy2,4,0,7);x.fill();}
   x.fillStyle='#06B6D4';[0.2,0.8].forEach(function(p){x.beginPath();x.arc(80,40+H*p*0.8,11,0,7);x.fill();});
 }
@@ -811,7 +800,7 @@ function drawOrient(A,B){
   var corners=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
   var pts=corners.map(function(c){var X=c[0]*ca-c[2]*sa,Z=c[0]*sa+c[2]*ca;var Y=c[1]*cb-Z*sb;Z=c[1]*sb+Z*cb;return [cx+X*s+Z*s*0.4,cy+Y*s-Z*s*0.25];});
   var edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
-  var html='';edges.forEach(function(e){html+='<line x1="'+pts[e[0]][0]+'" y1="'+pts[e[0]][1]+'" x2="'+pts[e[1]][0]+'" y2="'+pts[e[1]][1]+'" stroke="#6366C8" stroke-width="2"/>';});
+  var html='';edges.forEach(function(e){html+='<line x1="'+pts[e[0]][0]+'" y1="'+pts[e[0]][1]+'" x2="'+pts[e[1]][0]+'" y2="'+pts[e[1]][1]+'" stroke="#535DDC" stroke-width="2"/>';});
   html+='<line x1="'+cx+'" y1="'+cy+'" x2="'+pts[4][0]+'" y2="'+pts[4][1]+'" stroke="#22C55E" stroke-width="3"/>';
   html+='<text x="10" y="180" fill="#8899AA" font-size="11">A: '+A.toFixed(1)+'°  B: '+B.toFixed(1)+'°</text>';
   svg.innerHTML=html;
