@@ -27,10 +27,11 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Copy HMI to public folder
+      - name: Prepare public folder
         run: |
-          mkdir -p public
-          cp hmi/index.html public/index.html
+          mkdir -p public/hmi
+          cp hmi/index.html public/hmi/index.html
+          cp index.html public/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
