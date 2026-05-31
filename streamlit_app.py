@@ -174,12 +174,13 @@ with col2:
     st.markdown("---")
 
 # Main Tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "💬 Sohbet",
     "📝 Notlar",
     "📧 Email",
     "📄 PDF",
     "🔷 Claude Import",
+    "🤖 Jarvis",
 ])
 
 # ==================== SOHBET TAB ====================
@@ -595,6 +596,100 @@ with tab5:
 
         except Exception as e:
             st.error(f"❌ JSON okunamadı: {str(e)}")
+
+# ==================== JARVIS API KEY TAB ====================
+with tab6:
+    st.header("🤖 Jarvis — API Key Gönder")
+
+    st.info("""
+    Obsidian'daki **Jarvis** eklentisine Anthropic API key'ini gönderir.
+
+    **Gereksinimler:**
+    - Obsidian açık olmalı
+    - **Local REST API** eklentisi kurulu ve çalışıyor olmalı
+    - **Jarvis** eklentisi kurulu olmalı
+    """)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        jarvis_obs_url = st.text_input(
+            "Obsidian Local REST API URL:",
+            value="http://localhost:27123",
+            key="jarvis_obs_url",
+        )
+    with col2:
+        jarvis_obs_token = st.text_input(
+            "Local REST API Token:",
+            type="password",
+            placeholder="Obsidian → Local REST API → Token kopyala",
+            key="jarvis_obs_token",
+        )
+
+    api_key_input = st.text_input(
+        "Anthropic API Key:",
+        type="password",
+        placeholder="sk-ant-...",
+        value=os.getenv("ANTHROPIC_API_KEY", ""),
+        key="jarvis_api_key",
+    )
+
+    if st.button("📡 Jarvis'e Gönder", use_container_width=True, type="primary"):
+        if not jarvis_obs_token:
+            st.warning("⚠️ Local REST API token gerekli!")
+        elif not api_key_input:
+            st.warning("⚠️ API key boş olamaz!")
+        else:
+            try:
+                import urllib.request
+                import urllib.error
+
+                headers_base = {
+                    "Authorization": f"Bearer {jarvis_obs_token}",
+                    "Content-Type": "application/json",
+                }
+                base = jarvis_obs_url.rstrip("/")
+
+                # Mevcut Jarvis ayarlarını oku
+                settings_url = f"{base}/vault/.obsidian/plugins/jarvis/data.json"
+                req = urllib.request.Request(settings_url, headers=headers_base)
+                try:
+                    with urllib.request.urlopen(req, timeout=8) as resp:
+                        mevcut = json.loads(resp.read().decode("utf-8"))
+                except urllib.error.HTTPError:
+                    mevcut = {}
+
+                # Anthropic key'ini güncelle (Jarvis field adları)
+                mevcut["anthropic_api_key"] = api_key_input
+                mevcut["openai_api_key"] = api_key_input  # eski field adı da doldur
+                mevcut["model"] = mevcut.get("model", "claude-sonnet-4-6")
+
+                # Geri yaz
+                guncelleme = json.dumps(mevcut, ensure_ascii=False, indent=2).encode("utf-8")
+                put_req = urllib.request.Request(
+                    settings_url,
+                    data=guncelleme,
+                    headers={**headers_base, "Content-Type": "application/json"},
+                    method="PUT",
+                )
+                urllib.request.urlopen(put_req, timeout=8)
+
+                st.success("✅ API key Jarvis'e başarıyla gönderildi!")
+                st.caption("Obsidian'da Jarvis eklentisini yeniden başlatmanız gerekebilir.")
+
+            except urllib.error.URLError as e:
+                st.error(f"❌ Obsidian'a bağlanılamadı: {str(e)}")
+                st.info("Obsidian'ın açık ve Local REST API eklentisinin çalışır olduğundan emin olun.")
+            except Exception as e:
+                st.error(f"❌ Hata: {str(e)}")
+
+    with st.expander("ℹ️ Local REST API kurulumu"):
+        st.markdown("""
+        1. Obsidian → **Settings → Community Plugins → Browse**
+        2. **"Local REST API"** ara ve kur
+        3. Eklentiyi etkinleştir
+        4. Settings → Local REST API → **API Key** kopyala
+        5. Yukarıdaki token alanına yapıştır
+        """)
 
 st.markdown("---")
 st.caption("🤖 Kişisel Asistan © 2026 | Powered by Claude AI")
