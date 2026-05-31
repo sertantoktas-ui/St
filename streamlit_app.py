@@ -1,8 +1,120 @@
 import streamlit as st
 import os
+import io
+import zipfile
+import tempfile
 from datetime import datetime
 from full_featured_assistant import PersonalAssistant
 from database import Database
+
+PROJE_DOSYALARI = [
+    "personal_assistant.py", "advanced_assistant.py", "full_featured_assistant.py",
+    "streamlit_app.py", "database.py", "email_service.py", "pdf_generator.py",
+    "requirements.txt", "README.md", "SETUP.md", "DEPLOY.md", "STREAMLIT_KURULUM.md",
+]
+
+
+def _md_dosya(zip_buf: zipfile.ZipFile, yol: str, icerik: str):
+    zip_buf.writestr(yol, icerik.encode("utf-8"))
+
+
+def _obsidian_zip(db) -> bytes:
+    """Tüm verileri tek zip dosyası olarak döner."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+
+        # Chat geçmişi
+        oturumlar = db.get_chat_sessions()
+        indeks = ["# Chat Geçmişi\n\n"]
+        for o in oturumlar:
+            sid = o["session_id"]
+            mesajlar = db.get_chat_history(session_id=sid)
+            satirlar = [f"# Sohbet — {o['started_at']}\n\n**Mesaj:** {len(mesajlar)}\n\n---\n"]
+            for m in mesajlar:
+                etiket = "**Kullanıcı**" if m["role"] == "user" else "**Asistan**"
+                satirlar.append(f"\n{etiket} _{m['created_at']}_\n\n{m['content']}\n\n---\n")
+            _md_dosya(zf, f"Chat Geçmişi/{sid}.md", "\n".join(satirlar))
+            indeks.append(f"- [[{sid}|{o['started_at']}]] ({len(mesajlar)} mesaj)\n")
+        _md_dosya(zf, "Chat Geçmişi/_Indeks.md", "".join(indeks))
+
+        # Görevler
+        bekleyen = db.get_tasks("pending")
+        tamamlanan = db.get_tasks("completed")
+        satirlar = ["# Görevler\n\n## Bekleyen\n\n"]
+        for g in bekleyen:
+            p = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(g["priority"], "⚪")
+            satirlar.append(f"- [ ] {p} **{g['title']}** — {g['created_at']}\n")
+        satirlar.append("\n## Tamamlanan\n\n")
+        for g in tamamlanan:
+            satirlar.append(f"- [x] **{g['title']}** — {g['created_at']}\n")
+        _md_dosya(zf, "Gorevler.md", "".join(satirlar))
+
+        # Emailler
+        emailler = db.get_emails()
+        indeks_e = ["# Emailler\n\n"]
+        for e in emailler:
+            durum = "✅ Gönderildi" if e["sent"] else "📤 Taslak"
+            icerik = f"# {e['subject']}\n\n**Alıcı:** {e['recipient']}  \n**Tarih:** {e['created_at']}  \n**Durum:** {durum}\n\n---\n\n{e['body']}\n"
+            _md_dosya(zf, f"Emailler/Email_{e['id']:04d}.md", icerik)
+            indeks_e.append(f"- [[Email_{e['id']:04d}|{e['subject']}]] — {durum}\n")
+        _md_dosya(zf, "Emailler/_Indeks.md", "".join(indeks_e))
+
+        # Raporlar
+        raporlar = db.get_reports()
+        indeks_r = ["# Raporlar\n\n"]
+        for r in raporlar:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT content FROM reports WHERE id = ?", (r["id"],))
+            row = cursor.fetchone()
+            conn.close()
+            icerik = f"# {r['title']}\n\n**Tarih:** {r['created_at']}\n\n---\n\n{row[0] if row else ''}\n"
+            _md_dosya(zf, f"Raporlar/Rapor_{r['id']:04d}.md", icerik)
+            indeks_r.append(f"- [[Rapor_{r['id']:04d}|{r['title']}]]\n")
+        _md_dosya(zf, "Raporlar/_Indeks.md", "".join(indeks_r))
+
+        # Proje dosyaları
+        repo = os.path.dirname(__file__)
+        for dosya in PROJE_DOSYALARI:
+            yol = os.path.join(repo, dosya)
+            if not os.path.exists(yol):
+                continue
+            with open(yol, encoding="utf-8", errors="replace") as f:
+                ham = f.read()
+            uzanti = dosya.rsplit(".", 1)[-1]
+            dil = {"py": "python", "toml": "toml", "txt": "text"}.get(uzanti, "")
+            if dil:
+                md = f"# {dosya}\n\n```{dil}\n{ham}\n```\n"
+            else:
+                md = f"# {dosya}\n\n{ham}\n"
+            _md_dosya(zf, f"Proje Dosyaları/{dosya}.md", md)
+
+        # Ana sayfa
+        stats = db.get_statistics()
+        ana = f"""# Kişisel Asistan — Obsidian Export
+
+> Tarih: {datetime.now().strftime('%Y-%m-%d %H:%M')}
+
+| Alan | Sayı |
+|------|------|
+| Chat Oturumları | {len(oturumlar)} |
+| Bekleyen Görevler | {stats['pending_tasks']} |
+| Tamamlanan Görevler | {stats['completed_tasks']} |
+| Emailler | {stats['sent_emails'] + stats['unsent_emails']} |
+| Raporlar | {stats['total_reports']} |
+
+## Bölümler
+- [[Chat Geçmişi/_Indeks|Chat Geçmişi]]
+- [[Gorevler|Görevler]]
+- [[Emailler/_Indeks|Emailler]]
+- [[Raporlar/_Indeks|Raporlar]]
+- [[Proje Dosyaları|Proje Dosyaları]]
+"""
+        _md_dosya(zf, "Ana Sayfa.md", ana)
+
+    buf.seek(0)
+    return buf.read()
+
 
 # Sayfa ayarları
 st.set_page_config(
@@ -300,6 +412,23 @@ with st.sidebar:
     if st.button("🔄 Sohbeti Temizle", use_container_width=True):
         st.session_state.chat_history = []
         st.rerun()
+
+    st.divider()
+
+    st.subheader("📥 Obsidian Export")
+    if st.button("📦 ZIP Hazırla", use_container_width=True):
+        try:
+            with st.spinner("Export hazırlanıyor..."):
+                zip_data = _obsidian_zip(st.session_state.db)
+            st.download_button(
+                label="⬇️ İndir",
+                data=zip_data,
+                file_name=f"obsidian_export_{datetime.now().strftime('%Y%m%d_%H%M')}.zip",
+                mime="application/zip",
+                use_container_width=True,
+            )
+        except Exception as e:
+            st.error(f"❌ Export hatası: {str(e)}")
 
     if st.button("❌ Çıkış", use_container_width=True):
         st.info("👋 Görüşmek üzere!")
