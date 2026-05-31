@@ -19,7 +19,7 @@ from datetime import datetime
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 TOKEN_PATH = Path("token.pickle")
 CREDENTIALS_PATH = Path("credentials.json")
-DRIVE_FOLDER_NAME = "Obsidian - Kişisel Asistan"
+DRIVE_FOLDER_NAME = "claude"
 
 
 def _get_service():
