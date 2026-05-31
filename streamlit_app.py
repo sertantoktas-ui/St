@@ -1,6 +1,4 @@
 import streamlit as st
-import os
-from datetime import datetime
 from full_featured_assistant import PersonalAssistant
 from database import Database
 
@@ -265,7 +263,7 @@ with st.sidebar:
         notes_count = len(st.session_state.assistant.list_notes())
         st.metric("Toplam Notlar", notes_count)
         st.metric("Sohbet Sayısı", len(st.session_state.chat_history) // 2)
-    except:
+    except Exception:
         pass
 
     st.divider()

@@ -8,7 +8,6 @@ Tam Özellikli Claude AI Kişisel Asistan
 """
 
 import os
-import json
 from datetime import datetime
 from anthropic import Anthropic
 from dotenv import load_dotenv
@@ -26,7 +25,7 @@ pdf_gen = PDFReportGenerator()
 try:
     email_service = EmailService()
     email_available = True
-except:
+except Exception:
     email_service = None
     email_available = False
 

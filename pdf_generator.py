@@ -7,9 +7,9 @@ HTML, Markdown, Text formatlarından PDF oluştur
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle, Image
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from datetime import datetime
 import os
 from pathlib import Path
@@ -100,7 +100,7 @@ class PDFReportGenerator:
 
         # Footer
         elements.append(Spacer(1, 20))
-        footer_text = f"<i>© 2024 Personal Assistant | Sayfa Sayısı: Dinamik</i>"
+        footer_text = "<i>© 2024 Personal Assistant | Sayfa Sayısı: Dinamik</i>"
         elements.append(Paragraph(footer_text, styles['Normal']))
 
         # PDF oluştur

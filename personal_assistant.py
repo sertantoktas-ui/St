@@ -9,7 +9,6 @@ Claude API ile destekli kişisel asistan uygulaması
 """
 
 import os
-import json
 from anthropic import Anthropic
 from dotenv import load_dotenv
 

@@ -9,7 +9,6 @@
 
 import os
 import json
-import requests
 from datetime import datetime
 from anthropic import Anthropic
 from dotenv import load_dotenv

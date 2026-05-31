@@ -9,7 +9,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
-from typing import List, Optional
+from typing import List
 import os
 from dotenv import load_dotenv
 
@@ -186,7 +186,7 @@ class EmailService:
 def test_email_service():
     """Email servisi testi"""
     try:
-        service = EmailService()
+        EmailService()
 
         # Test email oluştur
         test_email = EmailService.create_professional_email(
