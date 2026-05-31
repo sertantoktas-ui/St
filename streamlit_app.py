@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import io
+import json
 import zipfile
 import tempfile
 from datetime import datetime
@@ -173,11 +174,12 @@ with col2:
     st.markdown("---")
 
 # Main Tabs
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "💬 Sohbet",
     "📝 Notlar",
     "📧 Email",
-    "📄 PDF"
+    "📄 PDF",
+    "🔷 Claude Import",
 ])
 
 # ==================== SOHBET TAB ====================
@@ -492,6 +494,107 @@ with st.sidebar:
 
     if st.button("❌ Çıkış", use_container_width=True):
         st.info("👋 Görüşmek üzere!")
+
+# ==================== CLAUDE IMPORT TAB ====================
+with tab5:
+    st.header("🔷 Claude.ai Sohbetlerini Aktar")
+
+    st.info("""
+    **Nasıl export alırsınız:**
+    1. [claude.ai](https://claude.ai) → Profil → **Settings → Privacy**
+    2. **Export Data** butonuna tıklayın
+    3. E-posta gelecek → ZIP'i indirin → içinden `conversations.json`'ı çıkarın
+    4. Aşağıya yükleyin
+    """)
+
+    uploaded = st.file_uploader(
+        "conversations.json yükleyin",
+        type=["json"],
+        label_visibility="collapsed",
+    )
+
+    if uploaded:
+        try:
+            veri = json.load(uploaded)
+            if isinstance(veri, list):
+                sohbetler = veri
+            elif isinstance(veri, dict) and "conversations" in veri:
+                sohbetler = veri["conversations"]
+            else:
+                sohbetler = [veri]
+
+            st.success(f"✅ **{len(sohbetler)}** sohbet yüklendi.")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.subheader("📥 ZIP İndir")
+                st.caption("Obsidian'da 'Open folder as vault' ile aç")
+                if st.button("📦 ZIP Hazırla", use_container_width=True, key="claude_zip"):
+                    with st.spinner("Hazırlanıyor..."):
+                        buf = io.BytesIO()
+                        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                            from claude_to_obsidian import sohbet_markdown, ana_sayfa_markdown, temizle_baslik
+                            for s in sohbetler:
+                                baslik = temizle_baslik(s.get("name") or s.get("uuid", "sohbet"))
+                                zf.writestr(f"Claude Sohbetleri/{baslik}.md", sohbet_markdown(s).encode("utf-8"))
+                            zf.writestr("Claude Sohbetleri/_Indeks.md", ana_sayfa_markdown(sohbetler).encode("utf-8"))
+                        buf.seek(0)
+                    st.download_button(
+                        "⬇️ İndir",
+                        data=buf.read(),
+                        file_name=f"claude_obsidian_{datetime.now().strftime('%Y%m%d_%H%M')}.zip",
+                        mime="application/zip",
+                        use_container_width=True,
+                    )
+
+            with col2:
+                st.subheader("☁️ Drive'a Yükle")
+                st.caption("Google Drive → claude klasörüne gider")
+                if st.button("⬆️ Drive'a Gönder", use_container_width=True, key="claude_drive"):
+                    try:
+                        import google_drive as gd
+                        from claude_to_obsidian import sohbet_markdown, ana_sayfa_markdown, temizle_baslik
+                        with st.spinner("Yükleniyor..."):
+                            buf = io.BytesIO()
+                            with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                                for s in sohbetler:
+                                    baslik = temizle_baslik(s.get("name") or s.get("uuid", "sohbet"))
+                                    zf.writestr(f"Claude Sohbetleri/{baslik}.md", sohbet_markdown(s).encode("utf-8"))
+                                zf.writestr("Claude Sohbetleri/_Indeks.md", ana_sayfa_markdown(sohbetler).encode("utf-8"))
+                            buf.seek(0)
+                            link = gd.upload_zip(buf.read(), filename=f"claude_sohbetler_{datetime.now().strftime('%Y%m%d_%H%M')}.zip")
+                        st.success("✅ Yüklendi!")
+                        st.markdown(f"[Drive'da aç]({link})")
+                    except Exception as e:
+                        st.error(f"❌ {str(e)}")
+
+            st.subheader("🔷 Obsidian Local REST API")
+            col_url, col_tok = st.columns(2)
+            with col_url:
+                obs_url = st.text_input("Obsidian URL:", value="http://localhost:27123", placeholder="http://localhost:27123")
+            with col_tok:
+                obs_token = st.text_input("API Token:", type="password", placeholder="Obsidian → Local REST API → Token")
+
+            if st.button("📡 Obsidian'a Direkt Gönder", use_container_width=True, type="primary"):
+                if not obs_token:
+                    st.warning("⚠️ Token gerekli!")
+                else:
+                    from claude_to_obsidian import obsidian_api_gonder
+                    progress = st.progress(0, text="Gönderiliyor...")
+                    basarili = 0
+                    for i, s in enumerate(sohbetler):
+                        try:
+                            obsidian_api_gonder([s], obs_url, obs_token)
+                            basarili += 1
+                        except Exception:
+                            pass
+                        progress.progress((i + 1) / len(sohbetler), text=f"{i+1}/{len(sohbetler)} sohbet gönderildi...")
+                    progress.empty()
+                    st.success(f"✅ {basarili}/{len(sohbetler)} sohbet Obsidian'a gönderildi!")
+
+        except Exception as e:
+            st.error(f"❌ JSON okunamadı: {str(e)}")
 
 st.markdown("---")
 st.caption("🤖 Kişisel Asistan © 2026 | Powered by Claude AI")
