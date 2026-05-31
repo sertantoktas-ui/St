@@ -229,6 +229,16 @@ with tab1:
                 st.session_state.chat_session_id, 'assistant', response
             )
 
+            # Otomatik Drive yükleme
+            if st.session_state.get("auto_drive_upload", False):
+                try:
+                    import google_drive as gd
+                    if gd.is_authenticated():
+                        zip_data = _obsidian_zip(st.session_state.db)
+                        gd.upload_zip(zip_data)
+                except Exception:
+                    pass
+
             st.rerun()
         except Exception as e:
             st.error(f"❌ Hata: {str(e)}")
@@ -416,6 +426,8 @@ with st.sidebar:
     st.divider()
 
     st.subheader("📥 Obsidian Export")
+
+    # ZIP indirme butonu
     if st.button("📦 ZIP Hazırla", use_container_width=True):
         try:
             with st.spinner("Export hazırlanıyor..."):
@@ -429,6 +441,54 @@ with st.sidebar:
             )
         except Exception as e:
             st.error(f"❌ Export hatası: {str(e)}")
+
+    st.divider()
+
+    # Google Drive otomatik yükleme
+    st.subheader("☁️ Google Drive")
+
+    try:
+        import google_drive as gd
+        drive_ok = gd.is_authenticated()
+    except ImportError:
+        drive_ok = False
+        gd = None
+
+    if gd is None:
+        st.warning("google_drive.py bulunamadı.")
+    elif not drive_ok:
+        st.info("Google Drive'a bağlanmak için `credentials.json` dosyanızı uygulama klasörüne koyun, sonra bağlan butonuna tıklayın.")
+        if st.button("🔗 Google Drive'a Bağlan", use_container_width=True):
+            try:
+                with st.spinner("Tarayıcıda oturum açılıyor..."):
+                    gd._get_service()
+                st.success("✅ Bağlantı kuruldu!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"❌ {str(e)}")
+    else:
+        st.success("✅ Google Drive bağlı")
+
+        # Otomatik yükleme ayarı
+        auto_upload = st.toggle(
+            "Her sohbet sonunda otomatik yükle",
+            value=st.session_state.get("auto_drive_upload", False),
+            key="auto_drive_upload",
+        )
+
+        if st.button("⬆️ Şimdi Drive'a Yükle", use_container_width=True):
+            try:
+                with st.spinner("Drive'a yükleniyor..."):
+                    zip_data = _obsidian_zip(st.session_state.db)
+                    link = gd.upload_zip(zip_data)
+                st.success("✅ Yüklendi!")
+                st.markdown(f"[Drive'da aç]({link})")
+            except Exception as e:
+                st.error(f"❌ {str(e)}")
+
+        if st.button("🔓 Drive Bağlantısını Kes", use_container_width=True):
+            gd.revoke_auth()
+            st.rerun()
 
     if st.button("❌ Çıkış", use_container_width=True):
         st.info("👋 Görüşmek üzere!")
