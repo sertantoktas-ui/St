@@ -51,6 +51,9 @@ if 'assistant' not in st.session_state:
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
+if 'chat_session_id' not in st.session_state:
+    st.session_state.chat_session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+
 # Header
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
@@ -97,6 +100,9 @@ with tab1:
                 'role': 'user',
                 'content': user_input
             })
+            st.session_state.db.save_chat_message(
+                st.session_state.chat_session_id, 'user', user_input
+            )
 
             # Get AI response
             with st.spinner("🤔 Düşünüyor..."):
@@ -107,6 +113,9 @@ with tab1:
                 'role': 'assistant',
                 'content': response
             })
+            st.session_state.db.save_chat_message(
+                st.session_state.chat_session_id, 'assistant', response
+            )
 
             st.rerun()
         except Exception as e:

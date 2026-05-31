@@ -75,6 +75,17 @@ class AssistantDatabase:
             )
         """)
 
+        # Chat geçmişi tablosu
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS chat_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
         conn.commit()
         conn.close()
 
@@ -272,6 +283,57 @@ class AssistantDatabase:
             }
             for row in rows
         ]
+
+    # ============ İSTATİSTİKLER ============
+
+    # ============ CHAT GEÇMİŞİ ============
+
+    def save_chat_message(self, session_id: str, role: str, content: str) -> int:
+        """Chat mesajı kaydet"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO chat_history (session_id, role, content)
+            VALUES (?, ?, ?)
+        """, (session_id, role, content))
+        conn.commit()
+        msg_id = cursor.lastrowid
+        conn.close()
+        return msg_id
+
+    def get_chat_history(self, session_id: str = None) -> List[Dict]:
+        """Chat geçmişini al"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        if session_id:
+            cursor.execute("""
+                SELECT id, session_id, role, content, created_at
+                FROM chat_history WHERE session_id = ?
+                ORDER BY created_at ASC
+            """, (session_id,))
+        else:
+            cursor.execute("""
+                SELECT id, session_id, role, content, created_at
+                FROM chat_history ORDER BY created_at ASC
+            """)
+        rows = cursor.fetchall()
+        conn.close()
+        return [
+            {"id": r[0], "session_id": r[1], "role": r[2], "content": r[3], "created_at": r[4]}
+            for r in rows
+        ]
+
+    def get_chat_sessions(self) -> List[str]:
+        """Tüm oturum ID'lerini al"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT DISTINCT session_id, MIN(created_at) as started_at
+            FROM chat_history GROUP BY session_id ORDER BY started_at DESC
+        """)
+        rows = cursor.fetchall()
+        conn.close()
+        return [{"session_id": r[0], "started_at": r[1]} for r in rows]
 
     # ============ İSTATİSTİKLER ============
 
