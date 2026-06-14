@@ -3,1027 +3,964 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RMK Mekatronik A.Ş. – Çözüm Odaklı Mühendislik</title>
+  <title>RMK Mekatronik — Çözüm Odaklı Mühendislik</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    /* ─── Reset & Base ─────────────────────────────────────────── */
+    /* ── Reset ─────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      /* RMK Marka Renkleri — orijinal siteden alındı */
-      --blue:       #1BBCE8;   /* logo/marka mavisi */
-      --blue-dark:  #004898;   /* lacivert buton rengi */
-      --blue-light: #E8F6FD;
-      --red:        #D42427;   /* CTA kırmızısı */
-      --red-dark:   #b01e21;
-
-      /* Light theme */
-      --bg:         #ffffff;
-      --surface:    #F4FBFE;
-      --surface2:   #EFF9FD;
-      --card:       #ffffff;
-      --border:     #D8EFF8;
-      --border2:    #e5e7eb;
-
-      --text:       #1a1a1a;
-      --text2:      #3A3A3A;
-      --muted:      #6B7280;
-      --muted2:     #9CA3AF;
-
-      --radius:     14px;
-      --shadow:     0 2px 16px rgba(27,188,232,.10);
-      --shadow-md:  0 8px 32px rgba(27,188,232,.15);
-      --shadow-lg:  0 20px 60px rgba(27,188,232,.18);
-      --transition: .4s cubic-bezier(.25,.46,.45,.94);
+      --blue:   #1BBCE8;
+      --navy:   #004898;
+      --red:    #D42427;
+      --dark:   #0B0E17;
+      --dark2:  #111520;
+      --white:  #ffffff;
+      --off:    #F5F7FA;
+      --text:   #0B0E17;
+      --muted:  #6B7380;
+      --border: #E2E8F0;
     }
     html { scroll-behavior: smooth; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      overflow-x: hidden;
-      line-height: 1.6;
-    }
-    a { color: inherit; text-decoration: none; }
+    body { font-family: 'Inter', sans-serif; background: var(--white); color: var(--text); overflow-x: hidden; line-height: 1.6; }
+    a { text-decoration: none; color: inherit; }
     img { display: block; max-width: 100%; }
-    section { padding: 96px 0; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--blue); }
 
-    /* ─── Scrollbar ─────────────────────────────────────────────── */
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: var(--surface); }
-    ::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 3px; }
+    /* ── Reveal ─────────────────────────────────────────────────── */
+    [data-reveal] { opacity: 0; transform: translateY(50px); transition: opacity .8s ease, transform .8s ease; }
+    [data-reveal="left"] { transform: translateX(-60px); }
+    [data-reveal="right"] { transform: translateX(60px); }
+    [data-reveal="scale"] { transform: scale(.9); }
+    [data-reveal].in { opacity: 1; transform: none; }
+    [data-delay="1"] { transition-delay: .1s; }
+    [data-delay="2"] { transition-delay: .2s; }
+    [data-delay="3"] { transition-delay: .3s; }
+    [data-delay="4"] { transition-delay: .4s; }
+    [data-delay="5"] { transition-delay: .5s; }
+    [data-delay="6"] { transition-delay: .6s; }
 
-    /* ─── Utility ───────────────────────────────────────────────── */
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-    .gradient-text {
-      background: linear-gradient(135deg, var(--blue-dark), var(--blue));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    /* ── Navbar ─────────────────────────────────────────────────── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+      padding: 0 40px;
+      transition: background .4s, box-shadow .4s;
     }
-    /* #004898 → #1BBCE8 gradient goes dark navy → bright blue */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--blue-light);
-      border: 1px solid rgba(27,188,232,.3);
-      color: var(--blue-dark);
-      font-size: .75rem;
-      font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      padding: 6px 14px;
-      border-radius: 100px;
-      margin-bottom: 20px;
+    .nav.solid {
+      background: rgba(11,14,23,.92);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 1px 0 rgba(255,255,255,.06);
     }
-    .section-header { text-align: center; margin-bottom: 64px; }
-    .section-header h2 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(1.9rem,4vw,2.7rem);
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 16px;
-    }
-    .section-header p { color: var(--muted); font-size: 1.05rem; max-width: 560px; margin: 0 auto; }
-
-    /* ─── Reveal ─────────────────────────────────────────────────── */
-    .reveal        { opacity:0; transform:translateY(36px);  transition:opacity .7s ease,transform .7s ease; }
-    .reveal-left   { opacity:0; transform:translateX(-44px); transition:opacity .7s ease,transform .7s ease; }
-    .reveal-right  { opacity:0; transform:translateX(44px);  transition:opacity .7s ease,transform .7s ease; }
-    .reveal.visible,.reveal-left.visible,.reveal-right.visible { opacity:1; transform:none; }
-    .delay-1{transition-delay:.1s} .delay-2{transition-delay:.2s}
-    .delay-3{transition-delay:.3s} .delay-4{transition-delay:.4s} .delay-5{transition-delay:.5s}
-
-    /* ─── Navbar ─────────────────────────────────────────────────── */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 1000;
-      padding: 0 24px;
-      background: rgba(255,255,255,.95);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid transparent;
-      transition: border-color .3s, box-shadow .3s;
-    }
-    nav.scrolled {
-      border-bottom-color: var(--border);
-      box-shadow: 0 2px 20px rgba(27,188,232,.08);
-    }
-    .nav-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 70px;
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-    }
-    .logo img {
-      height: 46px;
-      width: auto;
-      display: block;
-    }
-    .logo-icon {
-      width: 38px; height: 38px;
-      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1rem; color: #fff; font-weight: 800;
-      box-shadow: 0 4px 12px rgba(27,188,232,.3);
-    }
-    .nav-links { display: flex; gap: 4px; list-style: none; }
-    .nav-links a {
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: .9rem;
-      font-weight: 500;
-      color: var(--muted);
-      transition: color .2s, background .2s;
-    }
-    .nav-links a:hover { color: var(--blue-dark); background: var(--blue-light); }
+    .nav-inner { max-width: 1320px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 72px; }
+    .nav-logo img { height: 44px; width: auto; filter: brightness(0) invert(1); }
+    .nav-links { display: flex; gap: 2px; list-style: none; }
+    .nav-links a { padding: 8px 18px; border-radius: 8px; font-size: .88rem; font-weight: 500; color: rgba(255,255,255,.65); transition: color .2s, background .2s; }
+    .nav-links a:hover { color: #fff; background: rgba(255,255,255,.07); }
     .nav-cta {
-      background: var(--red) !important;
-      color: #fff !important;
-      border-radius: 9px !important;
-      font-weight: 600 !important;
-      padding: 9px 20px !important;
+      background: var(--red) !important; color: #fff !important;
+      border-radius: 9px !important; padding: 10px 22px !important;
+      font-weight: 600 !important; font-size: .88rem !important;
+      box-shadow: 0 4px 16px rgba(212,36,39,.3) !important;
       transition: background .2s, transform .2s, box-shadow .2s !important;
-      box-shadow: 0 4px 14px rgba(212,36,39,.25) !important;
     }
-    .nav-cta:hover { background: var(--red-dark) !important; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(212,36,39,.35) !important; }
-    .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; padding:8px; }
-    .hamburger span { width:22px; height:2px; background: var(--text2); border-radius:2px; transition:var(--transition); }
+    .nav-cta:hover { background: #b01e21 !important; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(212,36,39,.4) !important; }
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+    .hamburger span { width: 24px; height: 2px; background: #fff; border-radius: 2px; transition: .3s; }
 
-    /* ─── Hero ───────────────────────────────────────────────────── */
+    /* ── Hero ───────────────────────────────────────────────────── */
     #hero {
       min-height: 100vh;
+      background: var(--dark);
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 72px 40px 0;
       position: relative;
-      display: flex;
-      align-items: center;
       overflow: hidden;
-      padding-top: 70px;
-      background: #fff;
     }
-    /* Subtle blue radial glow */
-    .hero-bg {
-      position: absolute; inset: 0;
-      background:
-        radial-gradient(ellipse 70% 60% at 60% 40%, rgba(27,188,232,.07) 0%, transparent 70%),
-        radial-gradient(ellipse 40% 50% at 90% 10%, rgba(27,188,232,.05) 0%, transparent 60%),
-        radial-gradient(ellipse 30% 40% at 5% 90%, rgba(212,36,39,.04) 0%, transparent 60%);
-    }
-    .hero-grid {
+    /* Subtle grid */
+    #hero::before {
+      content: '';
       position: absolute; inset: 0;
       background-image:
-        linear-gradient(rgba(27,188,232,.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(27,188,232,.045) 1px, transparent 1px);
-      background-size: 56px 56px;
-      animation: gridMove 18s linear infinite;
+        linear-gradient(rgba(27,188,232,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(27,188,232,.04) 1px, transparent 1px);
+      background-size: 72px 72px;
+      animation: gridDrift 25s linear infinite;
     }
-    @keyframes gridMove { 0%{transform:translateY(0)} 100%{transform:translateY(56px)} }
+    @keyframes gridDrift { 0%{transform:translateY(0)} 100%{transform:translateY(72px)} }
+    /* Glow blobs */
+    .hero-glow {
+      position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none;
+    }
+    .hero-glow-1 { width: 600px; height: 600px; background: rgba(27,188,232,.12); top: -100px; right: -100px; animation: blobFloat 8s ease-in-out infinite; }
+    .hero-glow-2 { width: 400px; height: 400px; background: rgba(0,72,152,.18); bottom: -50px; left: 5%; animation: blobFloat 10s 2s ease-in-out infinite reverse; }
+    .hero-glow-3 { width: 300px; height: 300px; background: rgba(212,36,39,.07); top: 30%; left: 40%; animation: blobFloat 7s 1s ease-in-out infinite; }
+    @keyframes blobFloat { 0%,100%{transform:translate(0,0)} 50%{transform:translate(20px,-20px)} }
 
-    .hero-content { position:relative; z-index:1; max-width:720px; }
-    .hero-content .badge { animation: fadeDown .5s ease both; }
+    .hero-content { max-width: 1320px; margin: 0 auto; width: 100%; position: relative; z-index: 1; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      color: var(--blue); font-size: .78rem; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase;
+      margin-bottom: 28px;
+      animation: fadeUp .6s ease both;
+    }
+    .hero-eyebrow::before { content: ''; width: 32px; height: 1px; background: var(--blue); }
     .hero-title {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(2.4rem,5.5vw,4.6rem);
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3rem, 8vw, 8rem);
       font-weight: 800;
-      line-height: 1.08;
-      color: var(--text);
-      margin-bottom: 22px;
-      animation: fadeUp .6s .1s ease both;
+      color: var(--white);
+      line-height: .95;
+      letter-spacing: -.03em;
+      margin-bottom: 32px;
+      animation: fadeUp .7s .1s ease both;
     }
-    .hero-sub {
-      font-size: clamp(.95rem,1.8vw,1.15rem);
-      color: var(--muted);
-      max-width: 540px;
-      margin-bottom: 36px;
-      animation: fadeUp .6s .2s ease both;
+    .hero-title .accent { color: var(--blue); }
+    .hero-title .stroke {
+      -webkit-text-stroke: 2px rgba(255,255,255,.25);
+      color: transparent;
     }
-    .hero-actions { display:flex; gap:14px; flex-wrap:wrap; animation: fadeUp .6s .3s ease both; }
+    .hero-bottom {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: end;
+      margin-top: 64px;
+      padding-bottom: 80px;
+      animation: fadeUp .7s .2s ease both;
+    }
+    .hero-desc { color: rgba(255,255,255,.5); font-size: 1rem; line-height: 1.8; max-width: 420px; }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: flex-end; }
 
-    .btn-primary {
+    .btn-blue {
       display: inline-flex; align-items: center; gap: 8px;
-      background: var(--blue-dark);
-      color: #fff; padding: 13px 26px; border-radius: 11px;
-      font-weight: 600; font-size: .95rem;
-      box-shadow: 0 6px 24px rgba(0,72,152,.28);
-      transition: opacity .2s, transform .2s, box-shadow .2s;
-    }
-    .btn-primary:hover { background:#003a80; transform:translateY(-2px); box-shadow:0 10px 32px rgba(0,72,152,.4); }
-
-    .btn-red {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--red); color: #fff;
-      padding: 13px 26px; border-radius: 11px;
-      font-weight: 600; font-size: .95rem;
-      box-shadow: 0 6px 24px rgba(212,36,39,.25);
+      background: var(--navy); color: #fff;
+      padding: 15px 30px; border-radius: 10px;
+      font-weight: 600; font-size: .92rem;
+      box-shadow: 0 4px 24px rgba(0,72,152,.35);
       transition: background .2s, transform .2s, box-shadow .2s;
     }
-    .btn-red:hover { background: var(--red-dark); transform:translateY(-2px); box-shadow:0 10px 32px rgba(212,36,39,.35); }
-
-    .btn-outline {
+    .btn-blue:hover { background: #003a80; transform: translateY(-2px); box-shadow: 0 10px 32px rgba(0,72,152,.45); }
+    .btn-outline-light {
       display: inline-flex; align-items: center; gap: 8px;
-      border: 2px solid var(--border);
-      color: var(--text2); padding: 12px 24px; border-radius: 11px;
-      font-weight: 600; font-size: .95rem;
-      background: rgba(27,188,232,.03);
-      transition: border-color .2s, background .2s, color .2s;
+      border: 1px solid rgba(255,255,255,.2);
+      color: rgba(255,255,255,.75);
+      padding: 14px 28px; border-radius: 10px;
+      font-weight: 500; font-size: .92rem;
+      background: rgba(255,255,255,.04);
+      transition: border-color .2s, color .2s, background .2s;
     }
-    .btn-outline:hover { border-color: var(--blue); background: var(--blue-light); color: var(--blue-dark); }
-
-    .hero-stats {
-      display: flex; gap: 40px; margin-top: 60px; flex-wrap: wrap;
-      animation: fadeUp .6s .4s ease both;
+    .btn-outline-light:hover { border-color: var(--blue); color: var(--blue); background: rgba(27,188,232,.08); }
+    .btn-red-solid {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--red); color: #fff;
+      padding: 15px 30px; border-radius: 10px;
+      font-weight: 600; font-size: .92rem;
+      box-shadow: 0 4px 24px rgba(212,36,39,.3);
+      transition: background .2s, transform .2s;
     }
-    .stat-item { border-left: 3px solid #1BBCE8; padding-left: 16px; }
-    .stat-num {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 2rem; font-weight: 800;
-      background: linear-gradient(135deg, #004898, #1BBCE8);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .btn-red-solid:hover { background: #b01e21; transform: translateY(-2px); }
+
+    /* Divider line */
+    .hero-divider { width: 100%; height: 1px; background: rgba(255,255,255,.07); max-width: 1320px; margin: 0 auto; }
+
+    /* ── Stats band ──────────────────────────────────────────────── */
+    #stats {
+      background: var(--dark);
+      padding: 0 40px 80px;
     }
-    .stat-label { color: var(--muted); font-size: .82rem; margin-top: 2px; font-weight: 500; }
-
-    /* Hero decorative shape */
-    .hero-shape {
-      position: absolute;
-      right: -60px; top: 50%;
-      transform: translateY(-50%);
-      width: 520px; height: 520px;
-      pointer-events: none;
-      animation: floatY 7s ease-in-out infinite;
+    .stats-inner {
+      max-width: 1320px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 0;
     }
-    @keyframes floatY { 0%,100%{transform:translateY(-50%)} 50%{transform:translateY(calc(-50% - 18px))} }
+    .stat-box {
+      padding: 48px 40px;
+      border-right: 1px solid rgba(255,255,255,.07);
+      transition: background .3s;
+    }
+    .stat-box:last-child { border-right: none; }
+    .stat-box:hover { background: rgba(27,188,232,.04); }
+    .stat-num2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.4rem,4vw,4rem);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .stat-num2 span { color: var(--blue); }
+    .stat-label2 { color: rgba(255,255,255,.4); font-size: .85rem; font-weight: 500; letter-spacing: .04em; }
+    .stat-bar { width: 32px; height: 2px; background: var(--blue); margin-bottom: 20px; }
 
-    @keyframes fadeUp   { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes fadeDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
-
-    /* ─── Marquee ────────────────────────────────────────────────── */
+    /* ── Marquee ─────────────────────────────────────────────────── */
     #brands {
-      padding: 36px 0;
-      background: var(--surface);
+      background: var(--off);
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
-      overflow: hidden;
+      padding: 0; overflow: hidden;
     }
-    .marquee-wrap { display:flex; }
+    .marquee-row { display: flex; }
     .marquee-track {
-      display: flex; gap: 56px; align-items: center;
-      animation: marquee 24s linear infinite; flex-shrink: 0;
+      display: flex; gap: 64px; align-items: center;
+      padding: 28px 0;
+      animation: mq 28s linear infinite; flex-shrink: 0;
     }
-    .marquee-track:nth-child(2) { animation-delay: -12s; }
-    @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-100%)} }
-    .brand-tag {
+    .marquee-track:nth-child(2) { animation-delay: -14s; }
+    @keyframes mq { 0%{transform:translateX(0)} 100%{transform:translateX(-100%)} }
+    .brand-pill {
       display: flex; align-items: center; gap: 8px;
       font-family: 'Space Grotesk', sans-serif;
-      font-weight: 600; font-size: .9rem;
-      color: var(--muted2);
-      letter-spacing: .04em; white-space: nowrap;
+      font-weight: 600; font-size: .85rem;
+      color: #9CA3AF;
+      white-space: nowrap; letter-spacing: .05em;
+      text-transform: uppercase;
       transition: color .2s;
     }
-    .brand-tag:hover { color: var(--blue-dark); }
-    .brand-dot { width:6px; height:6px; background:var(--blue); border-radius:50%; opacity:.6; flex-shrink:0; }
+    .brand-pill:hover { color: var(--navy); }
+    .brand-pill::before { content:''; width:5px; height:5px; background:var(--blue); border-radius:50%; flex-shrink:0; }
 
-    /* ─── Hakkımızda ─────────────────────────────────────────────── */
-    #hakkimizda { background: #fff; }
-    .about-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 72px; align-items: center;
-    }
-    .about-text h2 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: clamp(1.7rem,3.2vw,2.4rem);
-      font-weight: 700; color: var(--text);
-      margin-bottom: 18px; line-height: 1.2;
-    }
-    .about-text p { color: var(--muted); line-height: 1.85; margin-bottom: 20px; }
-    .value-list { display:flex; flex-direction:column; gap:12px; margin-top:28px; }
-    .value-item { display:flex; align-items:center; gap:12px; font-size:.92rem; font-weight:500; color:var(--text2); }
-    .value-icon {
-      width:36px; height:36px; border-radius:10px;
-      background: var(--blue-light);
-      border: 1px solid rgba(27,188,232,.25);
-      display:flex; align-items:center; justify-content:center;
-      font-size:.88rem; flex-shrink:0;
-    }
-    .about-cards { display:flex; flex-direction:column; gap:18px; }
-    .about-card {
-      background: #fff;
-      border: 1px solid var(--border2);
-      border-radius: var(--radius);
-      padding: 26px;
-      box-shadow: var(--shadow);
-      position: relative; overflow: hidden;
-      transition: border-color .3s, transform .3s, box-shadow .3s;
-    }
-    .about-card::before {
-      content:''; position:absolute; top:0; left:0;
-      width:3px; height:100%;
-      background: linear-gradient(180deg, var(--blue), var(--blue-dark));
-      border-radius:3px 0 0 3px;
-      transform:scaleY(0); transform-origin:top;
-      transition:transform .3s;
-    }
-    .about-card:hover { border-color:var(--border); transform:translateX(4px); box-shadow:var(--shadow-md); }
-    .about-card:hover::before { transform:scaleY(1); }
-    .about-card h3 { font-size:1rem; font-weight:600; color:var(--text); margin-bottom:6px; }
-    .about-card p { color:var(--muted); font-size:.875rem; }
+    /* ── Section base ────────────────────────────────────────────── */
+    .section { padding: 120px 40px; }
+    .section-dark { background: var(--dark2); }
+    .section-off { background: var(--off); }
+    .section-white { background: var(--white); }
+    .inner { max-width: 1320px; margin: 0 auto; }
 
-    /* ─── Ürünler ────────────────────────────────────────────────── */
-    #urunler { background: var(--surface); }
-    .products-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:20px; }
-    .product-card {
-      background: #fff;
-      border: 1px solid var(--border2);
-      border-radius: var(--radius);
-      padding: 30px;
+    .s-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: .72rem; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--blue);
+      margin-bottom: 20px;
+    }
+    .s-label::before { content:''; width:24px; height:1px; background:var(--blue); }
+    .s-label-light { color: var(--blue); }
+
+    h2.headline {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.2rem, 4.5vw, 4.5rem);
+      font-weight: 800; line-height: 1.02; letter-spacing: -.025em;
+      color: var(--text); margin-bottom: 24px;
+    }
+    h2.headline-light { color: var(--white); }
+    h2.headline .blue { color: var(--blue); }
+
+    .sub-text { color: var(--muted); font-size: 1.05rem; line-height: 1.8; max-width: 520px; }
+    .sub-text-light { color: rgba(255,255,255,.45); }
+
+    /* ── About ───────────────────────────────────────────────────── */
+    #about .inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 100px;
+      align-items: center;
+    }
+    .about-left {}
+    .about-right {}
+    .about-visual {
+      position: relative;
+      aspect-ratio: 4/3;
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--dark2);
+      border: 1px solid rgba(27,188,232,.15);
+    }
+    /* Abstract tech visual */
+    .about-visual-inner {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 70% 30%, rgba(27,188,232,.2) 0%, transparent 50%),
+        radial-gradient(circle at 20% 70%, rgba(0,72,152,.25) 0%, transparent 45%);
+    }
+    .about-visual-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(27,188,232,.06) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(27,188,232,.06) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .about-logo-center {
+      position: absolute; top:50%; left:50%;
+      transform: translate(-50%,-50%);
+      text-align: center;
+    }
+    .about-logo-center img { width: 160px; opacity: .8; filter: brightness(0) invert(1); }
+    .about-ring {
+      position: absolute; border-radius: 50%;
+      border: 1px dashed rgba(27,188,232,.2);
+      top:50%; left:50%; transform:translate(-50%,-50%);
+    }
+    .about-ring-1 { width:160px; height:160px; animation: spin 20s linear infinite; }
+    .about-ring-2 { width:260px; height:260px; animation: spin 30s linear infinite reverse; border-color:rgba(0,72,152,.2); }
+    .about-ring-3 { width:360px; height:360px; animation: spin 40s linear infinite; border-color:rgba(27,188,232,.1); }
+    @keyframes spin { 0%{transform:translate(-50%,-50%) rotate(0)} 100%{transform:translate(-50%,-50%) rotate(360deg)} }
+
+    .value-grid { display: flex; flex-direction: column; gap: 16px; margin-top: 40px; }
+    .value-row {
+      display: flex; align-items: center; gap: 16px;
+      padding: 18px 20px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-weight: 500; font-size: .92rem;
+      color: var(--text);
+      transition: border-color .3s, background .3s, transform .3s;
+      cursor: default;
+    }
+    .value-row:hover { border-color: var(--blue); background: rgba(27,188,232,.04); transform: translateX(6px); }
+    .value-ico { font-size: 1.2rem; flex-shrink: 0; width: 36px; text-align: center; }
+
+    /* ── Products ────────────────────────────────────────────────── */
+    #products {
+      padding: 120px 40px;
+      background: var(--white);
+    }
+    .products-header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 64px; gap: 32px;
+    }
+    .products-header .right { text-align: right; }
+    .products-header a {
+      font-weight: 600; font-size: .9rem; color: var(--navy);
+      border-bottom: 1px solid var(--navy); padding-bottom: 2px;
+      transition: color .2s, border-color .2s;
+    }
+    .products-header a:hover { color: var(--blue); border-color: var(--blue); }
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+    .prod-card {
+      padding: 40px 36px;
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
       cursor: pointer; position: relative; overflow: hidden;
-      box-shadow: var(--shadow);
-      transition: border-color .3s, transform .3s, box-shadow .3s;
+      transition: background .3s;
     }
-    .product-card::after {
-      content:''; position:absolute; inset:0;
-      background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(27,188,232,.06),transparent 60%);
-      opacity:0; transition:opacity .3s; pointer-events:none;
+    .prod-card::after {
+      content: ''; position: absolute; inset: 0;
+      background: var(--blue);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform .6s cubic-bezier(.77,0,.18,1);
+      z-index: 0;
     }
-    .product-card:hover { border-color:var(--blue); transform:translateY(-5px); box-shadow:var(--shadow-lg); }
-    .product-card:hover::after { opacity:1; }
-    .product-icon {
-      width:52px; height:52px;
-      background: linear-gradient(135deg, var(--blue-light), rgba(27,188,232,.1));
-      border: 1px solid rgba(27,188,232,.2);
-      border-radius: 13px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:1.4rem; margin-bottom:18px;
-      transition: transform .3s, box-shadow .3s;
+    .prod-card:hover::after { transform: scaleX(1); }
+    .prod-card:hover .prod-ico,
+    .prod-card:hover h3,
+    .prod-card:hover .prod-desc,
+    .prod-card:hover .prod-tags { position: relative; z-index: 1; }
+    .prod-card:hover h3 { color: #fff; }
+    .prod-card:hover .prod-desc { color: rgba(255,255,255,.7); }
+    .prod-card:hover .prod-ico { background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.2); }
+    .prod-card:hover .prod-tag { background: rgba(255,255,255,.15); color: #fff; border-color: rgba(255,255,255,.2); }
+    .prod-card:hover .prod-num { color: rgba(255,255,255,.2); }
+    .prod-ico {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--off); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 24px;
+      position: relative; z-index: 1;
+      transition: background .3s, border-color .3s;
     }
-    .product-card:hover .product-icon { transform:scale(1.1) rotate(4deg); box-shadow:0 6px 20px rgba(27,188,232,.2); }
-    .product-card h3 { font-size:1.05rem; font-weight:600; color:var(--text); margin-bottom:9px; }
-    .product-card p { color:var(--muted); font-size:.87rem; line-height:1.7; margin-bottom:18px; }
-    .product-brands { display:flex; flex-wrap:wrap; gap:6px; }
-    .product-brand-tag {
-      font-size:.7rem; font-weight:700;
-      color: var(--blue-dark);
-      background: var(--blue-light);
-      border: 1px solid rgba(27,188,232,.2);
-      padding: 3px 9px; border-radius:5px;
-      letter-spacing:.04em;
+    .prod-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .75rem; font-weight: 700; letter-spacing: .1em;
+      color: var(--muted); margin-bottom: 10px;
+      position: relative; z-index: 1;
+      transition: color .3s;
     }
-    .product-arrow {
-      position:absolute; top:26px; right:26px;
-      width:30px; height:30px; border-radius:8px;
-      background: var(--blue-light);
-      display:flex; align-items:center; justify-content:center;
-      font-size:.8rem; color:var(--blue-dark);
-      opacity:0; transform:translate(4px,-4px);
-      transition:opacity .3s,transform .3s;
+    .prod-card h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--text); margin-bottom: 10px;
+      position: relative; z-index: 1;
+      transition: color .3s;
     }
-    .product-card:hover .product-arrow { opacity:1; transform:translate(0,0); }
+    .prod-desc {
+      color: var(--muted); font-size: .855rem; line-height: 1.65;
+      margin-bottom: 20px; position: relative; z-index: 1;
+      transition: color .3s;
+    }
+    .prod-tags { display: flex; flex-wrap: wrap; gap: 5px; position: relative; z-index: 1; }
+    .prod-tag {
+      font-size: .68rem; font-weight: 700; letter-spacing: .05em;
+      color: var(--navy); background: rgba(0,72,152,.07);
+      border: 1px solid rgba(0,72,152,.12);
+      padding: 3px 8px; border-radius: 4px;
+      transition: background .3s, color .3s, border-color .3s;
+    }
 
-    /* ─── Hizmetler ──────────────────────────────────────────────── */
-    #hizmetler { background: #fff; }
-    .services-row { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
-    .service-card {
-      text-align:center; padding:44px 24px;
-      background:#fff; border:1px solid var(--border2);
-      border-radius:var(--radius); box-shadow:var(--shadow);
-      transition: border-color .3s, transform .3s, box-shadow .3s;
+    /* ── Services ────────────────────────────────────────────────── */
+    #services {
+      padding: 120px 40px;
+      background: var(--dark2);
     }
-    .service-card:hover { border-color:var(--blue); transform:translateY(-4px); box-shadow:var(--shadow-md); }
-    .service-ico { font-size:2.4rem; margin-bottom:18px; display:inline-block; }
-    .service-card h3 { font-size:1.08rem; font-weight:600; color:var(--text); margin-bottom:10px; }
-    .service-card p { color:var(--muted); font-size:.875rem; line-height:1.7; }
+    .services-top {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
+      margin-bottom: 80px;
+    }
+    .services-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .svc-card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 16px; padding: 36px 28px;
+      transition: border-color .3s, background .3s, transform .3s;
+    }
+    .svc-card:hover { border-color: var(--blue); background: rgba(27,188,232,.06); transform: translateY(-4px); }
+    .svc-ico-wrap {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: rgba(27,188,232,.1); border: 1px solid rgba(27,188,232,.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 20px;
+    }
+    .svc-card h3 { font-size: 1rem; font-weight: 600; color: var(--white); margin-bottom: 10px; }
+    .svc-card p { color: rgba(255,255,255,.4); font-size: .855rem; line-height: 1.7; }
 
-    /* ─── Numbers strip ──────────────────────────────────────────── */
-    #numbers {
+    /* ── CTA ─────────────────────────────────────────────────────── */
+    #cta {
+      padding: 0 40px 120px;
+      background: var(--dark2);
+    }
+    .cta-box {
+      max-width: 1320px; margin: 0 auto;
       background: linear-gradient(135deg, #004898 0%, #1BBCE8 100%);
-      padding: 72px 0;
+      border-radius: 24px; padding: 80px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 64px; align-items: center;
+      position: relative; overflow: hidden;
     }
-    .numbers-grid {
-      display:grid; grid-template-columns:repeat(4,1fr); gap:32px;
-      text-align:center;
+    .cta-box::before {
+      content: ''; position: absolute;
+      top: -80px; right: -80px;
+      width: 400px; height: 400px;
+      background: rgba(255,255,255,.07); border-radius: 50%;
     }
-    .number-item {}
-    .number-val {
-      font-family:'Space Grotesk',sans-serif;
-      font-size:3rem; font-weight:800; color:#fff; line-height:1;
-      margin-bottom:8px;
+    .cta-box h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem,3vw,3rem);
+      font-weight: 800; color: #fff; line-height: 1.1;
     }
-    .number-label { color:rgba(255,255,255,.75); font-size:.9rem; font-weight:500; }
+    .cta-box p { color: rgba(255,255,255,.7); font-size: 1rem; margin-top: 14px; }
+    .cta-right { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; position: relative; z-index: 1; }
+    .btn-white {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #fff; color: var(--navy);
+      padding: 15px 30px; border-radius: 10px;
+      font-weight: 700; font-size: .92rem;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-white:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,0,0,.2); }
+    .cta-tel {
+      color: rgba(255,255,255,.7); font-size: .9rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cta-tel strong { color: #fff; }
 
-    /* ─── CTA ────────────────────────────────────────────────────── */
-    #cta { padding:80px 0; background:var(--surface); }
-    .cta-inner {
-      background:#fff;
-      border:1px solid var(--border);
-      border-radius:20px;
-      padding:72px 56px;
-      text-align:center;
-      box-shadow: var(--shadow-md);
-      position:relative; overflow:hidden;
+    /* ── Contact ─────────────────────────────────────────────────── */
+    #contact { padding: 120px 40px; background: var(--white); }
+    .contact-grid {
+      display: grid; grid-template-columns: 1fr 1.5fr;
+      gap: 80px; align-items: start;
     }
-    .cta-inner::before {
-      content:''; position:absolute;
-      top:-80px; right:-80px;
-      width:300px; height:300px;
-      background:radial-gradient(circle, rgba(27,188,232,.08),transparent 70%);
-      border-radius:50%;
+    .contact-info { padding-top: 8px; }
+    .contact-info h2 { margin-bottom: 16px; }
+    .contact-info p { margin-bottom: 40px; }
+    .c-items { display: flex; flex-direction: column; gap: 20px; }
+    .c-item { display: flex; gap: 14px; align-items: flex-start; }
+    .c-ico {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--off); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .95rem; flex-shrink: 0;
+      transition: background .2s, border-color .2s;
     }
-    .cta-inner::after {
-      content:''; position:absolute;
-      bottom:-60px; left:-60px;
-      width:240px; height:240px;
-      background:radial-gradient(circle, rgba(212,36,39,.05),transparent 70%);
-      border-radius:50%;
+    .c-item:hover .c-ico { background: rgba(27,188,232,.08); border-color: rgba(27,188,232,.25); }
+    .c-item strong { display: block; font-weight: 600; font-size: .88rem; margin-bottom: 2px; }
+    .c-item span { color: var(--muted); font-size: .855rem; }
+    .socials { display: flex; gap: 10px; margin-top: 36px; }
+    .soc-btn {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--off); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; font-weight: 700; color: var(--muted);
+      transition: background .2s, color .2s, border-color .2s, transform .2s;
     }
-    .cta-content { position:relative; z-index:1; }
-    .cta-content h2 {
-      font-family:'Space Grotesk',sans-serif;
-      font-size:clamp(1.7rem,3.5vw,2.6rem);
-      font-weight:800; color:var(--text); margin-bottom:14px;
-    }
-    .cta-content p { color:var(--muted); font-size:1.05rem; margin-bottom:32px; }
-    .cta-actions { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+    .soc-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); transform: translateY(-2px); }
 
-    /* ─── İletişim ───────────────────────────────────────────────── */
-    #iletisim { background:#fff; }
-    .contact-grid { display:grid; grid-template-columns:1fr 1.4fr; gap:56px; align-items:start; }
-    .contact-info h2 {
-      font-family:'Space Grotesk',sans-serif;
-      font-size:2.1rem; font-weight:700; color:var(--text); margin-bottom:14px;
-    }
-    .contact-info p { color:var(--muted); margin-bottom:36px; line-height:1.8; }
-    .contact-items { display:flex; flex-direction:column; gap:18px; }
-    .contact-item { display:flex; gap:14px; align-items:flex-start; }
-    .contact-icon-box {
-      width:42px; height:42px;
-      background:var(--blue-light);
-      border:1px solid rgba(27,188,232,.25);
-      border-radius:11px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:1rem; flex-shrink:0;
-    }
-    .contact-item-text strong { display:block; font-weight:600; color:var(--text); margin-bottom:2px; font-size:.92rem; }
-    .contact-item-text span { color:var(--muted); font-size:.875rem; }
+    /* Form */
     .contact-form {
-      background:#fff; border:1px solid var(--border2);
-      border-radius:18px; padding:38px;
-      box-shadow: var(--shadow-md);
+      background: var(--off); border: 1px solid var(--border);
+      border-radius: 20px; padding: 48px;
     }
-    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-    .form-group { display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
-    .form-group label { font-size:.83rem; font-weight:600; color:var(--text2); }
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-      background:#fff; border:1px solid var(--border2);
-      border-radius:9px; padding:12px 14px;
-      color:var(--text); font-size:.92rem;
-      font-family:'Inter',sans-serif;
-      outline:none;
-      transition:border-color .2s,box-shadow .2s;
-      width:100%;
+    .contact-form h3 { font-family: 'Space Grotesk',sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 28px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .fg { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+    .fg label { font-size: .8rem; font-weight: 700; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+    .fg input, .fg textarea, .fg select {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 9px; padding: 13px 15px;
+      color: var(--text); font-size: .92rem; font-family: 'Inter', sans-serif;
+      outline: none; width: 100%;
+      transition: border-color .2s, box-shadow .2s;
     }
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-      border-color:var(--blue);
-      box-shadow:0 0 0 3px rgba(27,188,232,.12);
+    .fg input:focus, .fg textarea:focus, .fg select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(27,188,232,.1);
     }
-    .form-group textarea { resize:vertical; min-height:110px; }
-    .submit-btn {
-      width:100%; background:var(--red);
-      color:#fff; border:none;
-      padding:14px; border-radius:10px;
-      font-weight:700; font-size:.95rem;
-      cursor:pointer;
-      box-shadow:0 4px 20px rgba(212,36,39,.25);
-      transition:background .2s,transform .2s,box-shadow .2s;
-      margin-top:6px;
+    .fg textarea { resize: vertical; min-height: 110px; }
+    .form-submit {
+      width: 100%; background: var(--navy); color: #fff;
+      border: none; padding: 15px; border-radius: 10px;
+      font-weight: 700; font-size: .95rem; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,72,152,.25);
+      transition: background .2s, transform .2s, box-shadow .2s;
+      margin-top: 6px;
     }
-    .submit-btn:hover { background:var(--red-dark); transform:translateY(-2px); box-shadow:0 8px 28px rgba(212,36,39,.35); }
-    .form-success { display:none; text-align:center; padding:20px; color:var(--blue-dark); font-weight:600; }
-    .social-links { display:flex; gap:10px; margin-top:28px; }
-    .social-link {
-      width:40px; height:40px; border-radius:10px;
-      background:var(--blue-light);
-      border:1px solid rgba(27,188,232,.2);
-      display:flex; align-items:center; justify-content:center;
-      font-size:.85rem; font-weight:700; color:var(--blue-dark);
-      transition:background .2s,border-color .2s,transform .2s;
-    }
-    .social-link:hover { background:var(--blue); color:#fff; transform:translateY(-2px); }
+    .form-submit:hover { background: #003a80; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(0,72,152,.35); }
+    .form-ok { display: none; text-align: center; padding: 20px; color: var(--navy); font-weight: 600; }
 
-    /* ─── Map ────────────────────────────────────────────────────── */
-    .map-section { padding-top:0; padding-bottom:96px; background:#fff; }
-    .map-container {
-      border-radius:var(--radius); overflow:hidden;
-      border:1px solid var(--border2); height:320px;
-      box-shadow:var(--shadow);
-    }
-    .map-container iframe { width:100%; height:100%; border:none; }
-
-    /* ─── Footer ─────────────────────────────────────────────────── */
+    /* ── Footer ─────────────────────────────────────────────────── */
     footer {
-      background: var(--text);
-      color: rgba(255,255,255,.85);
-      padding: 60px 0 28px;
+      background: var(--dark); padding: 72px 40px 32px;
+      border-top: 1px solid rgba(255,255,255,.06);
     }
-    .footer-grid {
-      display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr;
-      gap:44px; margin-bottom:44px;
+    .footer-top {
+      max-width: 1320px; margin: 0 auto;
+      display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr;
+      gap: 48px; padding-bottom: 56px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
     }
-    .footer-brand p { color:rgba(255,255,255,.55); font-size:.88rem; margin-top:12px; line-height:1.7; max-width:250px; }
-    .footer-col h4 { font-weight:600; margin-bottom:16px; font-size:.9rem; color:#fff; }
-    .footer-col ul { list-style:none; display:flex; flex-direction:column; gap:9px; }
-    .footer-col ul li a { color:rgba(255,255,255,.5); font-size:.855rem; transition:color .2s; }
-    .footer-col ul li a:hover { color:var(--blue); }
-    .footer-bottom {
-      border-top:1px solid rgba(255,255,255,.08);
-      padding-top:24px;
-      display:flex; justify-content:space-between; align-items:center;
-      flex-wrap:wrap; gap:12px;
-      color:rgba(255,255,255,.35); font-size:.83rem;
+    .f-brand-logo img { height: 42px; filter: brightness(0) invert(1); }
+    .f-brand-text { color: rgba(255,255,255,.35); font-size: .875rem; line-height: 1.75; margin-top: 16px; max-width: 240px; }
+    .f-col h4 { color: rgba(255,255,255,.5); font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 18px; }
+    .f-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .f-col ul a { color: rgba(255,255,255,.45); font-size: .875rem; transition: color .2s; }
+    .f-col ul a:hover { color: var(--blue); }
+    .footer-bottom2 {
+      max-width: 1320px; margin: 32px auto 0;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+      color: rgba(255,255,255,.25); font-size: .82rem;
     }
-    .footer-bottom span.accent { color:var(--blue); }
-    .footer-logo-box .logo-icon { box-shadow:none; }
+    .footer-bottom2 span.b { color: var(--blue); }
 
-    /* ─── Responsive ─────────────────────────────────────────────── */
-    @media(max-width:1024px){
-      .about-grid { grid-template-columns:1fr; gap:44px; }
-      .contact-grid { grid-template-columns:1fr; }
-      .footer-grid { grid-template-columns:1fr 1fr; }
-      .services-row { grid-template-columns:1fr 1fr; }
-      .numbers-grid { grid-template-columns:repeat(2,1fr); }
-      .hero-shape { display:none; }
+    /* ── Responsive ──────────────────────────────────────────────── */
+    @media(max-width:1100px){
+      #about .inner { grid-template-columns: 1fr; gap: 48px; }
+      .products-grid { grid-template-columns: repeat(2,1fr); }
+      .services-top { grid-template-columns: 1fr; gap: 40px; }
+      .services-grid { grid-template-columns: 1fr 1fr; }
+      .cta-box { grid-template-columns: 1fr; }
+      .contact-grid { grid-template-columns: 1fr; gap: 48px; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+      .stats-inner { grid-template-columns: repeat(2,1fr); }
+      .hero-bottom { grid-template-columns: 1fr; }
+      .hero-actions { justify-content: flex-start; }
     }
     @media(max-width:768px){
-      section { padding:68px 0; }
-      .nav-links { display:none; }
-      .hamburger { display:flex; }
+      .nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
       .nav-links.open {
-        display:flex; flex-direction:column;
-        position:fixed; top:70px; left:0; right:0;
-        background:rgba(255,255,255,.98);
-        backdrop-filter:blur(16px);
-        padding:20px; gap:4px;
-        border-bottom:1px solid var(--border);
-        box-shadow:0 8px 24px rgba(0,0,0,.08);
+        display: flex; flex-direction: column; position: fixed;
+        top: 72px; left: 0; right: 0;
+        background: rgba(11,14,23,.97); backdrop-filter: blur(20px);
+        padding: 20px; gap: 4px;
+        border-bottom: 1px solid rgba(255,255,255,.06);
       }
-      .nav-links.open a { display:block; padding:13px 16px; font-size:.95rem; }
-      .products-grid { grid-template-columns:1fr; }
-      .services-row { grid-template-columns:1fr; }
-      .form-row { grid-template-columns:1fr; }
-      .footer-grid { grid-template-columns:1fr; }
-      .hero-stats { gap:20px; }
-      .cta-inner { padding:44px 20px; }
-      .numbers-grid { grid-template-columns:repeat(2,1fr); }
+      .nav-links.open a { display: block; padding: 12px 16px; }
+      .section, #products, #services, #contact, #stats, #cta { padding: 72px 20px; }
+      #hero { padding: 72px 20px 0; }
+      .hero-title { font-size: clamp(2.5rem,8vw,4rem); }
+      .products-grid { grid-template-columns: 1fr; }
+      .services-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr; }
+      .cta-box { padding: 48px 28px; }
+      .products-header { flex-direction: column; align-items: flex-start; }
+      .products-header .right { text-align: left; }
     }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    /* icon arrow */
+    .arrow-ico { font-size: .8rem; }
   </style>
 </head>
 <body>
 
-<!-- ─── NAVBAR ────────────────────────────────────────────────── -->
-<nav id="navbar">
+<!-- ── NAV ──────────────────────────────────────────────────────── -->
+<nav class="nav" id="nav">
   <div class="nav-inner">
-    <a href="#" class="logo">
-      <img src="rmk_logo.png" alt="RMK Mekatronik" />
-    </a>
+    <a href="#" class="nav-logo"><img src="rmk_logo.png" alt="RMK Mekatronik" /></a>
     <ul class="nav-links" id="navLinks">
-      <li><a href="#hakkimizda">Hakkımızda</a></li>
-      <li><a href="#urunler">Ürünler</a></li>
-      <li><a href="#hizmetler">Hizmetler</a></li>
-      <li><a href="#iletisim" class="nav-cta">İletişim</a></li>
+      <li><a href="#about">Hakkımızda</a></li>
+      <li><a href="#products">Ürünler</a></li>
+      <li><a href="#services">Hizmetler</a></li>
+      <li><a href="#contact" class="nav-cta">İletişim →</a></li>
     </ul>
-    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <div class="hamburger" id="hbg" onclick="toggleNav()">
       <span></span><span></span><span></span>
     </div>
   </div>
 </nav>
 
-<!-- ─── HERO ──────────────────────────────────────────────────── -->
+<!-- ── HERO ──────────────────────────────────────────────────────── -->
 <section id="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-grid"></div>
-  <div class="container">
-    <div class="hero-content">
-      <span class="badge">⚡ Çözüm Odaklı Mühendislik</span>
-      <h1 class="hero-title">
-        Mekatronikte<br>
-        <span class="gradient-text">Güvenilir Çözüm</span><br>
-        Ortağınız
-      </h1>
-      <p class="hero-sub">
-        Global marka uzmanlığını yerel deneyimle birleştiriyor; lineer hareket, redüktör, servo motor ve daha fazlası için en iyi mühendislik çözümlerini sunuyoruz.
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+  <div class="hero-glow hero-glow-3"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Çözüm Odaklı Mühendislik</div>
+    <h1 class="hero-title">
+      Mekatronikte<br>
+      <span class="accent">Güvenilir</span><br>
+      <span class="stroke">Çözüm Ortağı</span>
+    </h1>
+    <div class="hero-divider" style="margin:0 0 0;"></div>
+    <div class="hero-bottom">
+      <p class="hero-desc">
+        Global marka uzmanlığını yerel deneyimle birleştirerek; lineer hareket, redüktör, servo motor, kolaboratif robotlar ve daha fazlası için en yüksek kalitede mühendislik çözümleri sunuyoruz.
       </p>
       <div class="hero-actions">
-        <a href="#urunler" class="btn-primary">
+        <a href="#products" class="btn-blue">
           Ürünleri Keşfet
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
-        <a href="#iletisim" class="btn-red">
-          Teklif Alın
+        <a href="#contact" class="btn-red-solid">
+          Teklif Al
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </a>
-        <a href="#hakkimizda" class="btn-outline">Hakkımızda</a>
+        <a href="#about" class="btn-outline-light">Hakkımızda</a>
       </div>
-      <div class="hero-stats">
-        <div class="stat-item">
-          <div class="stat-num"><span class="counter" data-target="20">0</span>+</div>
-          <div class="stat-label">Yıllık Deneyim</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-num"><span class="counter" data-target="10">0</span>+</div>
-          <div class="stat-label">Global Marka</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-num"><span class="counter" data-target="500">0</span>+</div>
-          <div class="stat-label">Mutlu Müşteri</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-num"><span class="counter" data-target="2">0</span></div>
-          <div class="stat-label">Ofis</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Decorative shape with logo -->
-  <div class="hero-shape" style="display:flex;align-items:center;justify-content:center;pointer-events:none;">
-    <div style="position:relative;width:380px;height:380px;">
-      <svg viewBox="0 0 520 520" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;">
-        <defs>
-          <linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#1BBCE8;stop-opacity:.14"/>
-            <stop offset="100%" style="stop-color:#004898;stop-opacity:.05"/>
-          </linearGradient>
-        </defs>
-        <circle cx="260" cy="260" r="240" fill="url(#hg)"/>
-        <circle cx="260" cy="260" r="200" fill="none" stroke="#1BBCE8" stroke-width="1.5" stroke-dasharray="10 6" opacity=".22"/>
-        <circle cx="260" cy="260" r="152" fill="none" stroke="#004898" stroke-width="1" stroke-dasharray="5 9" opacity=".12"/>
-        <circle cx="260" cy="260" r="105" fill="rgba(27,188,232,.06)"/>
-      </svg>
-      <img src="rmk_logo.png" alt="RMK Mekatronik"
-        style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:auto;opacity:.18;filter:grayscale(0.1);" />
     </div>
   </div>
 </section>
 
-<!-- ─── BRANDS ─────────────────────────────────────────────────── -->
+<!-- ── STATS ─────────────────────────────────────────────────────── -->
+<section id="stats">
+  <div class="hero-divider" style="max-width:1320px;margin:0 auto 0;"></div>
+  <div class="stats-inner">
+    <div class="stat-box" data-reveal data-delay="1">
+      <div class="stat-bar"></div>
+      <div class="stat-num2"><span class="counter" data-target="20">0</span><span>+</span></div>
+      <div class="stat-label2">Yıllık Deneyim</div>
+    </div>
+    <div class="stat-box" data-reveal data-delay="2">
+      <div class="stat-bar"></div>
+      <div class="stat-num2"><span class="counter" data-target="10">0</span><span>+</span></div>
+      <div class="stat-label2">Global Yetkili Marka</div>
+    </div>
+    <div class="stat-box" data-reveal data-delay="3">
+      <div class="stat-bar"></div>
+      <div class="stat-num2"><span class="counter" data-target="500">0</span><span>+</span></div>
+      <div class="stat-label2">Mutlu Müşteri</div>
+    </div>
+    <div class="stat-box" data-reveal data-delay="4">
+      <div class="stat-bar"></div>
+      <div class="stat-num2"><span class="counter" data-target="2">0</span></div>
+      <div class="stat-label2">Türkiye Ofisi</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BRANDS ─────────────────────────────────────────────────────── -->
 <section id="brands">
-  <div class="marquee-wrap">
+  <div class="marquee-row">
     <div class="marquee-track">
-      <span class="brand-tag"><span class="brand-dot"></span>THK</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Yaskawa</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Neugart</span>
-      <span class="brand-tag"><span class="brand-dot"></span>HSD Mechatronics</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Güdel</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Sumitomo</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Kübler</span>
-      <span class="brand-tag"><span class="brand-dot"></span>DOBOT</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Busch</span>
-      <span class="brand-tag"><span class="brand-dot"></span>R+W</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Nadella</span>
-      <span class="brand-tag"><span class="brand-dot"></span>VIPA</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Teltonika</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Semar</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Hansen</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Beka-Lube</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Shuton</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Eurovac</span>
+      <span class="brand-pill">THK</span>
+      <span class="brand-pill">Yaskawa</span>
+      <span class="brand-pill">Neugart</span>
+      <span class="brand-pill">HSD Mechatronics</span>
+      <span class="brand-pill">Güdel</span>
+      <span class="brand-pill">Sumitomo</span>
+      <span class="brand-pill">Kübler</span>
+      <span class="brand-pill">DOBOT</span>
+      <span class="brand-pill">Busch</span>
+      <span class="brand-pill">R+W</span>
+      <span class="brand-pill">Nadella</span>
+      <span class="brand-pill">VIPA</span>
+      <span class="brand-pill">Teltonika</span>
+      <span class="brand-pill">Semar</span>
+      <span class="brand-pill">Hansen</span>
+      <span class="brand-pill">Beka-Lube</span>
+      <span class="brand-pill">Shuton</span>
+      <span class="brand-pill">Eurovac</span>
     </div>
     <div class="marquee-track">
-      <span class="brand-tag"><span class="brand-dot"></span>THK</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Yaskawa</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Neugart</span>
-      <span class="brand-tag"><span class="brand-dot"></span>HSD Mechatronics</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Güdel</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Sumitomo</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Kübler</span>
-      <span class="brand-tag"><span class="brand-dot"></span>DOBOT</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Busch</span>
-      <span class="brand-tag"><span class="brand-dot"></span>R+W</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Nadella</span>
-      <span class="brand-tag"><span class="brand-dot"></span>VIPA</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Teltonika</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Semar</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Hansen</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Beka-Lube</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Shuton</span>
-      <span class="brand-tag"><span class="brand-dot"></span>Eurovac</span>
+      <span class="brand-pill">THK</span>
+      <span class="brand-pill">Yaskawa</span>
+      <span class="brand-pill">Neugart</span>
+      <span class="brand-pill">HSD Mechatronics</span>
+      <span class="brand-pill">Güdel</span>
+      <span class="brand-pill">Sumitomo</span>
+      <span class="brand-pill">Kübler</span>
+      <span class="brand-pill">DOBOT</span>
+      <span class="brand-pill">Busch</span>
+      <span class="brand-pill">R+W</span>
+      <span class="brand-pill">Nadella</span>
+      <span class="brand-pill">VIPA</span>
+      <span class="brand-pill">Teltonika</span>
+      <span class="brand-pill">Semar</span>
+      <span class="brand-pill">Hansen</span>
+      <span class="brand-pill">Beka-Lube</span>
+      <span class="brand-pill">Shuton</span>
+      <span class="brand-pill">Eurovac</span>
     </div>
   </div>
 </section>
 
-<!-- ─── HAKKIMIZDA ─────────────────────────────────────────────── -->
-<section id="hakkimizda">
-  <div class="container">
-    <div class="about-grid">
-      <div class="about-text reveal-left">
-        <span class="badge">🏢 Hakkımızda</span>
-        <h2>Global uzmanlık,<br><span class="gradient-text">yerel deneyim</span></h2>
-        <p>
-          RMK Mekatronik A.Ş., mekatronik alanında global marka deneyimini yerel bilgi birikimi ile harmanlayarak sektöre değer katmaktadır. Yüksek kalite ve güvenlik standartlarında yenilikçi teknoloji ürün ve hizmetleri sunmayı hedefliyoruz.
-        </p>
-        <p>
-          Bursa merkez ofisimiz ve İstanbul şubemiz ile Türkiye genelinde hizmet verirken, yetkili servis merkezi olarak HSD Mechatronics desteği sağlıyoruz.
-        </p>
-        <div class="value-list">
-          <div class="value-item"><div class="value-icon">🎯</div><span>Çözüm odaklı mühendislik anlayışı</span></div>
-          <div class="value-item"><div class="value-icon">🌍</div><span>Global markaların yetkili distribütörü</span></div>
-          <div class="value-item"><div class="value-icon">🔬</div><span>Teknik danışmanlık ve uygulama desteği</span></div>
-          <div class="value-item"><div class="value-icon">🤝</div><span>Şeffaflık ve sosyal sorumluluk</span></div>
+<!-- ── ABOUT ──────────────────────────────────────────────────────── -->
+<section id="about" class="section section-white">
+  <div class="inner">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center;">
+      <!-- Visual left -->
+      <div data-reveal="left">
+        <div class="about-visual">
+          <div class="about-visual-inner"></div>
+          <div class="about-visual-grid"></div>
+          <div class="about-ring about-ring-1"></div>
+          <div class="about-ring about-ring-2"></div>
+          <div class="about-ring about-ring-3"></div>
+          <div class="about-logo-center">
+            <img src="rmk_logo.png" alt="RMK Mekatronik" />
+          </div>
         </div>
       </div>
-      <div class="about-cards reveal-right">
-        <div class="about-card delay-1"><h3>🏆 Pazar Liderliği</h3><p>Türkiye mekatronik sektöründe güvenilir ve tercih edilen marka konumunu sürdürüyoruz.</p></div>
-        <div class="about-card delay-2"><h3>🔧 Yetkili Servis Merkezi</h3><p>HSD Mechatronics yetkili servis merkezi olarak kurulum, bakım ve onarım hizmetleri sunuyoruz.</p></div>
-        <div class="about-card delay-3"><h3>📚 Teknik Kütüphane</h3><p>CAD dosyaları, teknik kataloglar ve ürün dokümanları müşterilerimizin hizmetinde.</p></div>
-        <div class="about-card delay-4"><h3>📍 2 Ofis</h3><p>Bursa (merkez) ve İstanbul şubelerimizle Türkiye genelinde hızlı erişim sağlıyoruz.</p></div>
+      <!-- Text right -->
+      <div data-reveal="right">
+        <div class="s-label">Hakkımızda</div>
+        <h2 class="headline">Global uzmanlık,<br><span class="blue">yerel deneyim</span></h2>
+        <p class="sub-text">
+          RMK Mekatronik A.Ş., mekatronik alanında global marka deneyimini yerel bilgi birikimi ile harmanlayarak Türkiye sektörüne değer katmaktadır. HSD Mechatronics yetkili servisi dahil uçtan uca çözüm sunuyoruz.
+        </p>
+        <div class="value-grid" style="margin-top:36px;">
+          <div class="value-row" data-reveal data-delay="1"><div class="value-ico">🎯</div> Çözüm odaklı mühendislik anlayışı</div>
+          <div class="value-row" data-reveal data-delay="2"><div class="value-ico">🌍</div> Global markaların yetkili distribütörü</div>
+          <div class="value-row" data-reveal data-delay="3"><div class="value-ico">🔬</div> Teknik danışmanlık ve uygulama desteği</div>
+          <div class="value-row" data-reveal data-delay="4"><div class="value-ico">🤝</div> Şeffaflık ve sosyal sorumluluk ilkesi</div>
+        </div>
+        <div style="margin-top:36px;">
+          <a href="#contact" class="btn-blue">Bizimle Çalışın →</a>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── ÜRÜNLER ────────────────────────────────────────────────── -->
-<section id="urunler">
-  <div class="container">
-    <div class="section-header reveal">
-      <span class="badge">⚙️ Ürün Grupları</span>
-      <h2>Kapsamlı <span class="gradient-text">Ürün Portföyü</span></h2>
-      <p>Endüstriyel otomasyon ve mekatronik ihtiyaçlarınız için geniş ürün yelpazesi</p>
+<!-- ── PRODUCTS ───────────────────────────────────────────────────── -->
+<section id="products">
+  <div class="inner" style="max-width:1320px;margin:0 auto;">
+    <div class="products-header">
+      <div>
+        <div class="s-label">Ürün Portföyü</div>
+        <h2 class="headline">Kapsamlı<br><span class="blue">Ürün Grupları</span></h2>
+      </div>
+      <div class="right">
+        <p class="sub-text" style="max-width:320px;font-size:.95rem;">Endüstriyel otomasyon ihtiyaçlarınız için 9 farklı ürün kategorisi</p>
+        <a href="#contact" style="display:inline-block;margin-top:16px;">Teklif İste →</a>
+      </div>
     </div>
     <div class="products-grid">
 
-      <div class="product-card reveal delay-1" onmousemove="cardGlow(event,this)">
-        <div class="product-arrow">↗</div>
-        <div class="product-icon">📐</div>
+      <div class="prod-card" data-reveal data-delay="1">
+        <div class="prod-num">01</div>
+        <div class="prod-ico">📐</div>
         <h3>Lineer Hareket Sistemleri</h3>
-        <p>Yüksek hassasiyetli lineer kılavuzlar, vidalı miller ve lineer aktüatörler ile hassas konumlama.</p>
-        <div class="product-brands">
-          <span class="product-brand-tag">THK</span>
-          <span class="product-brand-tag">Nadella</span>
-          <span class="product-brand-tag">Shuton</span>
-        </div>
+        <p class="prod-desc">Yüksek hassasiyetli lineer kılavuzlar, vidalı miller ve aktüatörler ile tam hassasiyet.</p>
+        <div class="prod-tags"><span class="prod-tag">THK</span><span class="prod-tag">Nadella</span><span class="prod-tag">Shuton</span></div>
       </div>
 
-      <div class="product-card reveal delay-2" onmousemove="cardGlow(event,this)">
-        <div class="product-arrow">↗</div>
-        <div class="product-icon">⚙️</div>
+      <div class="prod-card" data-reveal data-delay="2">
+        <div class="prod-num">02</div>
+        <div class="prod-ico">⚙️</div>
         <h3>Redüktörler & Transmisyon</h3>
-        <p>Endüstriyel redüktörler ve dişli kutuları ile güç aktarım sistemlerinizi optimize edin.</p>
-        <div class="product-brands">
-          <span class="product-brand-tag">Neugart</span>
-          <span class="product-brand-tag">Güdel</span>
-          <span class="product-brand-tag">Sumitomo</span>
-          <span class="product-brand-tag">Hansen</span>
-        </div>
+        <p class="prod-desc">Endüstriyel redüktörler ve dişli kutuları ile güç aktarımında mükemmellik.</p>
+        <div class="prod-tags"><span class="prod-tag">Neugart</span><span class="prod-tag">Güdel</span><span class="prod-tag">Sumitomo</span><span class="prod-tag">Hansen</span></div>
       </div>
 
-      <div class="product-card reveal delay-3" onmousemove="cardGlow(event,this)">
-        <div class="product-arrow">↗</div>
-        <div class="product-icon">🔩</div>
+      <div class="prod-card" data-reveal data-delay="3">
+        <div class="prod-num">03</div>
+        <div class="prod-ico">🔩</div>
         <h3>Spindel Motorları</h3>
-        <p>CNC tezgahlar ve işleme merkezleri için yüksek devirli, hassas spindel motor çözümleri.</p>
-        <div class="product-brands">
-          <span class="product-brand-tag">HSD Mechatronics</span>
-          <span class="product-brand-tag">Semar</span>
-        </div>
+        <p class="prod-desc">CNC tezgahlar için yüksek devirli ve hassas spindel motor çözümleri.</p>
+        <div class="prod-tags"><span class="prod-tag">HSD Mechatronics</span><span class="prod-tag">Semar</span></div>
       </div>
 
-      <div class="product-card reveal delay-1" onmousemove="cardGlow(event,this)">
-        <div class="product-arrow">↗</div>
-        <div class="product-icon">📡</div>
+      <div class="prod-card" data-reveal data-delay="1">
+        <div class="prod-num">04</div>
+        <div class="prod-ico">📡</div>
         <h3>Enkoder & Ölçüm</h3>
-        <p>Hassas açısal ve doğrusal konum ölçümü için güvenilir enkoder ve ölçüm sistemleri.</p>
-        <div class="product-brands">
-          <span class="product-brand-tag">Kübler</span>
-        </div>
+        <p class="prod-desc">Hassas açısal ve doğrusal konum ölçümü için güvenilir enkoder sistemleri.</p>
+        <div class="prod-tags"><span class="prod-tag">Kübler</span></div>
       </div>
 
-      <div class="product-card reveal delay-2" onmousemove="cardGlow(event,this)">
-        <div class="product-arrow">↗</div>
-        <div class="product-icon">🖥️</div>
+      <div class="prod-card" data-reveal data-delay="2">
+        <div class="prod-num">05</div>
+        <div class="prod-ico">🖥️</div>
         <h3>Endüstriyel PC & IIoT</h3>
-        <p>Endüstriyel ortamlar için sağlam bilgisayar sistemleri ve IIoT bağlantı çözümleri.</p>
-        <div class="product-brands">
-          <span class="product-brand-tag">VIPA</span>
-          <span class="product-brand-tag">Teltonika</span>
-        </div>
+        <p class="prod-desc">Endüstriyel ortamlar için sağlam bilgisayar sistemleri ve IIoT bağlantı çözümleri.</p>
+        <div class="prod-tags"><span class="prod-tag">VIPA</span><span class="prod-tag">Teltonika</span></div>
       </div>
 
-      <div class="product-card reveal delay-3" onmousemove="cardGlow(event,this)">
-        <div class="product-arrow">↗</div>
-        <div class="product-icon">⚡</div>
+      <div class="prod-card" data-reveal data-delay="3">
+        <div class="prod-num">06</div>
+        <div class="prod-ico">⚡</div>
         <h3>Servo Motorlar</h3>
-        <p>Yüksek dinamik performanslı servo motor ve sürücü sistemleri ile hassas hareket kontrolü.</p>
-        <div class="product-brands">
-          <span class="product-brand-tag">Yaskawa</span>
-        </div>
+        <p class="prod-desc">Yüksek dinamik performanslı servo motor ve sürücü sistemleriyle hassas hareket.</p>
+        <div class="prod-tags"><span class="prod-tag">Yaskawa</span></div>
       </div>
 
-      <div class="product-card reveal delay-1" onmousemove="cardGlow(event,this)">
-        <div class="product-arrow">↗</div>
-        <div class="product-icon">💨</div>
+      <div class="prod-card" data-reveal data-delay="1">
+        <div class="prod-num">07</div>
+        <div class="prod-ico">💨</div>
         <h3>Vakum Teknolojisi</h3>
-        <p>Endüstriyel vakum pompaları ve sistemleri ile güvenilir vakum çözümleri.</p>
-        <div class="product-brands">
-          <span class="product-brand-tag">Busch</span>
-          <span class="product-brand-tag">Eurovac</span>
-        </div>
+        <p class="prod-desc">Endüstriyel vakum pompaları ve sistemleri ile güvenilir vakum çözümleri.</p>
+        <div class="prod-tags"><span class="prod-tag">Busch</span><span class="prod-tag">Eurovac</span></div>
       </div>
 
-      <div class="product-card reveal delay-2" onmousemove="cardGlow(event,this)">
-        <div class="product-arrow">↗</div>
-        <div class="product-icon">🔗</div>
+      <div class="prod-card" data-reveal data-delay="2">
+        <div class="prod-num">08</div>
+        <div class="prod-ico">🔗</div>
         <h3>Kaplinler</h3>
-        <p>Şaft bağlantısı ve güç aktarımı için yüksek kaliteli esnek ve rijit kaplin çözümleri.</p>
-        <div class="product-brands">
-          <span class="product-brand-tag">R+W</span>
-        </div>
+        <p class="prod-desc">Şaft bağlantısı ve güç aktarımı için esnek ve rijit kaplin çözümleri.</p>
+        <div class="prod-tags"><span class="prod-tag">R+W</span></div>
       </div>
 
-      <div class="product-card reveal delay-3" onmousemove="cardGlow(event,this)">
-        <div class="product-arrow">↗</div>
-        <div class="product-icon">🤖</div>
+      <div class="prod-card" data-reveal data-delay="3">
+        <div class="prod-num">09</div>
+        <div class="prod-ico">🤖</div>
         <h3>Kolaboratif Robotlar</h3>
-        <p>İnsanlarla güvenle çalışabilen, kolay programlanabilir kolaboratif robot sistemleri.</p>
-        <div class="product-brands">
-          <span class="product-brand-tag">DOBOT</span>
-        </div>
+        <p class="prod-desc">İnsanlarla güvenle çalışabilen, kolay programlanabilir cobot sistemleri.</p>
+        <div class="prod-tags"><span class="prod-tag">DOBOT</span></div>
       </div>
 
     </div>
   </div>
 </section>
 
-<!-- ─── HİZMETLER ─────────────────────────────────────────────── -->
-<section id="hizmetler">
-  <div class="container">
-    <div class="section-header reveal">
-      <span class="badge">🛠️ Hizmetlerimiz</span>
-      <h2>Uçtan Uca <span class="gradient-text">Mühendislik Desteği</span></h2>
-      <p>Ürün satışından teknik servise, danışmanlıktan dokümantasyona tam kapsamlı destek</p>
+<!-- ── SERVICES ───────────────────────────────────────────────────── -->
+<section id="services">
+  <div class="inner">
+    <div class="services-top">
+      <div data-reveal="left">
+        <div class="s-label s-label-light">Hizmetlerimiz</div>
+        <h2 class="headline headline-light">Uçtan Uca<br><span class="blue">Mühendislik</span><br>Desteği</h2>
+      </div>
+      <div data-reveal="right">
+        <p class="sub-text sub-text-light" style="margin-bottom:28px;">
+          Ürün satışından teknik servise, danışmanlıktan dokümantasyona kadar tam kapsamlı mühendislik ekosistemi sunuyoruz.
+        </p>
+        <a href="#contact" class="btn-outline-light">Hizmet Talep Edin →</a>
+      </div>
     </div>
-    <div class="services-row">
-      <div class="service-card reveal delay-1">
-        <div class="service-ico">🔧</div>
+    <div class="services-grid">
+      <div class="svc-card" data-reveal data-delay="1">
+        <div class="svc-ico-wrap">🔧</div>
         <h3>Teknik Danışmanlık</h3>
         <p>Projenize en uygun ürün ve çözümü belirlemek için uzman mühendislik ekibimizden destek alın.</p>
       </div>
-      <div class="service-card reveal delay-2">
-        <div class="service-ico">🏭</div>
+      <div class="svc-card" data-reveal data-delay="2">
+        <div class="svc-ico-wrap">🏭</div>
         <h3>Yetkili Servis</h3>
         <p>HSD Mechatronics yetkili servis merkezi olarak kurulum, kalibrasyon, bakım ve onarım hizmetleri.</p>
       </div>
-      <div class="service-card reveal delay-3">
-        <div class="service-ico">📦</div>
+      <div class="svc-card" data-reveal data-delay="3">
+        <div class="svc-ico-wrap">📦</div>
         <h3>Distribütörlük & Satış</h3>
-        <p>Global markaların Türkiye yetkili distribütörü sıfatıyla orijinal ürünleri en hızlı şekilde teslim ediyoruz.</p>
+        <p>Global markaların Türkiye yetkili distribütörü sıfatıyla orijinal ürünleri en hızlı teslim ediyoruz.</p>
       </div>
-      <div class="service-card reveal delay-1">
-        <div class="service-ico">📐</div>
+      <div class="svc-card" data-reveal data-delay="4">
+        <div class="svc-ico-wrap">📐</div>
         <h3>CAD Kütüphanesi</h3>
-        <p>Ürünlere ait CAD dosyalarına erişerek tasarım süreçlerinizi hızlandırın, hata riskini azaltın.</p>
+        <p>Ürünlere ait CAD dosyalarına erişerek tasarım süreçlerinizi hızlandırın, hataları azaltın.</p>
       </div>
-      <div class="service-card reveal delay-2">
-        <div class="service-ico">📄</div>
+      <div class="svc-card" data-reveal data-delay="5">
+        <div class="svc-ico-wrap">📄</div>
         <h3>Teknik Dokümantasyon</h3>
-        <p>Katalog, datasheet ve uygulama rehberleri ile ürünler hakkında kapsamlı teknik bilgiye ulaşın.</p>
+        <p>Katalog, datasheet ve uygulama rehberleriyle kapsamlı teknik bilgiye anında ulaşın.</p>
       </div>
-      <div class="service-card reveal delay-3">
-        <div class="service-ico">🎓</div>
-        <h3>Uygulama Desteği</h3>
+      <div class="svc-card" data-reveal data-delay="6">
+        <div class="svc-ico-wrap">🎓</div>
+        <h3>Uygulama & Eğitim</h3>
         <p>Ürün entegrasyonu ve devreye alma süreçlerinde sahada teknik destek ve eğitim sağlıyoruz.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── NUMBERS STRIP ──────────────────────────────────────────── -->
-<section id="numbers">
-  <div class="container">
-    <div class="numbers-grid">
-      <div class="number-item reveal delay-1">
-        <div class="number-val"><span class="counter2" data-target="20">0</span>+</div>
-        <div class="number-label">Yıllık Sektör Deneyimi</div>
-      </div>
-      <div class="number-item reveal delay-2">
-        <div class="number-val"><span class="counter2" data-target="10">0</span>+</div>
-        <div class="number-label">Global Yetkili Marka</div>
-      </div>
-      <div class="number-item reveal delay-3">
-        <div class="number-val"><span class="counter2" data-target="500">0</span>+</div>
-        <div class="number-label">Mutlu Müşteri</div>
-      </div>
-      <div class="number-item reveal delay-4">
-        <div class="number-val"><span class="counter2" data-target="2">0</span></div>
-        <div class="number-label">Türkiye Ofisi</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ─── CTA ────────────────────────────────────────────────────── -->
+<!-- ── CTA ────────────────────────────────────────────────────────── -->
 <section id="cta">
-  <div class="container">
-    <div class="cta-inner reveal">
-      <div class="cta-content">
-        <span class="badge">💡 Birlikte Çözelim</span>
-        <h2>Projeniz için doğru çözümü<br>birlikte bulalım</h2>
-        <p>Uzman ekibimiz ihtiyaçlarınızı analiz edip en uygun mühendislik çözümünü sunar.</p>
-        <div class="cta-actions">
-          <a href="#iletisim" class="btn-red">
-            Teklif Alın
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </a>
-          <a href="tel:+902244412162" class="btn-outline">
-            📞 +90 (224) 441 21 62
-          </a>
+  <div class="inner" style="max-width:1320px;margin:0 auto;">
+    <div class="cta-box" data-reveal="scale">
+      <div>
+        <h2>Projeniz için doğru çözümü birlikte bulalım</h2>
+        <p>Uzman mühendislik ekibimiz ihtiyaçlarınızı analiz edip en uygun çözümü sunar.</p>
+      </div>
+      <div class="cta-right">
+        <a href="#contact" class="btn-white">
+          Teklif İsteyin
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <div class="cta-tel">
+          <span>📞</span>
+          <span><strong>+90 (224) 441 21 62</strong> &nbsp;— Bursa Merkez</span>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── İLETİŞİM ──────────────────────────────────────────────── -->
-<section id="iletisim">
-  <div class="container">
+<!-- ── CONTACT ────────────────────────────────────────────────────── -->
+<section id="contact">
+  <div class="inner">
     <div class="contact-grid">
-      <div class="reveal-left">
-        <span class="badge">📞 İletişim</span>
-        <div class="contact-info">
-          <h2>Bizimle<br><span class="gradient-text">İletişime Geçin</span></h2>
-          <p>Ürünler, fiyatlar veya teknik destek hakkında sorularınız için bize ulaşın. Ekibimiz en kısa sürede yanıt verir.</p>
-        </div>
-        <div class="contact-items">
-          <div class="contact-item">
-            <div class="contact-icon-box">📍</div>
-            <div class="contact-item-text">
-              <strong>Bursa Merkez</strong>
-              <span>Alaaddinbey Mh. 617.Sk. Kongur Plaza No:4, Nilüfer/Bursa</span>
-            </div>
+      <div data-reveal="left">
+        <div class="s-label">İletişim</div>
+        <h2 class="headline">Bizimle<br><span class="blue">İletişime<br>Geçin</span></h2>
+        <p class="sub-text">Ürünler, fiyat teklifi veya teknik destek için bize ulaşın. Ekibimiz en kısa sürede yanıt verir.</p>
+        <div class="c-items">
+          <div class="c-item">
+            <div class="c-ico">📍</div>
+            <div><strong>Bursa Merkez</strong><span>Alaaddinbey Mh. 617.Sk. Kongur Plaza No:4, Nilüfer/Bursa</span></div>
           </div>
-          <div class="contact-item">
-            <div class="contact-icon-box">📍</div>
-            <div class="contact-item-text">
-              <strong>İstanbul Şube</strong>
-              <span>Cevizli Mh. Tugay Yolu Cad., Maltepe/İstanbul</span>
-            </div>
+          <div class="c-item">
+            <div class="c-ico">📍</div>
+            <div><strong>İstanbul Şube</strong><span>Cevizli Mh. Tugay Yolu Cad., Maltepe/İstanbul</span></div>
           </div>
-          <div class="contact-item">
-            <div class="contact-icon-box">📞</div>
-            <div class="contact-item-text">
-              <strong>Telefon</strong>
-              <span>+90 (224) 441 21 62</span>
-            </div>
+          <div class="c-item">
+            <div class="c-ico">📞</div>
+            <div><strong>Telefon</strong><span>+90 (224) 441 21 62</span></div>
           </div>
-          <div class="contact-item">
-            <div class="contact-icon-box">✉️</div>
-            <div class="contact-item-text">
-              <strong>E-posta</strong>
-              <span>rmk@rmkmekatronik.com</span>
-            </div>
+          <div class="c-item">
+            <div class="c-ico">✉️</div>
+            <div><strong>E-posta</strong><span>rmk@rmkmekatronik.com</span></div>
           </div>
         </div>
-        <div class="social-links">
-          <a href="#" class="social-link" title="LinkedIn">in</a>
-          <a href="#" class="social-link" title="Facebook">fb</a>
-          <a href="#" class="social-link" title="YouTube">yt</a>
-          <a href="#" class="social-link" title="Instagram">ig</a>
+        <div class="socials">
+          <a href="#" class="soc-btn">in</a>
+          <a href="#" class="soc-btn">fb</a>
+          <a href="#" class="soc-btn">yt</a>
+          <a href="#" class="soc-btn">ig</a>
         </div>
       </div>
-
-      <div class="contact-form reveal-right">
-        <h3 style="font-size:1.25rem;font-weight:700;color:var(--text);margin-bottom:24px;">Mesaj Gönderin</h3>
-        <form id="contactForm" onsubmit="handleSubmit(event)">
+      <div class="contact-form" data-reveal="right">
+        <h3>Mesaj Gönderin</h3>
+        <form id="cForm" onsubmit="submitForm(event)">
           <div class="form-row">
-            <div class="form-group">
-              <label>Ad Soyad</label>
-              <input type="text" placeholder="Adınız Soyadınız" required />
-            </div>
-            <div class="form-group">
-              <label>E-posta</label>
-              <input type="email" placeholder="email@firma.com" required />
-            </div>
+            <div class="fg"><label>Ad Soyad</label><input type="text" placeholder="Adınız Soyadınız" required /></div>
+            <div class="fg"><label>E-posta</label><input type="email" placeholder="email@firma.com" required /></div>
           </div>
           <div class="form-row">
-            <div class="form-group">
-              <label>Telefon</label>
-              <input type="tel" placeholder="+90 5xx xxx xx xx" />
-            </div>
-            <div class="form-group">
-              <label>Firma Adı</label>
-              <input type="text" placeholder="Firma Adı" />
-            </div>
+            <div class="fg"><label>Telefon</label><input type="tel" placeholder="+90 5xx xxx xx xx" /></div>
+            <div class="fg"><label>Firma</label><input type="text" placeholder="Firma Adı" /></div>
           </div>
-          <div class="form-group">
+          <div class="fg">
             <label>Konu</label>
             <select>
               <option value="">Konu Seçin</option>
@@ -1034,146 +971,105 @@
               <option>Diğer</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Mesajınız</label>
-            <textarea placeholder="Talebinizi detaylı şekilde açıklayın..."></textarea>
+          <div class="fg">
+            <label>Mesaj</label>
+            <textarea placeholder="Talebinizi detaylı açıklayın..."></textarea>
           </div>
-          <button type="submit" class="submit-btn">
-            Mesaj Gönder &nbsp;✉️
-          </button>
-          <div class="form-success" id="formSuccess">
-            ✅ Mesajınız iletildi! En kısa sürede dönüş yapacağız.
-          </div>
+          <button type="submit" class="form-submit">Mesaj Gönder &nbsp;→</button>
+          <div class="form-ok" id="fok">✅ Mesajınız iletildi! En kısa sürede dönüş yapacağız.</div>
         </form>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Map -->
-<div class="map-section">
-  <div class="container">
-    <div class="map-container reveal">
-      <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3044.0!2d28.9!3d40.2!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDEyJzAwLjAiTiAyOMKwNTQnMDAuMCJF!5e0!3m2!1str!2str!4v1700000000000!5m2!1str!2str"
-        allowfullscreen="" loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-        title="RMK Mekatronik Konum">
-      </iframe>
+<!-- ── FOOTER ─────────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="f-brand-logo"><img src="rmk_logo.png" alt="RMK Mekatronik" /></div>
+      <p class="f-brand-text">Mekatronik alanında global uzmanlık ve yerel deneyimle çözüm odaklı mühendislik hizmetleri sunuyoruz.</p>
+    </div>
+    <div class="f-col">
+      <h4>Şirket</h4>
+      <ul>
+        <li><a href="#about">Hakkımızda</a></li>
+        <li><a href="#products">Ürünler</a></li>
+        <li><a href="#services">Hizmetler</a></li>
+        <li><a href="#contact">İletişim</a></li>
+      </ul>
+    </div>
+    <div class="f-col">
+      <h4>Ürün Grupları</h4>
+      <ul>
+        <li><a href="#products">Lineer Hareket</a></li>
+        <li><a href="#products">Redüktörler</a></li>
+        <li><a href="#products">Servo Motorlar</a></li>
+        <li><a href="#products">Kolaboratif Robot</a></li>
+        <li><a href="#products">Vakum Teknolojisi</a></li>
+      </ul>
+    </div>
+    <div class="f-col">
+      <h4>İletişim</h4>
+      <ul>
+        <li><a href="tel:+902244412162">+90 (224) 441 21 62</a></li>
+        <li><a href="mailto:rmk@rmkmekatronik.com">rmk@rmkmekatronik.com</a></li>
+        <li><a href="#">Nilüfer / Bursa</a></li>
+        <li><a href="#">Maltepe / İstanbul</a></li>
+      </ul>
     </div>
   </div>
-</div>
-
-<!-- ─── FOOTER ────────────────────────────────────────────────── -->
-<footer>
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand footer-logo-box">
-        <a href="#" class="logo" style="display:inline-flex;">
-          <img src="rmk_logo.png" alt="RMK Mekatronik" style="height:44px;width:auto;filter:brightness(0) invert(1);" />
-        </a>
-        <p>Mekatronik alanında global uzmanlık ve yerel deneyimle çözüm odaklı mühendislik hizmetleri sunuyoruz.</p>
-      </div>
-      <div class="footer-col">
-        <h4>Hızlı Erişim</h4>
-        <ul>
-          <li><a href="#hakkimizda">Hakkımızda</a></li>
-          <li><a href="#urunler">Ürünler</a></li>
-          <li><a href="#hizmetler">Hizmetler</a></li>
-          <li><a href="#iletisim">İletişim</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Ürün Grupları</h4>
-        <ul>
-          <li><a href="#urunler">Lineer Hareket</a></li>
-          <li><a href="#urunler">Redüktörler</a></li>
-          <li><a href="#urunler">Servo Motorlar</a></li>
-          <li><a href="#urunler">Kolaboratif Robotlar</a></li>
-          <li><a href="#urunler">Vakum Teknolojisi</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>İletişim</h4>
-        <ul>
-          <li><a href="tel:+902244412162">+90 (224) 441 21 62</a></li>
-          <li><a href="mailto:rmk@rmkmekatronik.com">rmk@rmkmekatronik.com</a></li>
-          <li><a href="#">Nilüfer / Bursa</a></li>
-          <li><a href="#">Maltepe / İstanbul</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>© 2024 RMK Mekatronik A.Ş. Tüm hakları saklıdır.</span>
-      <span class="accent">rmkmekatronik.com</span>
-    </div>
+  <div class="footer-bottom2">
+    <span>© 2024 RMK Mekatronik A.Ş. Tüm hakları saklıdır.</span>
+    <span class="b">rmkmekatronik.com</span>
   </div>
 </footer>
 
-<!-- ─── JS ────────────────────────────────────────────────────── -->
+<!-- ── JS ─────────────────────────────────────────────────────────── -->
 <script>
-  // Navbar scroll
-  const navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', () => { navbar.classList.toggle('scrolled', window.scrollY > 20); });
+  // Navbar
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 40));
+  nav.classList.add('solid');
 
   // Hamburger
-  function toggleMenu() { document.getElementById('navLinks').classList.toggle('open'); }
-  document.querySelectorAll('.nav-links a').forEach(a => {
-    a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open'));
-  });
+  function toggleNav() { document.getElementById('navLinks').classList.toggle('open'); }
+  document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', ()=> document.getElementById('navLinks').classList.remove('open')));
 
   // Reveal
-  const revealEls = document.querySelectorAll('.reveal,.reveal-left,.reveal-right');
+  const els = document.querySelectorAll('[data-reveal]');
   const io = new IntersectionObserver(entries => {
-    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); }});
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }});
   }, {threshold:.12});
-  revealEls.forEach(el => io.observe(el));
+  els.forEach(el => io.observe(el));
 
-  // Hero counter
-  function animateCounter(el) {
-    const t = +el.dataset.target, dur = 1800, step = t/(dur/16);
-    let c=0;
-    const timer = setInterval(()=>{ c+=step; if(c>=t){c=t;clearInterval(timer);} el.textContent=Math.floor(c); },16);
+  // Counter
+  function runCounter(el) {
+    const target = +el.dataset.target, dur = 2000, step = target/(dur/16);
+    let cur = 0;
+    const t = setInterval(()=>{ cur+=step; if(cur>=target){cur=target;clearInterval(t);} el.textContent=Math.floor(cur); }, 16);
   }
-  const heroStats = document.querySelector('.hero-stats');
-  if(heroStats){
-    const co = new IntersectionObserver(entries=>{
-      entries.forEach(e=>{ if(e.isIntersecting){ e.target.querySelectorAll('.counter').forEach(animateCounter); co.unobserve(e.target); }});
-    },{threshold:.5});
-    co.observe(heroStats);
-  }
-
-  // Numbers strip counter
-  const numSection = document.getElementById('numbers');
-  if(numSection){
-    const no = new IntersectionObserver(entries=>{
-      entries.forEach(e=>{ if(e.isIntersecting){ e.target.querySelectorAll('.counter2').forEach(animateCounter); no.unobserve(e.target); }});
-    },{threshold:.4});
-    no.observe(numSection);
-  }
-
-  // Card glow
-  function cardGlow(e, card) {
-    const r = card.getBoundingClientRect();
-    card.style.setProperty('--mx', ((e.clientX-r.left)/r.width*100).toFixed(1)+'%');
-    card.style.setProperty('--my', ((e.clientY-r.top)/r.height*100).toFixed(1)+'%');
-  }
+  const statsEl = document.getElementById('stats');
+  const sio = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.querySelectorAll('.counter').forEach(runCounter); sio.unobserve(e.target); }});
+  }, {threshold:.4});
+  sio.observe(statsEl);
 
   // Form
-  function handleSubmit(e) {
+  function submitForm(e) {
     e.preventDefault();
-    const btn = e.target.querySelector('.submit-btn');
+    const btn = e.target.querySelector('.form-submit');
     btn.textContent = 'Gönderiliyor...'; btn.disabled = true;
-    setTimeout(()=>{ btn.style.display='none'; document.getElementById('formSuccess').style.display='block'; }, 1400);
+    setTimeout(()=>{ btn.style.display='none'; document.getElementById('fok').style.display='block'; }, 1400);
   }
 
-  // Active nav highlight
+  // Active nav
   const secs = document.querySelectorAll('section[id]');
   const navAs = document.querySelectorAll('.nav-links a');
-  window.addEventListener('scroll', ()=>{
-    let cur='';
-    secs.forEach(s=>{ if(window.scrollY >= s.offsetTop-120) cur=s.id; });
-    navAs.forEach(a=>{ a.style.color = a.getAttribute('href')==='#'+cur ? 'var(--blue-dark)' : ''; });
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    secs.forEach(s => { if(scrollY >= s.offsetTop - 120) cur = s.id; });
+    navAs.forEach(a => { a.style.color = a.getAttribute('href') === '#'+cur ? '#fff' : ''; });
   });
 </script>
 </body>
