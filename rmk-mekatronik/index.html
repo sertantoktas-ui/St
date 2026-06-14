@@ -372,6 +372,7 @@
       display:flex; align-items:center; justify-content:center;
       font-size:1.25rem; margin-bottom:20px;
       transition:background .3s,border-color .3s;
+      color: rgba(255,255,255,.6);
     }
     .pc h3 { font-family:'Space Grotesk',sans-serif; font-size:1rem; font-weight:700; color:var(--white); margin-bottom:9px; transition:color .3s; }
     .pc .pc-desc { color:rgba(255,255,255,.35); font-size:.84rem; line-height:1.65; margin-bottom:18px; transition:color .3s; }
@@ -399,6 +400,7 @@
       background:rgba(212,36,39,.1); border:1px solid rgba(212,36,39,.2);
       display:flex; align-items:center; justify-content:center;
       font-size:1.2rem; margin-bottom:18px;
+      color: var(--red);
     }
     .svc-card h3 { font-size:.98rem; font-weight:700; color:var(--white); margin-bottom:9px; }
     .svc-card p { color:rgba(255,255,255,.35); font-size:.84rem; line-height:1.7; }
@@ -526,6 +528,77 @@
     }
     .ft-bottom .r { color:var(--red); }
 
+    /* ── Custom Cursor ──────────────────────────────────────────── */
+    * { cursor: none !important; }
+    #cursor-dot {
+      width: 6px; height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      position: fixed; top:0; left:0;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%,-50%);
+      transition: width .15s, height .15s, background .15s;
+    }
+    #cursor-ring {
+      width: 34px; height: 34px;
+      border: 1.5px solid rgba(212,36,39,.5);
+      border-radius: 50%;
+      position: fixed; top:0; left:0;
+      pointer-events: none;
+      z-index: 99998;
+      transform: translate(-50%,-50%);
+      transition: width .35s cubic-bezier(.17,.67,.36,1.29),
+                  height .35s cubic-bezier(.17,.67,.36,1.29),
+                  border-color .2s;
+    }
+    body:has(a:hover) #cursor-ring,
+    body:has(button:hover) #cursor-ring {
+      width: 52px; height: 52px;
+      border-color: var(--red);
+    }
+    body:has(a:hover) #cursor-dot { background: #fff; }
+
+    /* ── Preloader ───────────────────────────────────────────────── */
+    #preloader {
+      position: fixed; inset: 0;
+      background: var(--black);
+      z-index: 100000;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 24px;
+    }
+    #preloader.done { opacity: 0; pointer-events: none; transition: opacity .6s ease; }
+    .pl-logo { opacity: 0; animation: plFadeIn .5s .2s ease forwards; }
+    .pl-logo img { height: 52px; filter: brightness(0) invert(1); }
+    .pl-bar {
+      width: 200px; height: 1px;
+      background: rgba(255,255,255,.1);
+      position: relative; overflow: hidden;
+      opacity: 0; animation: plFadeIn .4s .4s ease forwards;
+    }
+    .pl-bar::after {
+      content: '';
+      position: absolute; top:0; left:-100%; bottom:0; width:100%;
+      background: linear-gradient(90deg, transparent, var(--red), transparent);
+      animation: plScan 1s .6s ease forwards;
+    }
+    .pl-txt {
+      font-size: .68rem; font-weight: 700; letter-spacing: .2em;
+      text-transform: uppercase; color: rgba(255,255,255,.25);
+      opacity: 0; animation: plFadeIn .4s .5s ease forwards;
+    }
+    @keyframes plFadeIn { to { opacity: 1; } }
+    @keyframes plScan { 0%{left:-100%} 100%{left:100%} }
+
+    /* ── Noise ───────────────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9997;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: .025;
+    }
+
     /* ── Responsive ─────────────────────────────────────────────── */
     @media(max-width:1100px){
       .about-grid { grid-template-columns:1fr; gap:48px; }
@@ -566,6 +639,17 @@
   </style>
 </head>
 <body>
+
+<!-- CURSOR ───────────────────────────────────────────────────────── -->
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<!-- PRELOADER ────────────────────────────────────────────────────── -->
+<div id="preloader">
+  <div class="pl-logo"><img src="rmk_logo.png" alt="RMK" /></div>
+  <div class="pl-bar"></div>
+  <div class="pl-txt">Yükleniyor…</div>
+</div>
 
 <!-- NAV ──────────────────────────────────────────────────────────── -->
 <nav class="nav" id="nav">
@@ -714,63 +798,63 @@
     <div class="prod-grid">
       <div class="pc" data-reveal data-delay="1">
         <div class="pc-num">01</div>
-        <div class="pc-ico">📐</div>
+        <div class="pc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
         <h3>Lineer Hareket Sistemleri</h3>
         <p class="pc-desc">Yüksek hassasiyetli lineer kılavuzlar, vidalı miller ve aktüatörler.</p>
         <div class="pc-tags"><span class="pc-tag">THK</span><span class="pc-tag">Nadella</span><span class="pc-tag">Shuton</span></div>
       </div>
       <div class="pc" data-reveal data-delay="2">
         <div class="pc-num">02</div>
-        <div class="pc-ico">⚙️</div>
+        <div class="pc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg></div>
         <h3>Redüktörler & Transmisyon</h3>
         <p class="pc-desc">Endüstriyel redüktörler ve dişli kutuları ile güç aktarım sistemleri.</p>
         <div class="pc-tags"><span class="pc-tag">Neugart</span><span class="pc-tag">Güdel</span><span class="pc-tag">Sumitomo</span><span class="pc-tag">Hansen</span></div>
       </div>
       <div class="pc" data-reveal data-delay="3">
         <div class="pc-num">03</div>
-        <div class="pc-ico">🔩</div>
+        <div class="pc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg></div>
         <h3>Spindel Motorları</h3>
         <p class="pc-desc">CNC tezgahlar için yüksek devirli ve hassas spindel motor çözümleri.</p>
         <div class="pc-tags"><span class="pc-tag">HSD Mechatronics</span><span class="pc-tag">Semar</span></div>
       </div>
       <div class="pc" data-reveal data-delay="1">
         <div class="pc-num">04</div>
-        <div class="pc-ico">📡</div>
+        <div class="pc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
         <h3>Enkoder & Ölçüm</h3>
         <p class="pc-desc">Hassas açısal ve doğrusal konum ölçümü için enkoder sistemleri.</p>
         <div class="pc-tags"><span class="pc-tag">Kübler</span></div>
       </div>
       <div class="pc" data-reveal data-delay="2">
         <div class="pc-num">05</div>
-        <div class="pc-ico">🖥️</div>
+        <div class="pc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
         <h3>Endüstriyel PC & IIoT</h3>
         <p class="pc-desc">Endüstriyel ortamlar için sağlam bilgisayar ve IIoT bağlantı çözümleri.</p>
         <div class="pc-tags"><span class="pc-tag">VIPA</span><span class="pc-tag">Teltonika</span></div>
       </div>
       <div class="pc" data-reveal data-delay="3">
         <div class="pc-num">06</div>
-        <div class="pc-ico">⚡</div>
+        <div class="pc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
         <h3>Servo Motorlar</h3>
         <p class="pc-desc">Yüksek dinamik performanslı servo motor ve sürücü sistemleri.</p>
         <div class="pc-tags"><span class="pc-tag">Yaskawa</span></div>
       </div>
       <div class="pc" data-reveal data-delay="1">
         <div class="pc-num">07</div>
-        <div class="pc-ico">💨</div>
+        <div class="pc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1111 8H2m10.59 11.41A2 2 0 1014 16H2m15.73-8.27A2.5 2.5 0 1119.5 12H2"/></svg></div>
         <h3>Vakum Teknolojisi</h3>
         <p class="pc-desc">Endüstriyel vakum pompaları ve güvenilir vakum sistemleri.</p>
         <div class="pc-tags"><span class="pc-tag">Busch</span><span class="pc-tag">Eurovac</span></div>
       </div>
       <div class="pc" data-reveal data-delay="2">
         <div class="pc-num">08</div>
-        <div class="pc-ico">🔗</div>
+        <div class="pc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></div>
         <h3>Kaplinler</h3>
         <p class="pc-desc">Şaft bağlantısı için esnek ve rijit kaplin çözümleri.</p>
         <div class="pc-tags"><span class="pc-tag">R+W</span></div>
       </div>
       <div class="pc" data-reveal data-delay="3">
         <div class="pc-num">09</div>
-        <div class="pc-ico">🤖</div>
+        <div class="pc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1"/></svg></div>
         <h3>Kolaboratif Robotlar</h3>
         <p class="pc-desc">İnsanlarla güvenle çalışan, kolay programlanabilir cobot sistemleri.</p>
         <div class="pc-tags"><span class="pc-tag">DOBOT</span></div>
@@ -794,32 +878,44 @@
     </div>
     <div class="svc-grid">
       <div class="svc-card" data-reveal data-delay="1">
-        <div class="svc-ico">🔧</div>
+        <div class="svc-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.77 3.77z"/></svg>
+        </div>
         <h3>Teknik Danışmanlık</h3>
         <p>Projenize en uygun ürün ve çözümü belirlemek için uzman mühendislik ekibimizden destek alın.</p>
       </div>
       <div class="svc-card" data-reveal data-delay="2">
-        <div class="svc-ico">🏭</div>
+        <div class="svc-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+        </div>
         <h3>Yetkili Servis</h3>
         <p>HSD Mechatronics yetkili servis merkezi olarak kurulum, kalibrasyon ve onarım hizmetleri.</p>
       </div>
       <div class="svc-card" data-reveal data-delay="3">
-        <div class="svc-ico">📦</div>
+        <div class="svc-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </div>
         <h3>Distribütörlük & Satış</h3>
         <p>Global markaların Türkiye yetkili distribütörü olarak orijinal ürünleri hızlı teslim ediyoruz.</p>
       </div>
       <div class="svc-card" data-reveal data-delay="4">
-        <div class="svc-ico">📐</div>
+        <div class="svc-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
         <h3>CAD Kütüphanesi</h3>
         <p>Ürünlere ait CAD dosyalarına erişerek tasarım süreçlerinizi hızlandırın.</p>
       </div>
       <div class="svc-card" data-reveal data-delay="5">
-        <div class="svc-ico">📄</div>
+        <div class="svc-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
         <h3>Teknik Dokümantasyon</h3>
         <p>Katalog, datasheet ve uygulama rehberleriyle kapsamlı teknik bilgiye ulaşın.</p>
       </div>
       <div class="svc-card" data-reveal data-delay="6">
-        <div class="svc-ico">🎓</div>
+        <div class="svc-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        </div>
         <h3>Uygulama & Eğitim</h3>
         <p>Ürün entegrasyonu ve devreye alma süreçlerinde sahada teknik destek ve eğitim.</p>
       </div>
@@ -837,7 +933,7 @@
       </div>
       <div class="cta-right">
         <a href="#contact" class="btn-wh">Teklif İsteyin →</a>
-        <div class="cta-tel">📞 <strong>+90 (224) 441 21 62</strong> &nbsp;Bursa Merkez</div>
+        <div class="cta-tel"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 11.5a19.79 19.79 0 01-3.07-8.67A2 2 0 013.62 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg> <strong>+90 (224) 441 21 62</strong> &nbsp;Bursa Merkez</div>
       </div>
     </div>
   </div>
@@ -853,19 +949,19 @@
         <p class="body-txt">Ürünler, fiyat teklifi veya teknik destek için bize ulaşın. Ekibimiz en kısa sürede yanıt verir.</p>
         <div class="ct-items">
           <div class="ct-item">
-            <div class="ct-ico">📍</div>
+            <div class="ct-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
             <div><strong>Bursa Merkez</strong><span>Alaaddinbey Mh. 617.Sk. Kongur Plaza No:4, Nilüfer/Bursa</span></div>
           </div>
           <div class="ct-item">
-            <div class="ct-ico">📍</div>
+            <div class="ct-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
             <div><strong>İstanbul Şube</strong><span>Cevizli Mh. Tugay Yolu Cad., Maltepe/İstanbul</span></div>
           </div>
           <div class="ct-item">
-            <div class="ct-ico">📞</div>
+            <div class="ct-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 11.5a19.79 19.79 0 01-3.07-8.67A2 2 0 013.62 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div>
             <div><strong>Telefon</strong><span>+90 (224) 441 21 62</span></div>
           </div>
           <div class="ct-item">
-            <div class="ct-ico">✉️</div>
+            <div class="ct-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
             <div><strong>E-posta</strong><span>rmk@rmkmekatronik.com</span></div>
           </div>
         </div>
@@ -948,6 +1044,30 @@
 
 <!-- JS ───────────────────────────────────────────────────────────── -->
 <script>
+  // Preloader
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const pl = document.getElementById('preloader');
+      pl.classList.add('done');
+      setTimeout(() => pl.remove(), 700);
+    }, 1200);
+  });
+
+  // Custom Cursor
+  const dot = document.getElementById('cursor-dot');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  (function animCursor() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    dot.style.left = mx + 'px';
+    dot.style.top = my + 'px';
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animCursor);
+  })();
+
   // Nav
   function toggleNav() { document.getElementById('navLinks').classList.toggle('open'); }
   document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open')));
