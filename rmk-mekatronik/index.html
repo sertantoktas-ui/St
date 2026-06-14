@@ -7,594 +7,567 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    /* ── Reset ─────────────────────────────────────────────────── */
+    /* ── Reset ──────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --blue:   #1BBCE8;
-      --navy:   #004898;
-      --red:    #D42427;
-      --dark:   #0B0E17;
-      --dark2:  #111520;
-      --white:  #ffffff;
-      --off:    #F5F7FA;
-      --text:   #0B0E17;
-      --muted:  #6B7380;
-      --border: #E2E8F0;
+      --black: #000000;
+      --black2: #0d0d0d;
+      --black3: #111111;
+      --red:   #D42427;
+      --red2:  #ff2d30;
+      --white: #ffffff;
+      --white2: rgba(255,255,255,.65);
+      --white3: rgba(255,255,255,.25);
+      --white4: rgba(255,255,255,.07);
+      --border: rgba(255,255,255,.1);
+      --border-r: rgba(212,36,39,.35);
     }
     html { scroll-behavior: smooth; }
-    body { font-family: 'Inter', sans-serif; background: var(--white); color: var(--text); overflow-x: hidden; line-height: 1.6; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--black);
+      color: var(--white);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
     a { text-decoration: none; color: inherit; }
     img { display: block; max-width: 100%; }
     ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: var(--blue); }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--red); }
 
     /* ── Reveal ─────────────────────────────────────────────────── */
-    [data-reveal] { opacity: 0; transform: translateY(50px); transition: opacity .8s ease, transform .8s ease; }
-    [data-reveal="left"] { transform: translateX(-60px); }
-    [data-reveal="right"] { transform: translateX(60px); }
-    [data-reveal="scale"] { transform: scale(.9); }
-    [data-reveal].in { opacity: 1; transform: none; }
-    [data-delay="1"] { transition-delay: .1s; }
-    [data-delay="2"] { transition-delay: .2s; }
-    [data-delay="3"] { transition-delay: .3s; }
-    [data-delay="4"] { transition-delay: .4s; }
-    [data-delay="5"] { transition-delay: .5s; }
-    [data-delay="6"] { transition-delay: .6s; }
+    [data-reveal] { opacity:0; transform:translateY(48px); transition:opacity .8s ease,transform .8s ease; }
+    [data-reveal="left"]  { transform:translateX(-56px); }
+    [data-reveal="right"] { transform:translateX(56px); }
+    [data-reveal="scale"] { transform:scale(.92); }
+    [data-reveal].in { opacity:1; transform:none; }
+    [data-delay="1"]{transition-delay:.1s} [data-delay="2"]{transition-delay:.2s}
+    [data-delay="3"]{transition-delay:.3s} [data-delay="4"]{transition-delay:.4s}
+    [data-delay="5"]{transition-delay:.5s} [data-delay="6"]{transition-delay:.6s}
 
     /* ── Navbar ─────────────────────────────────────────────────── */
     .nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
-      padding: 0 40px;
-      transition: background .4s, box-shadow .4s;
-    }
-    .nav.solid {
-      background: rgba(11,14,23,.92);
+      position: fixed; top:0; left:0; right:0; z-index:999;
+      padding: 0 48px;
+      background: rgba(0,0,0,.85);
       backdrop-filter: blur(20px);
-      box-shadow: 0 1px 0 rgba(255,255,255,.06);
+      border-bottom: 1px solid var(--border);
     }
-    .nav-inner { max-width: 1320px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 72px; }
-    .nav-logo img { height: 44px; width: auto; filter: brightness(0) invert(1); }
-    .nav-links { display: flex; gap: 2px; list-style: none; }
-    .nav-links a { padding: 8px 18px; border-radius: 8px; font-size: .88rem; font-weight: 500; color: rgba(255,255,255,.65); transition: color .2s, background .2s; }
-    .nav-links a:hover { color: #fff; background: rgba(255,255,255,.07); }
+    .nav-inner { max-width:1320px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:70px; }
+    .nav-logo img { height:42px; width:auto; filter:brightness(0) invert(1); }
+    .nav-links { display:flex; gap:2px; list-style:none; }
+    .nav-links a { padding:8px 18px; border-radius:6px; font-size:.88rem; font-weight:500; color:var(--white2); transition:color .2s,background .2s; }
+    .nav-links a:hover { color:var(--white); background:var(--white4); }
     .nav-cta {
-      background: var(--red) !important; color: #fff !important;
-      border-radius: 9px !important; padding: 10px 22px !important;
-      font-weight: 600 !important; font-size: .88rem !important;
-      box-shadow: 0 4px 16px rgba(212,36,39,.3) !important;
-      transition: background .2s, transform .2s, box-shadow .2s !important;
+      background: var(--red) !important;
+      color: var(--white) !important;
+      border-radius:7px !important;
+      padding:9px 22px !important;
+      font-weight:700 !important;
+      font-size:.88rem !important;
+      transition: background .2s, transform .2s !important;
     }
-    .nav-cta:hover { background: #b01e21 !important; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(212,36,39,.4) !important; }
-    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
-    .hamburger span { width: 24px; height: 2px; background: #fff; border-radius: 2px; transition: .3s; }
+    .nav-cta:hover { background:var(--red2) !important; transform:translateY(-1px); }
+    .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; }
+    .hamburger span { width:24px; height:2px; background:var(--white); border-radius:2px; }
 
-    /* ── Hero ───────────────────────────────────────────────────── */
+    /* ── HERO ───────────────────────────────────────────────────── */
     #hero {
       min-height: 100vh;
-      background: var(--dark);
-      display: flex; flex-direction: column;
-      justify-content: center;
-      padding: 72px 40px 0;
+      background: var(--black);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 48px 80px;
       position: relative;
       overflow: hidden;
     }
-    /* Subtle grid */
+    /* Grid overlay */
     #hero::before {
-      content: '';
-      position: absolute; inset: 0;
+      content:'';
+      position:absolute; inset:0;
       background-image:
-        linear-gradient(rgba(27,188,232,.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(27,188,232,.04) 1px, transparent 1px);
-      background-size: 72px 72px;
-      animation: gridDrift 25s linear infinite;
+        linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+      background-size: 80px 80px;
     }
-    @keyframes gridDrift { 0%{transform:translateY(0)} 100%{transform:translateY(72px)} }
-    /* Glow blobs */
-    .hero-glow {
-      position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none;
+    /* Red glow top-right */
+    #hero::after {
+      content:'';
+      position:absolute;
+      top:-200px; right:-200px;
+      width:700px; height:700px;
+      background: radial-gradient(circle, rgba(212,36,39,.22) 0%, transparent 65%);
+      pointer-events:none;
     }
-    .hero-glow-1 { width: 600px; height: 600px; background: rgba(27,188,232,.12); top: -100px; right: -100px; animation: blobFloat 8s ease-in-out infinite; }
-    .hero-glow-2 { width: 400px; height: 400px; background: rgba(0,72,152,.18); bottom: -50px; left: 5%; animation: blobFloat 10s 2s ease-in-out infinite reverse; }
-    .hero-glow-3 { width: 300px; height: 300px; background: rgba(212,36,39,.07); top: 30%; left: 40%; animation: blobFloat 7s 1s ease-in-out infinite; }
-    @keyframes blobFloat { 0%,100%{transform:translate(0,0)} 50%{transform:translate(20px,-20px)} }
+    .hero-top-bar {
+      position:absolute; top:70px; left:0; right:0;
+      padding: 22px 48px;
+      display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--border);
+      font-size:.75rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+      color:var(--white3);
+    }
+    .hero-top-bar .tag {
+      display:flex; align-items:center; gap:8px;
+      color: var(--red);
+    }
+    .hero-top-bar .tag::before { content:''; width:8px; height:8px; background:var(--red); border-radius:50%; animation:pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
 
-    .hero-content { max-width: 1320px; margin: 0 auto; width: 100%; position: relative; z-index: 1; }
-    .hero-eyebrow {
-      display: inline-flex; align-items: center; gap: 10px;
-      color: var(--blue); font-size: .78rem; font-weight: 700;
-      letter-spacing: .14em; text-transform: uppercase;
-      margin-bottom: 28px;
-      animation: fadeUp .6s ease both;
-    }
-    .hero-eyebrow::before { content: ''; width: 32px; height: 1px; background: var(--blue); }
+    .hero-inner { max-width:1320px; margin:0 auto; width:100%; position:relative; z-index:1; }
+
     .hero-title {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(3rem, 8vw, 8rem);
-      font-weight: 800;
-      color: var(--white);
-      line-height: .95;
-      letter-spacing: -.03em;
-      margin-bottom: 32px;
-      animation: fadeUp .7s .1s ease both;
+      font-family:'Syne',sans-serif;
+      font-size: clamp(3.5rem,9vw,9.5rem);
+      font-weight:800;
+      color:var(--white);
+      line-height:.9;
+      letter-spacing:-.04em;
+      margin-bottom:48px;
+      animation: fadeUp .7s ease both;
     }
-    .hero-title .accent { color: var(--blue); }
-    .hero-title .stroke {
-      -webkit-text-stroke: 2px rgba(255,255,255,.25);
-      color: transparent;
+    .hero-title .red { color:var(--red); }
+    .hero-title .outline {
+      -webkit-text-stroke:2px rgba(255,255,255,.2);
+      color:transparent;
     }
-    .hero-bottom {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 48px;
-      align-items: end;
-      margin-top: 64px;
-      padding-bottom: 80px;
-      animation: fadeUp .7s .2s ease both;
-    }
-    .hero-desc { color: rgba(255,255,255,.5); font-size: 1rem; line-height: 1.8; max-width: 420px; }
-    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: flex-end; }
 
-    .btn-blue {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--navy); color: #fff;
-      padding: 15px 30px; border-radius: 10px;
-      font-weight: 600; font-size: .92rem;
-      box-shadow: 0 4px 24px rgba(0,72,152,.35);
-      transition: background .2s, transform .2s, box-shadow .2s;
+    .hero-bottom-row {
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:0;
+      border-top:1px solid var(--border);
+      animation:fadeUp .7s .15s ease both;
     }
-    .btn-blue:hover { background: #003a80; transform: translateY(-2px); box-shadow: 0 10px 32px rgba(0,72,152,.45); }
-    .btn-outline-light {
-      display: inline-flex; align-items: center; gap: 8px;
-      border: 1px solid rgba(255,255,255,.2);
-      color: rgba(255,255,255,.75);
-      padding: 14px 28px; border-radius: 10px;
-      font-weight: 500; font-size: .92rem;
-      background: rgba(255,255,255,.04);
-      transition: border-color .2s, color .2s, background .2s;
+    .hbr-cell {
+      padding:32px 36px;
+      border-right:1px solid var(--border);
     }
-    .btn-outline-light:hover { border-color: var(--blue); color: var(--blue); background: rgba(27,188,232,.08); }
-    .btn-red-solid {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--red); color: #fff;
-      padding: 15px 30px; border-radius: 10px;
-      font-weight: 600; font-size: .92rem;
-      box-shadow: 0 4px 24px rgba(212,36,39,.3);
-      transition: background .2s, transform .2s;
-    }
-    .btn-red-solid:hover { background: #b01e21; transform: translateY(-2px); }
+    .hbr-cell:last-child { border-right:none; }
+    .hbr-label { font-size:.72rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--white3); margin-bottom:10px; }
+    .hbr-val { font-family:'Space Grotesk',sans-serif; font-size:1rem; font-weight:600; color:var(--white); line-height:1.5; }
+    .hbr-btn { display:flex; gap:10px; align-items:center; }
 
-    /* Divider line */
-    .hero-divider { width: 100%; height: 1px; background: rgba(255,255,255,.07); max-width: 1320px; margin: 0 auto; }
+    .btn-red {
+      display:inline-flex; align-items:center; gap:8px;
+      background:var(--red); color:var(--white);
+      padding:14px 28px; border-radius:8px;
+      font-weight:700; font-size:.9rem;
+      transition:background .2s,transform .2s;
+    }
+    .btn-red:hover { background:var(--red2); transform:translateY(-2px); }
+    .btn-wh {
+      display:inline-flex; align-items:center; gap:8px;
+      background:var(--white); color:var(--black);
+      padding:14px 28px; border-radius:8px;
+      font-weight:700; font-size:.9rem;
+      transition:background .2s,transform .2s,opacity .2s;
+    }
+    .btn-wh:hover { opacity:.88; transform:translateY(-2px); }
+    .btn-ghost-w {
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--border);
+      color:var(--white2); padding:13px 26px; border-radius:8px;
+      font-weight:600; font-size:.9rem;
+      transition:border-color .2s,color .2s;
+    }
+    .btn-ghost-w:hover { border-color:var(--white); color:var(--white); }
 
-    /* ── Stats band ──────────────────────────────────────────────── */
+    @keyframes fadeUp { from{opacity:0;transform:translateY(32px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Stats ──────────────────────────────────────────────────── */
     #stats {
-      background: var(--dark);
-      padding: 0 40px 80px;
+      background:var(--black);
+      border-top:1px solid var(--border);
+      border-bottom:1px solid var(--border);
     }
-    .stats-inner {
-      max-width: 1320px; margin: 0 auto;
-      display: grid; grid-template-columns: repeat(4,1fr);
-      gap: 0;
+    .stats-grid {
+      max-width:1320px; margin:0 auto;
+      display:grid; grid-template-columns:repeat(4,1fr);
     }
-    .stat-box {
-      padding: 48px 40px;
-      border-right: 1px solid rgba(255,255,255,.07);
-      transition: background .3s;
+    .stat-cell {
+      padding:56px 44px;
+      border-right:1px solid var(--border);
+      position:relative; overflow:hidden;
+      transition:background .3s;
+      cursor:default;
     }
-    .stat-box:last-child { border-right: none; }
-    .stat-box:hover { background: rgba(27,188,232,.04); }
-    .stat-num2 {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(2.4rem,4vw,4rem);
-      font-weight: 800;
-      color: var(--white);
-      line-height: 1;
-      margin-bottom: 8px;
+    .stat-cell:last-child { border-right:none; }
+    .stat-cell:hover { background:rgba(212,36,39,.05); }
+    .stat-cell::before {
+      content:'';
+      position:absolute; top:0; left:0; right:0;
+      height:2px;
+      background:var(--red);
+      transform:scaleX(0); transform-origin:left;
+      transition:transform .4s ease;
     }
-    .stat-num2 span { color: var(--blue); }
-    .stat-label2 { color: rgba(255,255,255,.4); font-size: .85rem; font-weight: 500; letter-spacing: .04em; }
-    .stat-bar { width: 32px; height: 2px; background: var(--blue); margin-bottom: 20px; }
+    .stat-cell:hover::before { transform:scaleX(1); }
+    .stat-n {
+      font-family:'Syne',sans-serif;
+      font-size:clamp(2.8rem,4.5vw,5rem);
+      font-weight:800;
+      color:var(--white);
+      line-height:1; margin-bottom:10px;
+    }
+    .stat-n em { color:var(--red); font-style:normal; }
+    .stat-t { font-size:.82rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--white3); }
 
-    /* ── Marquee ─────────────────────────────────────────────────── */
+    /* ── Marquee ────────────────────────────────────────────────── */
     #brands {
-      background: var(--off);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 0; overflow: hidden;
+      background:var(--black2);
+      border-bottom:1px solid var(--border);
+      overflow:hidden; padding:0;
     }
-    .marquee-row { display: flex; }
-    .marquee-track {
-      display: flex; gap: 64px; align-items: center;
-      padding: 28px 0;
-      animation: mq 28s linear infinite; flex-shrink: 0;
+    .mq-row { display:flex; }
+    .mq-track {
+      display:flex; gap:72px; align-items:center;
+      padding:26px 0; flex-shrink:0;
+      animation:mq 30s linear infinite;
     }
-    .marquee-track:nth-child(2) { animation-delay: -14s; }
+    .mq-track:nth-child(2) { animation-delay:-15s; }
     @keyframes mq { 0%{transform:translateX(0)} 100%{transform:translateX(-100%)} }
-    .brand-pill {
-      display: flex; align-items: center; gap: 8px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 600; font-size: .85rem;
-      color: #9CA3AF;
-      white-space: nowrap; letter-spacing: .05em;
-      text-transform: uppercase;
-      transition: color .2s;
+    .brand-tag2 {
+      font-family:'Space Grotesk',sans-serif;
+      font-weight:700; font-size:.82rem;
+      letter-spacing:.1em; text-transform:uppercase;
+      color:rgba(255,255,255,.25);
+      white-space:nowrap;
+      display:flex; align-items:center; gap:10px;
+      transition:color .2s;
     }
-    .brand-pill:hover { color: var(--navy); }
-    .brand-pill::before { content:''; width:5px; height:5px; background:var(--blue); border-radius:50%; flex-shrink:0; }
+    .brand-tag2:hover { color:var(--red); }
+    .brand-tag2::before { content:''; width:4px; height:4px; background:var(--red); border-radius:50%; opacity:.7; flex-shrink:0; }
 
-    /* ── Section base ────────────────────────────────────────────── */
-    .section { padding: 120px 40px; }
-    .section-dark { background: var(--dark2); }
-    .section-off { background: var(--off); }
-    .section-white { background: var(--white); }
-    .inner { max-width: 1320px; margin: 0 auto; }
+    /* ── Common section ─────────────────────────────────────────── */
+    .sec { padding:120px 48px; }
+    .inner { max-width:1320px; margin:0 auto; }
 
-    .s-label {
-      display: inline-flex; align-items: center; gap: 8px;
-      font-size: .72rem; font-weight: 700; letter-spacing: .14em;
-      text-transform: uppercase; color: var(--blue);
-      margin-bottom: 20px;
+    .s-eyebrow {
+      display:inline-flex; align-items:center; gap:10px;
+      font-size:.72rem; font-weight:700; letter-spacing:.14em;
+      text-transform:uppercase; color:var(--red);
+      margin-bottom:20px;
     }
-    .s-label::before { content:''; width:24px; height:1px; background:var(--blue); }
-    .s-label-light { color: var(--blue); }
+    .s-eyebrow::before { content:''; width:28px; height:1px; background:var(--red); }
 
-    h2.headline {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(2.2rem, 4.5vw, 4.5rem);
-      font-weight: 800; line-height: 1.02; letter-spacing: -.025em;
-      color: var(--text); margin-bottom: 24px;
+    .big-title {
+      font-family:'Syne',sans-serif;
+      font-size:clamp(2.2rem,4.8vw,5rem);
+      font-weight:800; line-height:1.0;
+      letter-spacing:-.03em;
+      color:var(--white);
+      margin-bottom:24px;
     }
-    h2.headline-light { color: var(--white); }
-    h2.headline .blue { color: var(--blue); }
+    .big-title .red { color:var(--red); }
+    .big-title .outline {
+      -webkit-text-stroke:1.5px rgba(255,255,255,.25);
+      color:transparent;
+    }
+    .body-txt { color:var(--white2); font-size:1rem; line-height:1.85; max-width:500px; }
 
-    .sub-text { color: var(--muted); font-size: 1.05rem; line-height: 1.8; max-width: 520px; }
-    .sub-text-light { color: rgba(255,255,255,.45); }
+    /* ── About ──────────────────────────────────────────────────── */
+    #about { background:var(--black); border-top:1px solid var(--border); }
+    .about-grid { display:grid; grid-template-columns:1fr 1fr; gap:96px; align-items:center; }
 
-    /* ── About ───────────────────────────────────────────────────── */
-    #about .inner {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 100px;
-      align-items: center;
+    /* Tech visual */
+    .tech-visual {
+      aspect-ratio:1;
+      background:var(--black3);
+      border:1px solid var(--border);
+      border-radius:16px;
+      position:relative; overflow:hidden;
     }
-    .about-left {}
-    .about-right {}
-    .about-visual {
-      position: relative;
-      aspect-ratio: 4/3;
-      border-radius: 20px;
-      overflow: hidden;
-      background: var(--dark2);
-      border: 1px solid rgba(27,188,232,.15);
-    }
-    /* Abstract tech visual */
-    .about-visual-inner {
-      position: absolute; inset: 0;
+    .tech-visual-bg {
+      position:absolute; inset:0;
       background:
-        radial-gradient(circle at 70% 30%, rgba(27,188,232,.2) 0%, transparent 50%),
-        radial-gradient(circle at 20% 70%, rgba(0,72,152,.25) 0%, transparent 45%);
+        radial-gradient(circle at 65% 35%, rgba(212,36,39,.18) 0%, transparent 55%),
+        radial-gradient(circle at 25% 70%, rgba(212,36,39,.08) 0%, transparent 45%);
     }
-    .about-visual-grid {
-      position: absolute; inset: 0;
-      background-image: linear-gradient(rgba(27,188,232,.06) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(27,188,232,.06) 1px, transparent 1px);
-      background-size: 40px 40px;
+    .tech-grid-overlay {
+      position:absolute; inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+      background-size:44px 44px;
     }
-    .about-logo-center {
-      position: absolute; top:50%; left:50%;
-      transform: translate(-50%,-50%);
-      text-align: center;
+    .tech-center {
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      text-align:center;
     }
-    .about-logo-center img { width: 160px; opacity: .8; filter: brightness(0) invert(1); }
-    .about-ring {
-      position: absolute; border-radius: 50%;
-      border: 1px dashed rgba(27,188,232,.2);
-      top:50%; left:50%; transform:translate(-50%,-50%);
+    .tech-center img { width:160px; filter:brightness(0) invert(1); opacity:.9; }
+    .ring {
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      border-radius:50%;
+      border:1px solid;
     }
-    .about-ring-1 { width:160px; height:160px; animation: spin 20s linear infinite; }
-    .about-ring-2 { width:260px; height:260px; animation: spin 30s linear infinite reverse; border-color:rgba(0,72,152,.2); }
-    .about-ring-3 { width:360px; height:360px; animation: spin 40s linear infinite; border-color:rgba(27,188,232,.1); }
+    .ring-1 { width:180px; height:180px; border-color:rgba(212,36,39,.3); animation:spin 18s linear infinite; }
+    .ring-2 { width:280px; height:280px; border-color:rgba(255,255,255,.08); animation:spin 28s linear infinite reverse; }
+    .ring-3 { width:380px; height:380px; border-color:rgba(212,36,39,.1); animation:spin 40s linear infinite; }
     @keyframes spin { 0%{transform:translate(-50%,-50%) rotate(0)} 100%{transform:translate(-50%,-50%) rotate(360deg)} }
 
-    .value-grid { display: flex; flex-direction: column; gap: 16px; margin-top: 40px; }
-    .value-row {
-      display: flex; align-items: center; gap: 16px;
-      padding: 18px 20px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-weight: 500; font-size: .92rem;
-      color: var(--text);
-      transition: border-color .3s, background .3s, transform .3s;
-      cursor: default;
+    .value-list2 { display:flex; flex-direction:column; gap:1px; margin-top:40px; }
+    .vl-item {
+      display:flex; align-items:center; gap:16px;
+      padding:18px 0;
+      border-bottom:1px solid var(--border);
+      font-size:.92rem; font-weight:500;
+      color:var(--white2);
+      transition:color .2s, padding-left .3s;
+      cursor:default;
     }
-    .value-row:hover { border-color: var(--blue); background: rgba(27,188,232,.04); transform: translateX(6px); }
-    .value-ico { font-size: 1.2rem; flex-shrink: 0; width: 36px; text-align: center; }
+    .vl-item:last-child { border-bottom:none; }
+    .vl-item:hover { color:var(--white); padding-left:8px; }
+    .vl-dot { width:6px; height:6px; background:var(--red); border-radius:50%; flex-shrink:0; }
 
-    /* ── Products ────────────────────────────────────────────────── */
-    #products {
-      padding: 120px 40px;
-      background: var(--white);
+    /* ── Products ───────────────────────────────────────────────── */
+    #products { background:var(--black2); border-top:1px solid var(--border); }
+    .prod-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:60px; gap:32px; }
+    .prod-header a { font-size:.88rem; font-weight:600; color:var(--red); border-bottom:1px solid var(--red); padding-bottom:2px; transition:opacity .2s; }
+    .prod-header a:hover { opacity:.7; }
+
+    .prod-grid {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:hidden;
     }
-    .products-header {
-      display: flex; justify-content: space-between; align-items: flex-end;
-      margin-bottom: 64px; gap: 32px;
+    .pc {
+      padding:36px 32px;
+      border-right:1px solid var(--border);
+      border-bottom:1px solid var(--border);
+      background:var(--black3);
+      position:relative; overflow:hidden;
+      cursor:pointer;
+      transition:background .4s;
     }
-    .products-header .right { text-align: right; }
-    .products-header a {
-      font-weight: 600; font-size: .9rem; color: var(--navy);
-      border-bottom: 1px solid var(--navy); padding-bottom: 2px;
-      transition: color .2s, border-color .2s;
+    /* Remove bottom border for last row */
+    .pc:nth-child(7),.pc:nth-child(8),.pc:nth-child(9) { border-bottom:none; }
+    .pc:nth-child(3),.pc:nth-child(6),.pc:nth-child(9) { border-right:none; }
+    /* Red fill on hover */
+    .pc::after {
+      content:''; position:absolute; inset:0;
+      background:var(--red);
+      transform:scaleY(0); transform-origin:bottom;
+      transition:transform .5s cubic-bezier(.77,0,.18,1);
+      z-index:0;
     }
-    .products-header a:hover { color: var(--blue); border-color: var(--blue); }
-    .products-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
-      border: 2px solid var(--border);
-      border-radius: 18px;
-      overflow: hidden;
+    .pc:hover::after { transform:scaleY(1); }
+    .pc > * { position:relative; z-index:1; }
+    .pc:hover .pc-num { color:rgba(255,255,255,.3); }
+    .pc:hover .pc-ico { background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.2); }
+    .pc:hover h3 { color:var(--white); }
+    .pc:hover .pc-desc { color:rgba(255,255,255,.7); }
+    .pc:hover .pc-tag { background:rgba(255,255,255,.15); color:var(--white); border-color:rgba(255,255,255,.2); }
+
+    .pc-num { font-size:.68rem; font-weight:700; letter-spacing:.12em; color:rgba(255,255,255,.2); margin-bottom:18px; transition:color .3s; }
+    .pc-ico {
+      width:46px; height:46px; border-radius:10px;
+      background:var(--white4); border:1px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.25rem; margin-bottom:20px;
+      transition:background .3s,border-color .3s;
     }
-    .prod-card {
-      padding: 40px 36px;
-      background: var(--white);
-      border-right: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      cursor: pointer; position: relative; overflow: hidden;
-      transition: background .3s;
-    }
-    .prod-card::after {
-      content: ''; position: absolute; inset: 0;
-      background: var(--blue);
-      transform: scaleX(0); transform-origin: left;
-      transition: transform .6s cubic-bezier(.77,0,.18,1);
-      z-index: 0;
-    }
-    .prod-card:hover::after { transform: scaleX(1); }
-    .prod-card:hover .prod-ico,
-    .prod-card:hover h3,
-    .prod-card:hover .prod-desc,
-    .prod-card:hover .prod-tags { position: relative; z-index: 1; }
-    .prod-card:hover h3 { color: #fff; }
-    .prod-card:hover .prod-desc { color: rgba(255,255,255,.7); }
-    .prod-card:hover .prod-ico { background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.2); }
-    .prod-card:hover .prod-tag { background: rgba(255,255,255,.15); color: #fff; border-color: rgba(255,255,255,.2); }
-    .prod-card:hover .prod-num { color: rgba(255,255,255,.2); }
-    .prod-ico {
-      width: 48px; height: 48px; border-radius: 12px;
-      background: var(--off); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; margin-bottom: 24px;
-      position: relative; z-index: 1;
-      transition: background .3s, border-color .3s;
-    }
-    .prod-num {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: .75rem; font-weight: 700; letter-spacing: .1em;
-      color: var(--muted); margin-bottom: 10px;
-      position: relative; z-index: 1;
-      transition: color .3s;
-    }
-    .prod-card h3 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.05rem; font-weight: 700;
-      color: var(--text); margin-bottom: 10px;
-      position: relative; z-index: 1;
-      transition: color .3s;
-    }
-    .prod-desc {
-      color: var(--muted); font-size: .855rem; line-height: 1.65;
-      margin-bottom: 20px; position: relative; z-index: 1;
-      transition: color .3s;
-    }
-    .prod-tags { display: flex; flex-wrap: wrap; gap: 5px; position: relative; z-index: 1; }
-    .prod-tag {
-      font-size: .68rem; font-weight: 700; letter-spacing: .05em;
-      color: var(--navy); background: rgba(0,72,152,.07);
-      border: 1px solid rgba(0,72,152,.12);
-      padding: 3px 8px; border-radius: 4px;
-      transition: background .3s, color .3s, border-color .3s;
+    .pc h3 { font-family:'Space Grotesk',sans-serif; font-size:1rem; font-weight:700; color:var(--white); margin-bottom:9px; transition:color .3s; }
+    .pc .pc-desc { color:rgba(255,255,255,.35); font-size:.84rem; line-height:1.65; margin-bottom:18px; transition:color .3s; }
+    .pc-tags { display:flex; flex-wrap:wrap; gap:5px; }
+    .pc-tag {
+      font-size:.67rem; font-weight:700; letter-spacing:.05em;
+      color:var(--red); background:rgba(212,36,39,.1);
+      border:1px solid rgba(212,36,39,.25);
+      padding:3px 8px; border-radius:4px;
+      transition:background .3s,color .3s,border-color .3s;
     }
 
-    /* ── Services ────────────────────────────────────────────────── */
-    #services {
-      padding: 120px 40px;
-      background: var(--dark2);
-    }
-    .services-top {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 80px; align-items: center;
-      margin-bottom: 80px;
-    }
-    .services-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    /* ── Services ───────────────────────────────────────────────── */
+    #services { background:var(--black); border-top:1px solid var(--border); }
+    .svc-top { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center; margin-bottom:72px; }
+    .svc-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
     .svc-card {
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.07);
-      border-radius: 16px; padding: 36px 28px;
-      transition: border-color .3s, background .3s, transform .3s;
+      background:var(--black3);
+      padding:36px 28px;
+      transition:background .3s;
     }
-    .svc-card:hover { border-color: var(--blue); background: rgba(27,188,232,.06); transform: translateY(-4px); }
-    .svc-ico-wrap {
-      width: 48px; height: 48px; border-radius: 12px;
-      background: rgba(27,188,232,.1); border: 1px solid rgba(27,188,232,.2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; margin-bottom: 20px;
+    .svc-card:hover { background:#1a0000; }
+    .svc-ico {
+      width:44px; height:44px; border-radius:10px;
+      background:rgba(212,36,39,.1); border:1px solid rgba(212,36,39,.2);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.2rem; margin-bottom:18px;
     }
-    .svc-card h3 { font-size: 1rem; font-weight: 600; color: var(--white); margin-bottom: 10px; }
-    .svc-card p { color: rgba(255,255,255,.4); font-size: .855rem; line-height: 1.7; }
+    .svc-card h3 { font-size:.98rem; font-weight:700; color:var(--white); margin-bottom:9px; }
+    .svc-card p { color:rgba(255,255,255,.35); font-size:.84rem; line-height:1.7; }
 
-    /* ── CTA ─────────────────────────────────────────────────────── */
-    #cta {
-      padding: 0 40px 120px;
-      background: var(--dark2);
-    }
+    /* ── CTA ────────────────────────────────────────────────────── */
+    #cta { background:var(--black); padding-top:0; padding-bottom:120px; }
     .cta-box {
-      max-width: 1320px; margin: 0 auto;
-      background: linear-gradient(135deg, #004898 0%, #1BBCE8 100%);
-      border-radius: 24px; padding: 80px;
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 64px; align-items: center;
-      position: relative; overflow: hidden;
+      max-width:1320px; margin:0 auto;
+      background:var(--red);
+      border-radius:16px;
+      padding:80px;
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:64px; align-items:center;
+      position:relative; overflow:hidden;
     }
     .cta-box::before {
-      content: ''; position: absolute;
-      top: -80px; right: -80px;
-      width: 400px; height: 400px;
-      background: rgba(255,255,255,.07); border-radius: 50%;
+      content:''; position:absolute;
+      top:-100px; right:-100px;
+      width:450px; height:450px;
+      background:rgba(255,255,255,.06); border-radius:50%;
+    }
+    .cta-box::after {
+      content:''; position:absolute;
+      bottom:-80px; left:30%;
+      width:300px; height:300px;
+      background:rgba(0,0,0,.1); border-radius:50%;
     }
     .cta-box h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(1.8rem,3vw,3rem);
-      font-weight: 800; color: #fff; line-height: 1.1;
+      font-family:'Syne',sans-serif;
+      font-size:clamp(1.8rem,3vw,3.2rem);
+      font-weight:800; color:var(--white); line-height:1.1;
+      position:relative; z-index:1;
     }
-    .cta-box p { color: rgba(255,255,255,.7); font-size: 1rem; margin-top: 14px; }
-    .cta-right { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; position: relative; z-index: 1; }
-    .btn-white {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: #fff; color: var(--navy);
-      padding: 15px 30px; border-radius: 10px;
-      font-weight: 700; font-size: .92rem;
-      transition: transform .2s, box-shadow .2s;
-    }
-    .btn-white:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,0,0,.2); }
-    .cta-tel {
-      color: rgba(255,255,255,.7); font-size: .9rem;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .cta-tel strong { color: #fff; }
+    .cta-box p { color:rgba(255,255,255,.75); font-size:1rem; margin-top:14px; position:relative; z-index:1; }
+    .cta-right { display:flex; flex-direction:column; gap:14px; align-items:flex-start; position:relative; z-index:1; }
+    .cta-tel { color:rgba(255,255,255,.8); font-size:.9rem; display:flex; align-items:center; gap:8px; }
+    .cta-tel strong { color:var(--white); }
 
-    /* ── Contact ─────────────────────────────────────────────────── */
-    #contact { padding: 120px 40px; background: var(--white); }
-    .contact-grid {
-      display: grid; grid-template-columns: 1fr 1.5fr;
-      gap: 80px; align-items: start;
+    /* ── Contact ────────────────────────────────────────────────── */
+    #contact { background:var(--black2); border-top:1px solid var(--border); }
+    .ct-grid { display:grid; grid-template-columns:1fr 1.5fr; gap:80px; align-items:start; }
+    .ct-info h2 { margin-bottom:16px; }
+    .ct-info p { margin-bottom:40px; }
+    .ct-items { display:flex; flex-direction:column; gap:0; }
+    .ct-item {
+      display:flex; gap:14px; align-items:flex-start;
+      padding:18px 0; border-bottom:1px solid var(--border);
     }
-    .contact-info { padding-top: 8px; }
-    .contact-info h2 { margin-bottom: 16px; }
-    .contact-info p { margin-bottom: 40px; }
-    .c-items { display: flex; flex-direction: column; gap: 20px; }
-    .c-item { display: flex; gap: 14px; align-items: flex-start; }
-    .c-ico {
-      width: 40px; height: 40px; border-radius: 10px;
-      background: var(--off); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: .95rem; flex-shrink: 0;
-      transition: background .2s, border-color .2s;
+    .ct-item:last-child { border-bottom:none; }
+    .ct-ico {
+      width:38px; height:38px; border-radius:8px;
+      background:var(--white4); border:1px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      font-size:.9rem; flex-shrink:0;
+      transition:background .2s,border-color .2s;
     }
-    .c-item:hover .c-ico { background: rgba(27,188,232,.08); border-color: rgba(27,188,232,.25); }
-    .c-item strong { display: block; font-weight: 600; font-size: .88rem; margin-bottom: 2px; }
-    .c-item span { color: var(--muted); font-size: .855rem; }
-    .socials { display: flex; gap: 10px; margin-top: 36px; }
-    .soc-btn {
-      width: 40px; height: 40px; border-radius: 10px;
-      background: var(--off); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: .8rem; font-weight: 700; color: var(--muted);
-      transition: background .2s, color .2s, border-color .2s, transform .2s;
+    .ct-item:hover .ct-ico { background:rgba(212,36,39,.12); border-color:rgba(212,36,39,.3); }
+    .ct-item strong { display:block; font-size:.82rem; font-weight:700; color:var(--white); margin-bottom:2px; letter-spacing:.04em; text-transform:uppercase; }
+    .ct-item span { color:var(--white2); font-size:.855rem; }
+    .socials { display:flex; gap:8px; margin-top:32px; }
+    .soc {
+      width:38px; height:38px; border-radius:8px;
+      background:var(--white4); border:1px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      font-size:.75rem; font-weight:700; color:var(--white2);
+      transition:background .2s,border-color .2s,color .2s,transform .2s;
     }
-    .soc-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); transform: translateY(-2px); }
+    .soc:hover { background:var(--red); border-color:var(--red); color:var(--white); transform:translateY(-2px); }
 
     /* Form */
-    .contact-form {
-      background: var(--off); border: 1px solid var(--border);
-      border-radius: 20px; padding: 48px;
+    .ct-form {
+      background:var(--black3); border:1px solid var(--border);
+      border-radius:14px; padding:44px;
     }
-    .contact-form h3 { font-family: 'Space Grotesk',sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 28px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .fg { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
-    .fg label { font-size: .8rem; font-weight: 700; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+    .ct-form h3 { font-family:'Space Grotesk',sans-serif; font-size:1.15rem; font-weight:700; margin-bottom:28px; color:var(--white); }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .fg { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+    .fg label { font-size:.73rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--white3); }
     .fg input, .fg textarea, .fg select {
-      background: #fff; border: 1px solid var(--border);
-      border-radius: 9px; padding: 13px 15px;
-      color: var(--text); font-size: .92rem; font-family: 'Inter', sans-serif;
-      outline: none; width: 100%;
-      transition: border-color .2s, box-shadow .2s;
+      background:var(--black); border:1px solid var(--border);
+      border-radius:8px; padding:12px 14px;
+      color:var(--white); font-size:.9rem; font-family:'Inter',sans-serif;
+      outline:none; width:100%;
+      transition:border-color .2s,box-shadow .2s;
     }
+    .fg input::placeholder, .fg textarea::placeholder { color:rgba(255,255,255,.2); }
     .fg input:focus, .fg textarea:focus, .fg select:focus {
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(27,188,232,.1);
+      border-color:var(--red);
+      box-shadow:0 0 0 3px rgba(212,36,39,.12);
     }
-    .fg textarea { resize: vertical; min-height: 110px; }
-    .form-submit {
-      width: 100%; background: var(--navy); color: #fff;
-      border: none; padding: 15px; border-radius: 10px;
-      font-weight: 700; font-size: .95rem; cursor: pointer;
-      box-shadow: 0 4px 20px rgba(0,72,152,.25);
-      transition: background .2s, transform .2s, box-shadow .2s;
-      margin-top: 6px;
+    .fg textarea { resize:vertical; min-height:110px; }
+    .fg select option { background:var(--black3); }
+    .form-sub {
+      width:100%; background:var(--red); color:var(--white);
+      border:none; padding:15px; border-radius:9px;
+      font-weight:700; font-size:.92rem; cursor:pointer;
+      transition:background .2s,transform .2s;
+      margin-top:4px;
     }
-    .form-submit:hover { background: #003a80; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(0,72,152,.35); }
-    .form-ok { display: none; text-align: center; padding: 20px; color: var(--navy); font-weight: 600; }
+    .form-sub:hover { background:var(--red2); transform:translateY(-1px); }
+    .form-ok { display:none; text-align:center; padding:18px; color:var(--red); font-weight:600; font-size:.95rem; }
 
     /* ── Footer ─────────────────────────────────────────────────── */
     footer {
-      background: var(--dark); padding: 72px 40px 32px;
-      border-top: 1px solid rgba(255,255,255,.06);
+      background:var(--black);
+      border-top:1px solid var(--border);
+      padding:72px 48px 32px;
     }
-    .footer-top {
-      max-width: 1320px; margin: 0 auto;
-      display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr;
-      gap: 48px; padding-bottom: 56px;
-      border-bottom: 1px solid rgba(255,255,255,.07);
+    .ft-top {
+      max-width:1320px; margin:0 auto;
+      display:grid; grid-template-columns:1.5fr 1fr 1fr 1fr;
+      gap:48px; padding-bottom:56px;
+      border-bottom:1px solid var(--border);
     }
-    .f-brand-logo img { height: 42px; filter: brightness(0) invert(1); }
-    .f-brand-text { color: rgba(255,255,255,.35); font-size: .875rem; line-height: 1.75; margin-top: 16px; max-width: 240px; }
-    .f-col h4 { color: rgba(255,255,255,.5); font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 18px; }
-    .f-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-    .f-col ul a { color: rgba(255,255,255,.45); font-size: .875rem; transition: color .2s; }
-    .f-col ul a:hover { color: var(--blue); }
-    .footer-bottom2 {
-      max-width: 1320px; margin: 32px auto 0;
-      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
-      color: rgba(255,255,255,.25); font-size: .82rem;
+    .ft-logo img { height:40px; filter:brightness(0) invert(1); }
+    .ft-desc { color:rgba(255,255,255,.25); font-size:.87rem; line-height:1.8; margin-top:16px; max-width:230px; }
+    .ft-col h4 { font-size:.72rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.25); margin-bottom:18px; }
+    .ft-col ul { list-style:none; display:flex; flex-direction:column; gap:10px; }
+    .ft-col ul a { color:rgba(255,255,255,.35); font-size:.875rem; transition:color .2s; }
+    .ft-col ul a:hover { color:var(--red); }
+    .ft-bottom {
+      max-width:1320px; margin:28px auto 0;
+      display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+      color:rgba(255,255,255,.2); font-size:.8rem;
     }
-    .footer-bottom2 span.b { color: var(--blue); }
+    .ft-bottom .r { color:var(--red); }
 
-    /* ── Responsive ──────────────────────────────────────────────── */
+    /* ── Responsive ─────────────────────────────────────────────── */
     @media(max-width:1100px){
-      #about .inner { grid-template-columns: 1fr; gap: 48px; }
-      .products-grid { grid-template-columns: repeat(2,1fr); }
-      .services-top { grid-template-columns: 1fr; gap: 40px; }
-      .services-grid { grid-template-columns: 1fr 1fr; }
-      .cta-box { grid-template-columns: 1fr; }
-      .contact-grid { grid-template-columns: 1fr; gap: 48px; }
-      .footer-top { grid-template-columns: 1fr 1fr; }
-      .stats-inner { grid-template-columns: repeat(2,1fr); }
-      .hero-bottom { grid-template-columns: 1fr; }
-      .hero-actions { justify-content: flex-start; }
+      .about-grid { grid-template-columns:1fr; gap:48px; }
+      .prod-grid { grid-template-columns:repeat(2,1fr); }
+      .pc:nth-child(9) { border-bottom:1px solid var(--border); }
+      .svc-top { grid-template-columns:1fr; gap:40px; }
+      .svc-grid { grid-template-columns:1fr 1fr; }
+      .cta-box { grid-template-columns:1fr; }
+      .ct-grid { grid-template-columns:1fr; gap:48px; }
+      .ft-top { grid-template-columns:1fr 1fr; }
+      .stats-grid { grid-template-columns:repeat(2,1fr); }
+      .hero-bottom-row { grid-template-columns:1fr 1fr; }
     }
     @media(max-width:768px){
-      .nav { padding: 0 20px; }
-      .nav-links { display: none; }
-      .hamburger { display: flex; }
+      .nav,.sec,#products,#services,#contact,#cta,footer { padding-left:20px; padding-right:20px; }
+      #hero { padding:0 20px 60px; }
+      .hero-top-bar { padding:22px 20px; display:none; }
+      .nav-links { display:none; }
+      .hamburger { display:flex; }
       .nav-links.open {
-        display: flex; flex-direction: column; position: fixed;
-        top: 72px; left: 0; right: 0;
-        background: rgba(11,14,23,.97); backdrop-filter: blur(20px);
-        padding: 20px; gap: 4px;
-        border-bottom: 1px solid rgba(255,255,255,.06);
+        display:flex; flex-direction:column; position:fixed;
+        top:70px; left:0; right:0;
+        background:rgba(0,0,0,.97);
+        backdrop-filter:blur(20px);
+        padding:20px; gap:4px;
+        border-bottom:1px solid var(--border);
       }
-      .nav-links.open a { display: block; padding: 12px 16px; }
-      .section, #products, #services, #contact, #stats, #cta { padding: 72px 20px; }
-      #hero { padding: 72px 20px 0; }
-      .hero-title { font-size: clamp(2.5rem,8vw,4rem); }
-      .products-grid { grid-template-columns: 1fr; }
-      .services-grid { grid-template-columns: 1fr; }
-      .form-row { grid-template-columns: 1fr; }
-      .footer-top { grid-template-columns: 1fr; }
-      .cta-box { padding: 48px 28px; }
-      .products-header { flex-direction: column; align-items: flex-start; }
-      .products-header .right { text-align: left; }
+      .nav-links.open a { display:block; padding:12px 16px; }
+      .hero-title { font-size:clamp(3rem,10vw,5rem); }
+      .hero-bottom-row { grid-template-columns:1fr; }
+      .prod-grid { grid-template-columns:1fr; }
+      .svc-grid { grid-template-columns:1fr; }
+      .form-row { grid-template-columns:1fr; }
+      .ft-top { grid-template-columns:1fr; }
+      .cta-box { padding:48px 24px; }
+      .stats-grid { grid-template-columns:repeat(2,1fr); }
     }
-
-    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-
-    /* icon arrow */
-    .arrow-ico { font-size: .8rem; }
   </style>
 </head>
 <body>
 
-<!-- ── NAV ──────────────────────────────────────────────────────── -->
+<!-- NAV ──────────────────────────────────────────────────────────── -->
 <nav class="nav" id="nav">
   <div class="nav-inner">
     <a href="#" class="nav-logo"><img src="rmk_logo.png" alt="RMK Mekatronik" /></a>
@@ -610,348 +583,302 @@
   </div>
 </nav>
 
-<!-- ── HERO ──────────────────────────────────────────────────────── -->
+<!-- HERO ─────────────────────────────────────────────────────────── -->
 <section id="hero">
-  <div class="hero-glow hero-glow-1"></div>
-  <div class="hero-glow hero-glow-2"></div>
-  <div class="hero-glow hero-glow-3"></div>
-  <div class="hero-content">
-    <div class="hero-eyebrow">Çözüm Odaklı Mühendislik</div>
+  <div class="hero-top-bar">
+    <div class="tag">Aktif — Çözüm Odaklı Mühendislik</div>
+    <span>Bursa & İstanbul, Türkiye</span>
+    <span>rmkmekatronik.com</span>
+  </div>
+  <div class="hero-inner">
     <h1 class="hero-title">
       Mekatronikte<br>
-      <span class="accent">Güvenilir</span><br>
-      <span class="stroke">Çözüm Ortağı</span>
+      <span class="red">Güvenilir</span><br>
+      <span class="outline">Çözüm Ortağı</span>
     </h1>
-    <div class="hero-divider" style="margin:0 0 0;"></div>
-    <div class="hero-bottom">
-      <p class="hero-desc">
-        Global marka uzmanlığını yerel deneyimle birleştirerek; lineer hareket, redüktör, servo motor, kolaboratif robotlar ve daha fazlası için en yüksek kalitede mühendislik çözümleri sunuyoruz.
-      </p>
-      <div class="hero-actions">
-        <a href="#products" class="btn-blue">
-          Ürünleri Keşfet
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-        <a href="#contact" class="btn-red-solid">
-          Teklif Al
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </a>
-        <a href="#about" class="btn-outline-light">Hakkımızda</a>
+    <div class="hero-bottom-row">
+      <div class="hbr-cell">
+        <div class="hbr-label">Misyon</div>
+        <div class="hbr-val">Global marka uzmanlığını yerel deneyimle birleştiren mühendislik çözümleri</div>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── STATS ─────────────────────────────────────────────────────── -->
-<section id="stats">
-  <div class="hero-divider" style="max-width:1320px;margin:0 auto 0;"></div>
-  <div class="stats-inner">
-    <div class="stat-box" data-reveal data-delay="1">
-      <div class="stat-bar"></div>
-      <div class="stat-num2"><span class="counter" data-target="20">0</span><span>+</span></div>
-      <div class="stat-label2">Yıllık Deneyim</div>
-    </div>
-    <div class="stat-box" data-reveal data-delay="2">
-      <div class="stat-bar"></div>
-      <div class="stat-num2"><span class="counter" data-target="10">0</span><span>+</span></div>
-      <div class="stat-label2">Global Yetkili Marka</div>
-    </div>
-    <div class="stat-box" data-reveal data-delay="3">
-      <div class="stat-bar"></div>
-      <div class="stat-num2"><span class="counter" data-target="500">0</span><span>+</span></div>
-      <div class="stat-label2">Mutlu Müşteri</div>
-    </div>
-    <div class="stat-box" data-reveal data-delay="4">
-      <div class="stat-bar"></div>
-      <div class="stat-num2"><span class="counter" data-target="2">0</span></div>
-      <div class="stat-label2">Türkiye Ofisi</div>
-    </div>
-  </div>
-</section>
-
-<!-- ── BRANDS ─────────────────────────────────────────────────────── -->
-<section id="brands">
-  <div class="marquee-row">
-    <div class="marquee-track">
-      <span class="brand-pill">THK</span>
-      <span class="brand-pill">Yaskawa</span>
-      <span class="brand-pill">Neugart</span>
-      <span class="brand-pill">HSD Mechatronics</span>
-      <span class="brand-pill">Güdel</span>
-      <span class="brand-pill">Sumitomo</span>
-      <span class="brand-pill">Kübler</span>
-      <span class="brand-pill">DOBOT</span>
-      <span class="brand-pill">Busch</span>
-      <span class="brand-pill">R+W</span>
-      <span class="brand-pill">Nadella</span>
-      <span class="brand-pill">VIPA</span>
-      <span class="brand-pill">Teltonika</span>
-      <span class="brand-pill">Semar</span>
-      <span class="brand-pill">Hansen</span>
-      <span class="brand-pill">Beka-Lube</span>
-      <span class="brand-pill">Shuton</span>
-      <span class="brand-pill">Eurovac</span>
-    </div>
-    <div class="marquee-track">
-      <span class="brand-pill">THK</span>
-      <span class="brand-pill">Yaskawa</span>
-      <span class="brand-pill">Neugart</span>
-      <span class="brand-pill">HSD Mechatronics</span>
-      <span class="brand-pill">Güdel</span>
-      <span class="brand-pill">Sumitomo</span>
-      <span class="brand-pill">Kübler</span>
-      <span class="brand-pill">DOBOT</span>
-      <span class="brand-pill">Busch</span>
-      <span class="brand-pill">R+W</span>
-      <span class="brand-pill">Nadella</span>
-      <span class="brand-pill">VIPA</span>
-      <span class="brand-pill">Teltonika</span>
-      <span class="brand-pill">Semar</span>
-      <span class="brand-pill">Hansen</span>
-      <span class="brand-pill">Beka-Lube</span>
-      <span class="brand-pill">Shuton</span>
-      <span class="brand-pill">Eurovac</span>
-    </div>
-  </div>
-</section>
-
-<!-- ── ABOUT ──────────────────────────────────────────────────────── -->
-<section id="about" class="section section-white">
-  <div class="inner">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center;">
-      <!-- Visual left -->
-      <div data-reveal="left">
-        <div class="about-visual">
-          <div class="about-visual-inner"></div>
-          <div class="about-visual-grid"></div>
-          <div class="about-ring about-ring-1"></div>
-          <div class="about-ring about-ring-2"></div>
-          <div class="about-ring about-ring-3"></div>
-          <div class="about-logo-center">
-            <img src="rmk_logo.png" alt="RMK Mekatronik" />
-          </div>
+      <div class="hbr-cell">
+        <div class="hbr-label">Ofisler</div>
+        <div class="hbr-val">Bursa (Merkez)<br>İstanbul (Şube)</div>
+      </div>
+      <div class="hbr-cell" style="border-right:none;">
+        <div class="hbr-label">Başlayın</div>
+        <div class="hbr-btn">
+          <a href="#products" class="btn-red">Ürünler →</a>
+          <a href="#contact" class="btn-ghost-w">Teklif Al</a>
         </div>
       </div>
-      <!-- Text right -->
+    </div>
+  </div>
+</section>
+
+<!-- STATS ────────────────────────────────────────────────────────── -->
+<section id="stats">
+  <div class="stats-grid">
+    <div class="stat-cell" data-reveal data-delay="1">
+      <div class="stat-n"><span class="counter" data-target="20">0</span><em>+</em></div>
+      <div class="stat-t">Yıllık Deneyim</div>
+    </div>
+    <div class="stat-cell" data-reveal data-delay="2">
+      <div class="stat-n"><span class="counter" data-target="10">0</span><em>+</em></div>
+      <div class="stat-t">Global Yetkili Marka</div>
+    </div>
+    <div class="stat-cell" data-reveal data-delay="3">
+      <div class="stat-n"><span class="counter" data-target="500">0</span><em>+</em></div>
+      <div class="stat-t">Mutlu Müşteri</div>
+    </div>
+    <div class="stat-cell" data-reveal data-delay="4">
+      <div class="stat-n"><span class="counter" data-target="2">0</span></div>
+      <div class="stat-t">Türkiye Ofisi</div>
+    </div>
+  </div>
+</section>
+
+<!-- BRANDS ───────────────────────────────────────────────────────── -->
+<section id="brands">
+  <div class="mq-row">
+    <div class="mq-track">
+      <span class="brand-tag2">THK</span><span class="brand-tag2">Yaskawa</span>
+      <span class="brand-tag2">Neugart</span><span class="brand-tag2">HSD Mechatronics</span>
+      <span class="brand-tag2">Güdel</span><span class="brand-tag2">Sumitomo</span>
+      <span class="brand-tag2">Kübler</span><span class="brand-tag2">DOBOT</span>
+      <span class="brand-tag2">Busch</span><span class="brand-tag2">R+W</span>
+      <span class="brand-tag2">Nadella</span><span class="brand-tag2">VIPA</span>
+      <span class="brand-tag2">Teltonika</span><span class="brand-tag2">Semar</span>
+      <span class="brand-tag2">Hansen</span><span class="brand-tag2">Beka-Lube</span>
+      <span class="brand-tag2">Shuton</span><span class="brand-tag2">Eurovac</span>
+    </div>
+    <div class="mq-track">
+      <span class="brand-tag2">THK</span><span class="brand-tag2">Yaskawa</span>
+      <span class="brand-tag2">Neugart</span><span class="brand-tag2">HSD Mechatronics</span>
+      <span class="brand-tag2">Güdel</span><span class="brand-tag2">Sumitomo</span>
+      <span class="brand-tag2">Kübler</span><span class="brand-tag2">DOBOT</span>
+      <span class="brand-tag2">Busch</span><span class="brand-tag2">R+W</span>
+      <span class="brand-tag2">Nadella</span><span class="brand-tag2">VIPA</span>
+      <span class="brand-tag2">Teltonika</span><span class="brand-tag2">Semar</span>
+      <span class="brand-tag2">Hansen</span><span class="brand-tag2">Beka-Lube</span>
+      <span class="brand-tag2">Shuton</span><span class="brand-tag2">Eurovac</span>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT ────────────────────────────────────────────────────────── -->
+<section id="about" class="sec">
+  <div class="inner">
+    <div class="about-grid">
+      <div data-reveal="left">
+        <div class="tech-visual">
+          <div class="tech-visual-bg"></div>
+          <div class="tech-grid-overlay"></div>
+          <div class="ring ring-1"></div>
+          <div class="ring ring-2"></div>
+          <div class="ring ring-3"></div>
+          <div class="tech-center"><img src="rmk_logo.png" alt="RMK" /></div>
+        </div>
+      </div>
       <div data-reveal="right">
-        <div class="s-label">Hakkımızda</div>
-        <h2 class="headline">Global uzmanlık,<br><span class="blue">yerel deneyim</span></h2>
-        <p class="sub-text">
-          RMK Mekatronik A.Ş., mekatronik alanında global marka deneyimini yerel bilgi birikimi ile harmanlayarak Türkiye sektörüne değer katmaktadır. HSD Mechatronics yetkili servisi dahil uçtan uca çözüm sunuyoruz.
-        </p>
-        <div class="value-grid" style="margin-top:36px;">
-          <div class="value-row" data-reveal data-delay="1"><div class="value-ico">🎯</div> Çözüm odaklı mühendislik anlayışı</div>
-          <div class="value-row" data-reveal data-delay="2"><div class="value-ico">🌍</div> Global markaların yetkili distribütörü</div>
-          <div class="value-row" data-reveal data-delay="3"><div class="value-ico">🔬</div> Teknik danışmanlık ve uygulama desteği</div>
-          <div class="value-row" data-reveal data-delay="4"><div class="value-ico">🤝</div> Şeffaflık ve sosyal sorumluluk ilkesi</div>
+        <div class="s-eyebrow">Hakkımızda</div>
+        <h2 class="big-title">Global uzmanlık,<br><span class="red">yerel</span> <span class="outline">deneyim</span></h2>
+        <p class="body-txt">RMK Mekatronik A.Ş., mekatronik alanında global marka deneyimini yerel bilgi birikimi ile harmanlayarak Türkiye sektörüne değer katmaktadır. HSD Mechatronics yetkili servisi dahil uçtan uca çözüm sunuyoruz.</p>
+        <div class="value-list2">
+          <div class="vl-item" data-reveal data-delay="1"><div class="vl-dot"></div>Çözüm odaklı mühendislik anlayışı</div>
+          <div class="vl-item" data-reveal data-delay="2"><div class="vl-dot"></div>Global markaların yetkili distribütörü</div>
+          <div class="vl-item" data-reveal data-delay="3"><div class="vl-dot"></div>Teknik danışmanlık ve uygulama desteği</div>
+          <div class="vl-item" data-reveal data-delay="4"><div class="vl-dot"></div>Şeffaflık ve sosyal sorumluluk ilkesi</div>
         </div>
         <div style="margin-top:36px;">
-          <a href="#contact" class="btn-blue">Bizimle Çalışın →</a>
+          <a href="#contact" class="btn-red">Bizimle Çalışın →</a>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── PRODUCTS ───────────────────────────────────────────────────── -->
-<section id="products">
-  <div class="inner" style="max-width:1320px;margin:0 auto;">
-    <div class="products-header">
+<!-- PRODUCTS ─────────────────────────────────────────────────────── -->
+<section id="products" class="sec">
+  <div class="inner">
+    <div class="prod-header">
       <div>
-        <div class="s-label">Ürün Portföyü</div>
-        <h2 class="headline">Kapsamlı<br><span class="blue">Ürün Grupları</span></h2>
+        <div class="s-eyebrow">Ürün Portföyü</div>
+        <h2 class="big-title">Kapsamlı<br><span class="red">Ürün Grupları</span></h2>
       </div>
-      <div class="right">
-        <p class="sub-text" style="max-width:320px;font-size:.95rem;">Endüstriyel otomasyon ihtiyaçlarınız için 9 farklı ürün kategorisi</p>
-        <a href="#contact" style="display:inline-block;margin-top:16px;">Teklif İste →</a>
+      <div style="text-align:right;">
+        <p class="body-txt" style="max-width:280px;font-size:.9rem;">9 farklı kategoride endüstriyel çözümler</p>
+        <a href="#contact" style="display:inline-block;margin-top:14px;">Teklif İste →</a>
       </div>
     </div>
-    <div class="products-grid">
-
-      <div class="prod-card" data-reveal data-delay="1">
-        <div class="prod-num">01</div>
-        <div class="prod-ico">📐</div>
+    <div class="prod-grid">
+      <div class="pc" data-reveal data-delay="1">
+        <div class="pc-num">01</div>
+        <div class="pc-ico">📐</div>
         <h3>Lineer Hareket Sistemleri</h3>
-        <p class="prod-desc">Yüksek hassasiyetli lineer kılavuzlar, vidalı miller ve aktüatörler ile tam hassasiyet.</p>
-        <div class="prod-tags"><span class="prod-tag">THK</span><span class="prod-tag">Nadella</span><span class="prod-tag">Shuton</span></div>
+        <p class="pc-desc">Yüksek hassasiyetli lineer kılavuzlar, vidalı miller ve aktüatörler.</p>
+        <div class="pc-tags"><span class="pc-tag">THK</span><span class="pc-tag">Nadella</span><span class="pc-tag">Shuton</span></div>
       </div>
-
-      <div class="prod-card" data-reveal data-delay="2">
-        <div class="prod-num">02</div>
-        <div class="prod-ico">⚙️</div>
+      <div class="pc" data-reveal data-delay="2">
+        <div class="pc-num">02</div>
+        <div class="pc-ico">⚙️</div>
         <h3>Redüktörler & Transmisyon</h3>
-        <p class="prod-desc">Endüstriyel redüktörler ve dişli kutuları ile güç aktarımında mükemmellik.</p>
-        <div class="prod-tags"><span class="prod-tag">Neugart</span><span class="prod-tag">Güdel</span><span class="prod-tag">Sumitomo</span><span class="prod-tag">Hansen</span></div>
+        <p class="pc-desc">Endüstriyel redüktörler ve dişli kutuları ile güç aktarım sistemleri.</p>
+        <div class="pc-tags"><span class="pc-tag">Neugart</span><span class="pc-tag">Güdel</span><span class="pc-tag">Sumitomo</span><span class="pc-tag">Hansen</span></div>
       </div>
-
-      <div class="prod-card" data-reveal data-delay="3">
-        <div class="prod-num">03</div>
-        <div class="prod-ico">🔩</div>
+      <div class="pc" data-reveal data-delay="3">
+        <div class="pc-num">03</div>
+        <div class="pc-ico">🔩</div>
         <h3>Spindel Motorları</h3>
-        <p class="prod-desc">CNC tezgahlar için yüksek devirli ve hassas spindel motor çözümleri.</p>
-        <div class="prod-tags"><span class="prod-tag">HSD Mechatronics</span><span class="prod-tag">Semar</span></div>
+        <p class="pc-desc">CNC tezgahlar için yüksek devirli ve hassas spindel motor çözümleri.</p>
+        <div class="pc-tags"><span class="pc-tag">HSD Mechatronics</span><span class="pc-tag">Semar</span></div>
       </div>
-
-      <div class="prod-card" data-reveal data-delay="1">
-        <div class="prod-num">04</div>
-        <div class="prod-ico">📡</div>
+      <div class="pc" data-reveal data-delay="1">
+        <div class="pc-num">04</div>
+        <div class="pc-ico">📡</div>
         <h3>Enkoder & Ölçüm</h3>
-        <p class="prod-desc">Hassas açısal ve doğrusal konum ölçümü için güvenilir enkoder sistemleri.</p>
-        <div class="prod-tags"><span class="prod-tag">Kübler</span></div>
+        <p class="pc-desc">Hassas açısal ve doğrusal konum ölçümü için enkoder sistemleri.</p>
+        <div class="pc-tags"><span class="pc-tag">Kübler</span></div>
       </div>
-
-      <div class="prod-card" data-reveal data-delay="2">
-        <div class="prod-num">05</div>
-        <div class="prod-ico">🖥️</div>
+      <div class="pc" data-reveal data-delay="2">
+        <div class="pc-num">05</div>
+        <div class="pc-ico">🖥️</div>
         <h3>Endüstriyel PC & IIoT</h3>
-        <p class="prod-desc">Endüstriyel ortamlar için sağlam bilgisayar sistemleri ve IIoT bağlantı çözümleri.</p>
-        <div class="prod-tags"><span class="prod-tag">VIPA</span><span class="prod-tag">Teltonika</span></div>
+        <p class="pc-desc">Endüstriyel ortamlar için sağlam bilgisayar ve IIoT bağlantı çözümleri.</p>
+        <div class="pc-tags"><span class="pc-tag">VIPA</span><span class="pc-tag">Teltonika</span></div>
       </div>
-
-      <div class="prod-card" data-reveal data-delay="3">
-        <div class="prod-num">06</div>
-        <div class="prod-ico">⚡</div>
+      <div class="pc" data-reveal data-delay="3">
+        <div class="pc-num">06</div>
+        <div class="pc-ico">⚡</div>
         <h3>Servo Motorlar</h3>
-        <p class="prod-desc">Yüksek dinamik performanslı servo motor ve sürücü sistemleriyle hassas hareket.</p>
-        <div class="prod-tags"><span class="prod-tag">Yaskawa</span></div>
+        <p class="pc-desc">Yüksek dinamik performanslı servo motor ve sürücü sistemleri.</p>
+        <div class="pc-tags"><span class="pc-tag">Yaskawa</span></div>
       </div>
-
-      <div class="prod-card" data-reveal data-delay="1">
-        <div class="prod-num">07</div>
-        <div class="prod-ico">💨</div>
+      <div class="pc" data-reveal data-delay="1">
+        <div class="pc-num">07</div>
+        <div class="pc-ico">💨</div>
         <h3>Vakum Teknolojisi</h3>
-        <p class="prod-desc">Endüstriyel vakum pompaları ve sistemleri ile güvenilir vakum çözümleri.</p>
-        <div class="prod-tags"><span class="prod-tag">Busch</span><span class="prod-tag">Eurovac</span></div>
+        <p class="pc-desc">Endüstriyel vakum pompaları ve güvenilir vakum sistemleri.</p>
+        <div class="pc-tags"><span class="pc-tag">Busch</span><span class="pc-tag">Eurovac</span></div>
       </div>
-
-      <div class="prod-card" data-reveal data-delay="2">
-        <div class="prod-num">08</div>
-        <div class="prod-ico">🔗</div>
+      <div class="pc" data-reveal data-delay="2">
+        <div class="pc-num">08</div>
+        <div class="pc-ico">🔗</div>
         <h3>Kaplinler</h3>
-        <p class="prod-desc">Şaft bağlantısı ve güç aktarımı için esnek ve rijit kaplin çözümleri.</p>
-        <div class="prod-tags"><span class="prod-tag">R+W</span></div>
+        <p class="pc-desc">Şaft bağlantısı için esnek ve rijit kaplin çözümleri.</p>
+        <div class="pc-tags"><span class="pc-tag">R+W</span></div>
       </div>
-
-      <div class="prod-card" data-reveal data-delay="3">
-        <div class="prod-num">09</div>
-        <div class="prod-ico">🤖</div>
+      <div class="pc" data-reveal data-delay="3">
+        <div class="pc-num">09</div>
+        <div class="pc-ico">🤖</div>
         <h3>Kolaboratif Robotlar</h3>
-        <p class="prod-desc">İnsanlarla güvenle çalışabilen, kolay programlanabilir cobot sistemleri.</p>
-        <div class="prod-tags"><span class="prod-tag">DOBOT</span></div>
+        <p class="pc-desc">İnsanlarla güvenle çalışan, kolay programlanabilir cobot sistemleri.</p>
+        <div class="pc-tags"><span class="pc-tag">DOBOT</span></div>
       </div>
-
     </div>
   </div>
 </section>
 
-<!-- ── SERVICES ───────────────────────────────────────────────────── -->
-<section id="services">
+<!-- SERVICES ─────────────────────────────────────────────────────── -->
+<section id="services" class="sec">
   <div class="inner">
-    <div class="services-top">
+    <div class="svc-top">
       <div data-reveal="left">
-        <div class="s-label s-label-light">Hizmetlerimiz</div>
-        <h2 class="headline headline-light">Uçtan Uca<br><span class="blue">Mühendislik</span><br>Desteği</h2>
+        <div class="s-eyebrow">Hizmetlerimiz</div>
+        <h2 class="big-title">Uçtan Uca<br><span class="red">Mühendislik</span><br><span class="outline">Desteği</span></h2>
       </div>
       <div data-reveal="right">
-        <p class="sub-text sub-text-light" style="margin-bottom:28px;">
-          Ürün satışından teknik servise, danışmanlıktan dokümantasyona kadar tam kapsamlı mühendislik ekosistemi sunuyoruz.
-        </p>
-        <a href="#contact" class="btn-outline-light">Hizmet Talep Edin →</a>
+        <p class="body-txt" style="margin-bottom:28px;">Ürün satışından teknik servise, danışmanlıktan dokümantasyona kadar tam kapsamlı destek sunuyoruz.</p>
+        <a href="#contact" class="btn-ghost-w">Hizmet Talep Et →</a>
       </div>
     </div>
-    <div class="services-grid">
+    <div class="svc-grid">
       <div class="svc-card" data-reveal data-delay="1">
-        <div class="svc-ico-wrap">🔧</div>
+        <div class="svc-ico">🔧</div>
         <h3>Teknik Danışmanlık</h3>
         <p>Projenize en uygun ürün ve çözümü belirlemek için uzman mühendislik ekibimizden destek alın.</p>
       </div>
       <div class="svc-card" data-reveal data-delay="2">
-        <div class="svc-ico-wrap">🏭</div>
+        <div class="svc-ico">🏭</div>
         <h3>Yetkili Servis</h3>
-        <p>HSD Mechatronics yetkili servis merkezi olarak kurulum, kalibrasyon, bakım ve onarım hizmetleri.</p>
+        <p>HSD Mechatronics yetkili servis merkezi olarak kurulum, kalibrasyon ve onarım hizmetleri.</p>
       </div>
       <div class="svc-card" data-reveal data-delay="3">
-        <div class="svc-ico-wrap">📦</div>
+        <div class="svc-ico">📦</div>
         <h3>Distribütörlük & Satış</h3>
-        <p>Global markaların Türkiye yetkili distribütörü sıfatıyla orijinal ürünleri en hızlı teslim ediyoruz.</p>
+        <p>Global markaların Türkiye yetkili distribütörü olarak orijinal ürünleri hızlı teslim ediyoruz.</p>
       </div>
       <div class="svc-card" data-reveal data-delay="4">
-        <div class="svc-ico-wrap">📐</div>
+        <div class="svc-ico">📐</div>
         <h3>CAD Kütüphanesi</h3>
-        <p>Ürünlere ait CAD dosyalarına erişerek tasarım süreçlerinizi hızlandırın, hataları azaltın.</p>
+        <p>Ürünlere ait CAD dosyalarına erişerek tasarım süreçlerinizi hızlandırın.</p>
       </div>
       <div class="svc-card" data-reveal data-delay="5">
-        <div class="svc-ico-wrap">📄</div>
+        <div class="svc-ico">📄</div>
         <h3>Teknik Dokümantasyon</h3>
-        <p>Katalog, datasheet ve uygulama rehberleriyle kapsamlı teknik bilgiye anında ulaşın.</p>
+        <p>Katalog, datasheet ve uygulama rehberleriyle kapsamlı teknik bilgiye ulaşın.</p>
       </div>
       <div class="svc-card" data-reveal data-delay="6">
-        <div class="svc-ico-wrap">🎓</div>
+        <div class="svc-ico">🎓</div>
         <h3>Uygulama & Eğitim</h3>
-        <p>Ürün entegrasyonu ve devreye alma süreçlerinde sahada teknik destek ve eğitim sağlıyoruz.</p>
+        <p>Ürün entegrasyonu ve devreye alma süreçlerinde sahada teknik destek ve eğitim.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── CTA ────────────────────────────────────────────────────────── -->
-<section id="cta">
-  <div class="inner" style="max-width:1320px;margin:0 auto;">
+<!-- CTA ──────────────────────────────────────────────────────────── -->
+<section id="cta" class="sec">
+  <div class="inner">
     <div class="cta-box" data-reveal="scale">
       <div>
         <h2>Projeniz için doğru çözümü birlikte bulalım</h2>
         <p>Uzman mühendislik ekibimiz ihtiyaçlarınızı analiz edip en uygun çözümü sunar.</p>
       </div>
       <div class="cta-right">
-        <a href="#contact" class="btn-white">
-          Teklif İsteyin
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-        <div class="cta-tel">
-          <span>📞</span>
-          <span><strong>+90 (224) 441 21 62</strong> &nbsp;— Bursa Merkez</span>
-        </div>
+        <a href="#contact" class="btn-wh">Teklif İsteyin →</a>
+        <div class="cta-tel">📞 <strong>+90 (224) 441 21 62</strong> &nbsp;Bursa Merkez</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── CONTACT ────────────────────────────────────────────────────── -->
-<section id="contact">
+<!-- CONTACT ──────────────────────────────────────────────────────── -->
+<section id="contact" class="sec">
   <div class="inner">
-    <div class="contact-grid">
+    <div class="ct-grid">
       <div data-reveal="left">
-        <div class="s-label">İletişim</div>
-        <h2 class="headline">Bizimle<br><span class="blue">İletişime<br>Geçin</span></h2>
-        <p class="sub-text">Ürünler, fiyat teklifi veya teknik destek için bize ulaşın. Ekibimiz en kısa sürede yanıt verir.</p>
-        <div class="c-items">
-          <div class="c-item">
-            <div class="c-ico">📍</div>
+        <div class="s-eyebrow">İletişim</div>
+        <h2 class="big-title">Bizimle<br><span class="red">İletişime</span><br><span class="outline">Geçin</span></h2>
+        <p class="body-txt">Ürünler, fiyat teklifi veya teknik destek için bize ulaşın. Ekibimiz en kısa sürede yanıt verir.</p>
+        <div class="ct-items">
+          <div class="ct-item">
+            <div class="ct-ico">📍</div>
             <div><strong>Bursa Merkez</strong><span>Alaaddinbey Mh. 617.Sk. Kongur Plaza No:4, Nilüfer/Bursa</span></div>
           </div>
-          <div class="c-item">
-            <div class="c-ico">📍</div>
+          <div class="ct-item">
+            <div class="ct-ico">📍</div>
             <div><strong>İstanbul Şube</strong><span>Cevizli Mh. Tugay Yolu Cad., Maltepe/İstanbul</span></div>
           </div>
-          <div class="c-item">
-            <div class="c-ico">📞</div>
+          <div class="ct-item">
+            <div class="ct-ico">📞</div>
             <div><strong>Telefon</strong><span>+90 (224) 441 21 62</span></div>
           </div>
-          <div class="c-item">
-            <div class="c-ico">✉️</div>
+          <div class="ct-item">
+            <div class="ct-ico">✉️</div>
             <div><strong>E-posta</strong><span>rmk@rmkmekatronik.com</span></div>
           </div>
         </div>
         <div class="socials">
-          <a href="#" class="soc-btn">in</a>
-          <a href="#" class="soc-btn">fb</a>
-          <a href="#" class="soc-btn">yt</a>
-          <a href="#" class="soc-btn">ig</a>
+          <a href="#" class="soc">in</a>
+          <a href="#" class="soc">fb</a>
+          <a href="#" class="soc">yt</a>
+          <a href="#" class="soc">ig</a>
         </div>
       </div>
-      <div class="contact-form" data-reveal="right">
+      <div class="ct-form" data-reveal="right">
         <h3>Mesaj Gönderin</h3>
-        <form id="cForm" onsubmit="submitForm(event)">
+        <form id="cf" onsubmit="submitForm(event)">
           <div class="form-row">
             <div class="fg"><label>Ad Soyad</label><input type="text" placeholder="Adınız Soyadınız" required /></div>
             <div class="fg"><label>E-posta</label><input type="email" placeholder="email@firma.com" required /></div>
@@ -964,33 +891,27 @@
             <label>Konu</label>
             <select>
               <option value="">Konu Seçin</option>
-              <option>Ürün Bilgisi</option>
-              <option>Fiyat Teklifi</option>
-              <option>Teknik Destek</option>
-              <option>Yetkili Servis</option>
-              <option>Diğer</option>
+              <option>Ürün Bilgisi</option><option>Fiyat Teklifi</option>
+              <option>Teknik Destek</option><option>Yetkili Servis</option><option>Diğer</option>
             </select>
           </div>
-          <div class="fg">
-            <label>Mesaj</label>
-            <textarea placeholder="Talebinizi detaylı açıklayın..."></textarea>
-          </div>
-          <button type="submit" class="form-submit">Mesaj Gönder &nbsp;→</button>
-          <div class="form-ok" id="fok">✅ Mesajınız iletildi! En kısa sürede dönüş yapacağız.</div>
+          <div class="fg"><label>Mesaj</label><textarea placeholder="Talebinizi detaylı açıklayın..."></textarea></div>
+          <button type="submit" class="form-sub">Mesaj Gönder →</button>
+          <div class="form-ok" id="fok">✓ Mesajınız iletildi! En kısa sürede dönüş yapacağız.</div>
         </form>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── FOOTER ─────────────────────────────────────────────────────── -->
+<!-- FOOTER ───────────────────────────────────────────────────────── -->
 <footer>
-  <div class="footer-top">
+  <div class="ft-top">
     <div>
-      <div class="f-brand-logo"><img src="rmk_logo.png" alt="RMK Mekatronik" /></div>
-      <p class="f-brand-text">Mekatronik alanında global uzmanlık ve yerel deneyimle çözüm odaklı mühendislik hizmetleri sunuyoruz.</p>
+      <div class="ft-logo"><img src="rmk_logo.png" alt="RMK Mekatronik" /></div>
+      <p class="ft-desc">Mekatronik alanında global uzmanlık ve yerel deneyimle çözüm odaklı mühendislik hizmetleri.</p>
     </div>
-    <div class="f-col">
+    <div class="ft-col">
       <h4>Şirket</h4>
       <ul>
         <li><a href="#about">Hakkımızda</a></li>
@@ -999,8 +920,8 @@
         <li><a href="#contact">İletişim</a></li>
       </ul>
     </div>
-    <div class="f-col">
-      <h4>Ürün Grupları</h4>
+    <div class="ft-col">
+      <h4>Ürünler</h4>
       <ul>
         <li><a href="#products">Lineer Hareket</a></li>
         <li><a href="#products">Redüktörler</a></li>
@@ -1009,7 +930,7 @@
         <li><a href="#products">Vakum Teknolojisi</a></li>
       </ul>
     </div>
-    <div class="f-col">
+    <div class="ft-col">
       <h4>İletişim</h4>
       <ul>
         <li><a href="tel:+902244412162">+90 (224) 441 21 62</a></li>
@@ -1019,48 +940,42 @@
       </ul>
     </div>
   </div>
-  <div class="footer-bottom2">
+  <div class="ft-bottom">
     <span>© 2024 RMK Mekatronik A.Ş. Tüm hakları saklıdır.</span>
-    <span class="b">rmkmekatronik.com</span>
+    <span class="r">rmkmekatronik.com</span>
   </div>
 </footer>
 
-<!-- ── JS ─────────────────────────────────────────────────────────── -->
+<!-- JS ───────────────────────────────────────────────────────────── -->
 <script>
-  // Navbar
-  const nav = document.getElementById('nav');
-  window.addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 40));
-  nav.classList.add('solid');
-
-  // Hamburger
+  // Nav
   function toggleNav() { document.getElementById('navLinks').classList.toggle('open'); }
-  document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', ()=> document.getElementById('navLinks').classList.remove('open')));
+  document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open')));
 
   // Reveal
-  const els = document.querySelectorAll('[data-reveal]');
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }});
-  }, {threshold:.12});
-  els.forEach(el => io.observe(el));
+  }, {threshold:.1});
+  document.querySelectorAll('[data-reveal]').forEach(el => io.observe(el));
 
   // Counter
-  function runCounter(el) {
-    const target = +el.dataset.target, dur = 2000, step = target/(dur/16);
-    let cur = 0;
-    const t = setInterval(()=>{ cur+=step; if(cur>=target){cur=target;clearInterval(t);} el.textContent=Math.floor(cur); }, 16);
+  function runCtr(el) {
+    const t = +el.dataset.target, dur = 2000, step = t/(dur/16);
+    let c = 0;
+    const tm = setInterval(() => { c += step; if(c >= t){c=t;clearInterval(tm);} el.textContent = Math.floor(c); }, 16);
   }
   const statsEl = document.getElementById('stats');
   const sio = new IntersectionObserver(entries => {
-    entries.forEach(e => { if(e.isIntersecting){ e.target.querySelectorAll('.counter').forEach(runCounter); sio.unobserve(e.target); }});
-  }, {threshold:.4});
+    entries.forEach(e => { if(e.isIntersecting){ e.target.querySelectorAll('.counter').forEach(runCtr); sio.unobserve(e.target); }});
+  }, {threshold:.3});
   sio.observe(statsEl);
 
   // Form
   function submitForm(e) {
     e.preventDefault();
-    const btn = e.target.querySelector('.form-submit');
+    const btn = e.target.querySelector('.form-sub');
     btn.textContent = 'Gönderiliyor...'; btn.disabled = true;
-    setTimeout(()=>{ btn.style.display='none'; document.getElementById('fok').style.display='block'; }, 1400);
+    setTimeout(() => { btn.style.display='none'; document.getElementById('fok').style.display='block'; }, 1400);
   }
 
   // Active nav
