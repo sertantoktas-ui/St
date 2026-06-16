@@ -1,0 +1,19 @@
+name: saat_app
+description: Ülke seçimli dünya saati uygulaması
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  timezone: ^0.9.4
+  intl: ^0.19.0
+  flutter_timezone: ^2.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/

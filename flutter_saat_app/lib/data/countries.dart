@@ -1,0 +1,63 @@
+class Country {
+  final String name;
+  final String timezone;
+  final String flag;
+
+  const Country({
+    required this.name,
+    required this.timezone,
+    required this.flag,
+  });
+}
+
+const List<Country> kCountries = [
+  Country(name: 'Türkiye', timezone: 'Europe/Istanbul', flag: '🇹🇷'),
+  Country(name: 'ABD - New York', timezone: 'America/New_York', flag: '🇺🇸'),
+  Country(name: 'ABD - Los Angeles', timezone: 'America/Los_Angeles', flag: '🇺🇸'),
+  Country(name: 'ABD - Chicago', timezone: 'America/Chicago', flag: '🇺🇸'),
+  Country(name: 'İngiltere', timezone: 'Europe/London', flag: '🇬🇧'),
+  Country(name: 'Fransa', timezone: 'Europe/Paris', flag: '🇫🇷'),
+  Country(name: 'Almanya', timezone: 'Europe/Berlin', flag: '🇩🇪'),
+  Country(name: 'İtalya', timezone: 'Europe/Rome', flag: '🇮🇹'),
+  Country(name: 'İspanya', timezone: 'Europe/Madrid', flag: '🇪🇸'),
+  Country(name: 'Rusya', timezone: 'Europe/Moscow', flag: '🇷🇺'),
+  Country(name: 'Çin', timezone: 'Asia/Shanghai', flag: '🇨🇳'),
+  Country(name: 'Japonya', timezone: 'Asia/Tokyo', flag: '🇯🇵'),
+  Country(name: 'Hindistan', timezone: 'Asia/Kolkata', flag: '🇮🇳'),
+  Country(name: 'Avustralya - Sidney', timezone: 'Australia/Sydney', flag: '🇦🇺'),
+  Country(name: 'Avustralya - Melbourne', timezone: 'Australia/Melbourne', flag: '🇦🇺'),
+  Country(name: 'Brezilya', timezone: 'America/Sao_Paulo', flag: '🇧🇷'),
+  Country(name: 'Kanada - Toronto', timezone: 'America/Toronto', flag: '🇨🇦'),
+  Country(name: 'Meksika', timezone: 'America/Mexico_City', flag: '🇲🇽'),
+  Country(name: 'Suudi Arabistan', timezone: 'Asia/Riyadh', flag: '🇸🇦'),
+  Country(name: 'BAE - Dubai', timezone: 'Asia/Dubai', flag: '🇦🇪'),
+  Country(name: 'Güney Kore', timezone: 'Asia/Seoul', flag: '🇰🇷'),
+  Country(name: 'Singapur', timezone: 'Asia/Singapore', flag: '🇸🇬'),
+  Country(name: 'Hong Kong', timezone: 'Asia/Hong_Kong', flag: '🇭🇰'),
+  Country(name: 'İsviçre', timezone: 'Europe/Zurich', flag: '🇨🇭'),
+  Country(name: 'Hollanda', timezone: 'Europe/Amsterdam', flag: '🇳🇱'),
+  Country(name: 'Belçika', timezone: 'Europe/Brussels', flag: '🇧🇪'),
+  Country(name: 'İsveç', timezone: 'Europe/Stockholm', flag: '🇸🇪'),
+  Country(name: 'Norveç', timezone: 'Europe/Oslo', flag: '🇳🇴'),
+  Country(name: 'Danimarka', timezone: 'Europe/Copenhagen', flag: '🇩🇰'),
+  Country(name: 'Finlandiya', timezone: 'Europe/Helsinki', flag: '🇫🇮'),
+  Country(name: 'Polonya', timezone: 'Europe/Warsaw', flag: '🇵🇱'),
+  Country(name: 'Avusturya', timezone: 'Europe/Vienna', flag: '🇦🇹'),
+  Country(name: 'Portekiz', timezone: 'Europe/Lisbon', flag: '🇵🇹'),
+  Country(name: 'Yunanistan', timezone: 'Europe/Athens', flag: '🇬🇷'),
+  Country(name: 'Mısır', timezone: 'Africa/Cairo', flag: '🇪🇬'),
+  Country(name: 'Güney Afrika', timezone: 'Africa/Johannesburg', flag: '🇿🇦'),
+  Country(name: 'Nijerya', timezone: 'Africa/Lagos', flag: '🇳🇬'),
+  Country(name: 'Kenya', timezone: 'Africa/Nairobi', flag: '🇰🇪'),
+  Country(name: 'Pakistan', timezone: 'Asia/Karachi', flag: '🇵🇰'),
+  Country(name: 'Bangladeş', timezone: 'Asia/Dhaka', flag: '🇧🇩'),
+  Country(name: 'Endonezya', timezone: 'Asia/Jakarta', flag: '🇮🇩'),
+  Country(name: 'Tayland', timezone: 'Asia/Bangkok', flag: '🇹🇭'),
+  Country(name: 'Vietnam', timezone: 'Asia/Ho_Chi_Minh', flag: '🇻🇳'),
+  Country(name: 'Filipinler', timezone: 'Asia/Manila', flag: '🇵🇭'),
+  Country(name: 'Yeni Zelanda', timezone: 'Pacific/Auckland', flag: '🇳🇿'),
+  Country(name: 'Arjantin', timezone: 'America/Argentina/Buenos_Aires', flag: '🇦🇷'),
+  Country(name: 'Şili', timezone: 'America/Santiago', flag: '🇨🇱'),
+  Country(name: 'Kolombiya', timezone: 'America/Bogota', flag: '🇨🇴'),
+  Country(name: 'Peru', timezone: 'America/Lima', flag: '🇵🇪'),
+];
