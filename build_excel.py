@@ -509,6 +509,158 @@ bh.conditional_formatting.add("E20", FormulaRule(formula=['E20="Hiz uygun (18-28
 BHS = "'Borulama Hesaplari'"
 
 # ===========================================================================
+# 4b) FABRIKA YERLESIM PLANI (olcekli cizim alani + ikonlar + ornek boru hatti)
+# ===========================================================================
+from openpyxl.drawing.image import Image as XLImage
+
+yp = wb.create_sheet("Fabrika Yerlesim Plani")
+
+GRID_COL0 = 2          # B sutunu
+GRID_COLN = 51          # 50 sutun -> 25 m (1 kare = 0.5 m)
+GRID_ROW0 = 7
+GRID_ROWN = 42          # 36 satir -> 18 m
+CELL_W = 2.2
+CELL_H = 15
+
+title_bar(yp, 1, "FABRIKA YERLESIM PLANI VE BORU GUZERGAHI (1 kare = 0.5 m)", span=20, height=26)
+yp.merge_cells("A2:T2")
+n2 = yp.cell(row=2, column=1, value=(
+    "Bu sayfa olcekli bir cizim/izgara alanidir. Hazir kolon, makine, filtre, fan ikonlari ve ornek bir "
+    "boru guzergahi yerlestirilmistir. Ilave serbest cizim icin: Ekle > Sekiller > Serbest Form / Cizgi / "
+    "Baglayici kullanabilirsiniz. Sekli cizerken ALT tusunu basili tutarsaniz sekil otomatik olarak hucre "
+    "kenarlarina (izgaraya) hizalanir. Kolon ve makine ikonlarini kopyalayip plana istediginiz yere "
+    "tasiyabilirsiniz."))
+n2.font = subtitle_font
+n2.alignment = Alignment(wrap_text=True, vertical="center")
+yp.row_dimensions[2].height = 42
+
+yp.cell(row=3, column=1, value="Olcek:").font = label_font
+yp.cell(row=3, column=2, value="1 kare = 0.5 m  |  Plan boyutu (varsayilan): 25 m x 18 m")
+
+# Izgara hucre boyutlari (kareye yakin gorunum icin)
+for col in range(GRID_COL0, GRID_COLN + 1):
+    yp.column_dimensions[get_column_letter(col)].width = CELL_W
+for row in range(GRID_ROW0, GRID_ROWN + 1):
+    yp.row_dimensions[row].height = CELL_H
+
+grid_thin = Side(style="hair", color="C9C9C9")
+grid_border = Border(left=grid_thin, right=grid_thin, top=grid_thin, bottom=grid_thin)
+for row in range(GRID_ROW0, GRID_ROWN + 1):
+    for col in range(GRID_COL0, GRID_COLN + 1):
+        yp.cell(row=row, column=col).border = grid_border
+
+# Bina (fabrika) dis cephe hatti - kalin siyah cerceve
+wall = Side(style="thick", color="000000")
+for col in range(GRID_COL0, GRID_COLN + 1):
+    yp.cell(row=GRID_ROW0, column=col).border = Border(top=wall, left=grid_thin, right=grid_thin, bottom=grid_thin)
+    yp.cell(row=GRID_ROWN, column=col).border = Border(bottom=wall, left=grid_thin, right=grid_thin, top=grid_thin)
+for row in range(GRID_ROW0, GRID_ROWN + 1):
+    yp.cell(row=row, column=GRID_COL0).border = Border(left=wall, top=grid_thin, bottom=grid_thin, right=grid_thin)
+    yp.cell(row=row, column=GRID_COLN).border = Border(right=wall, top=grid_thin, bottom=grid_thin, left=grid_thin)
+yp.cell(row=GRID_ROW0, column=GRID_COL0).border = Border(top=wall, left=wall, right=grid_thin, bottom=grid_thin)
+yp.cell(row=GRID_ROW0, column=GRID_COLN).border = Border(top=wall, right=wall, left=grid_thin, bottom=grid_thin)
+yp.cell(row=GRID_ROWN, column=GRID_COL0).border = Border(bottom=wall, left=wall, right=grid_thin, top=grid_thin)
+yp.cell(row=GRID_ROWN, column=GRID_COLN).border = Border(bottom=wall, right=wall, left=grid_thin, top=grid_thin)
+
+# Yapi kolonlari (4 m x 4 m tipik endustriyel kolon araligi -> 8 kare araligi)
+KOLON_ICON = "/home/user/St/icons/kolon.png"
+col_rows = list(range(GRID_ROW0 + 4, GRID_ROWN - 1, 8))
+col_cols = list(range(GRID_COL0 + 4, GRID_COLN - 1, 8))
+for cr in col_rows:
+    for cc in col_cols:
+        img = XLImage(KOLON_ICON)
+        img.width = 16
+        img.height = 16
+        anchor = f"{get_column_letter(cc)}{cr}"
+        yp.add_image(img, anchor)
+
+# Ana hat borusu (ornek guzergah) - kalin lacivert kenarlik ile temsil
+MAIN_ROW = GRID_ROW0 + 3
+navy_thick = Side(style="thick", color="1F3864")
+for col in range(GRID_COL0 + 6, GRID_COLN - 5):
+    c = yp.cell(row=MAIN_ROW, column=col)
+    b = c.border
+    c.border = Border(left=b.left, right=b.right, top=b.top, bottom=navy_thick)
+
+# Bransman hatlari (orta kalinlikta mavi kenarlik) - ana hattan asagiya inen 3 dal
+blue_med = Side(style="medium", color="2E5395")
+branch_cols = [GRID_COL0 + 10, GRID_COL0 + 22, GRID_COL0 + 34]
+branch_end_row = GRID_ROW0 + 14
+for bc in branch_cols:
+    for row in range(MAIN_ROW, branch_end_row + 1):
+        c = yp.cell(row=row, column=bc)
+        b = c.border
+        c.border = Border(left=b.left, right=blue_med, top=b.top, bottom=b.bottom)
+
+# Makine ikonlari - bransman ucunda, Makine Giris sayfasindaki ilk 3 makineye baglanti
+MAKINE_ICON = "/home/user/St/icons/makine.png"
+for i, bc in enumerate(branch_cols):
+    img = XLImage(MAKINE_ICON)
+    img.width = 44
+    img.height = 33
+    anchor = f"{get_column_letter(bc - 1)}{branch_end_row + 1}"
+    yp.add_image(img, anchor)
+    lbl = yp.cell(row=branch_end_row + 4, column=bc - 2,
+                   value=fx(f"=IFERROR('Makine Giris'!B{MG_START+i},\"Makine {i+1}\")"))
+    yp.merge_cells(start_row=branch_end_row + 4, start_column=bc - 2, end_row=branch_end_row + 4, end_column=bc + 2)
+    lbl.font = Font(size=8, bold=True, color=NAVY)
+    lbl.alignment = Alignment(horizontal="center")
+
+# Filtre + Fan ikonlari - ana hattin sol ve sag ucunda
+FILTRE_ICON = "/home/user/St/icons/filtre.png"
+FAN_ICON = "/home/user/St/icons/fan.png"
+fimg = XLImage(FILTRE_ICON)
+fimg.width = 50
+fimg.height = 50
+yp.add_image(fimg, f"{get_column_letter(GRID_COL0 + 1)}{MAIN_ROW - 3}")
+flbl = yp.cell(row=MAIN_ROW + 1, column=GRID_COL0 + 1, value=fx("='Filtre Secimi'!B10"))
+flbl.font = Font(size=8, bold=True, color=NAVY)
+
+fnimg = XLImage(FAN_ICON)
+fnimg.width = 50
+fnimg.height = 50
+yp.add_image(fnimg, f"{get_column_letter(GRID_COLN - 4)}{MAIN_ROW - 3}")
+fnlbl = yp.cell(row=MAIN_ROW + 1, column=GRID_COLN - 4, value=fx("='Fan Secimi'!B14"))
+fnlbl.font = Font(size=8, bold=True, color=NAVY)
+yp.merge_cells(start_row=MAIN_ROW + 1, start_column=GRID_COLN - 4, end_row=MAIN_ROW + 1, end_column=GRID_COLN - 1)
+
+# ---- LEGEND (Sembol Lejandi) ----
+LEG_ROW = GRID_ROWN + 2
+section(yp, LEG_ROW, "SEMBOL LEJANDI", span=10)
+legend_items = [
+    ("/home/user/St/icons/kolon.png", "Yapi Kolonu (tipik 4m x 4m aralik)"),
+    ("/home/user/St/icons/boru_ana.png", "Ana Hat Borusu"),
+    ("/home/user/St/icons/boru_bransman.png", "Bransman (Dal) Borusu"),
+    ("/home/user/St/icons/dirsek.png", "90 derece Dirsek"),
+    ("/home/user/St/icons/filtre.png", "Filtre Unitesi"),
+    ("/home/user/St/icons/fan.png", "Fan (Aspirator)"),
+    ("/home/user/St/icons/makine.png", "Makine / Emis Noktasi"),
+]
+lr = LEG_ROW + 1
+for icon_path, text in legend_items:
+    img = XLImage(icon_path)
+    img.width = 36
+    img.height = 24
+    yp.add_image(img, f"A{lr}")
+    yp.cell(row=lr, column=3, value=text).font = Font(size=10)
+    yp.merge_cells(start_row=lr, start_column=3, end_row=lr, end_column=10)
+    yp.row_dimensions[lr].height = 20
+    lr += 1
+
+yp.merge_cells(start_row=lr + 1, start_column=1, end_row=lr + 1, end_column=20)
+foot2 = yp.cell(row=lr + 1, column=1, value=(
+    "Not: Plan olcek/duvar konumlari temsilidir. Gercek fabrika olcum/proje verisine gore izgara satir-sutun "
+    "sayisi (GRID_COL0..GRID_COLN, GRID_ROW0..GRID_ROWN) ve kolon araligi guncellenmelidir."))
+foot2.font = Font(italic=True, size=9, color="777777")
+foot2.alignment = Alignment(wrap_text=True)
+
+yp.sheet_view.showGridLines = False
+YP = "'Fabrika Yerlesim Plani'"
+
+print("Step2b OK - yerlesim plani")
+wb.save("/home/user/St/dust_collection_tool.xlsx")
+
+# ===========================================================================
 # 5) FILTRE SECIMI
 # ===========================================================================
 fs = wb.create_sheet("Filtre Secimi")
@@ -832,7 +984,7 @@ add_name("FanMotorGucu", f"{FN}!$B${ENERJI_KW_ROW}")
 add_name("EnerjiYillik", f"{FN}!$B${ENERJI_YIL_ROW}")
 
 # Sayfa sirasi: Dashboard ilk sirada olmali (yukarida tasindi), digerleri mantikli sirada
-order = ["Dashboard", "Makine Giris", "Borulama Hesaplari", "Boru Capi Tablosu",
+order = ["Dashboard", "Makine Giris", "Borulama Hesaplari", "Fabrika Yerlesim Plani", "Boru Capi Tablosu",
          "Filtre Secimi", "Fan Secimi", "Urun Veritabani", "Teklif Ozeti"]
 wb._sheets = [wb[s] for s in order]
 for ws in wb.worksheets:
