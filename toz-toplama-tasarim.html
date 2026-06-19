@@ -348,7 +348,7 @@ footer{text-align:center;color:var(--muted);font-size:.7rem;padding:20px 10px}
 <div class="page" id="page-yerlesim">
   <div class="card">
     <h2>Fabrika Yerleşim Planı ve Boru Güzergahı</h2>
-    <div class="note">Bina ölçülerini girin, kolonlar otomatik yerleşir. Makine ikonları "Makine Giriş" sayfasındaki kayıtlardan otomatik gelir, sürükleyerek konumlandırabilirsiniz. Kalem / Düz Hat araçlarıyla serbest borulama çizimi yapabilirsiniz.</div>
+    <div class="note">Bina ölçülerini girin, kolonlar otomatik yerleşir. Makine ikonları "Makine Giriş" sayfasındaki kayıtlardan otomatik gelir, sürükleyerek konumlandırabilirsiniz. <b>Boru Hattı</b> aracı AutoCAD'deki POLYLINE gibi çalışır: tıkla-tıkla köşe ekle, çift tık veya Enter ile bitir, Esc ile iptal et, Shift basılıyken 0/45/90° kilitlenir. Fare tekerleği ile yakınlaştır, boşluk (Space) tuşunu basılı tutup sürükleyerek kaydır.</div>
     <div class="grid3 no-print">
       <div class="field"><label>Bina Genişliği (m)</label><input id="ypW" type="number" value="40" oninput="layoutResize()"></div>
       <div class="field"><label>Bina Derinliği (m)</label><input id="ypH" type="number" value="18" oninput="layoutResize()"></div>
@@ -362,7 +362,7 @@ footer{text-align:center;color:var(--muted);font-size:.7rem;padding:20px 10px}
           <div class="tool-row">
             <button class="tbtn active" id="t_select" onclick="setTool('select')">🖱 Seç/Taşı</button>
             <button class="tbtn" id="t_pen" onclick="setTool('pen')">✏ Kalem</button>
-            <button class="tbtn" id="t_line" onclick="setTool('line')">📏 Düz Boru</button>
+            <button class="tbtn" id="t_line" onclick="setTool('line')">📏 Boru Hattı</button>
             <button class="tbtn" id="t_erase" onclick="setTool('erase')">🧹 Sil</button>
           </div>
         </div>
@@ -388,6 +388,17 @@ footer{text-align:center;color:var(--muted);font-size:.7rem;padding:20px 10px}
           <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.75rem;color:var(--muted)">
             <input type="checkbox" id="snapGrid" checked> Izgaraya Hizala (Snap)
           </label>
+          <label style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:.75rem;color:var(--muted)">
+            <input type="checkbox" id="orthoLock"> Dik Açı Kilidi (Ortho)
+          </label>
+        </div>
+        <div class="tool-grp">
+          <h4>Görünüm</h4>
+          <div class="tool-row">
+            <button class="tbtn" onclick="layoutZoom(1.25)">🔍+ Yakınlaştır</button>
+            <button class="tbtn" onclick="layoutZoom(0.8)">🔍− Uzaklaştır</button>
+            <button class="tbtn" onclick="layoutFitView()">⛶ Sığdır</button>
+          </div>
         </div>
         <div class="tool-grp">
           <h4>İşlemler</h4>
@@ -407,8 +418,11 @@ footer{text-align:center;color:var(--muted);font-size:.7rem;padding:20px 10px}
           <div class="legend-mini"><img src="icons/dirsek.png">90° Dirsek</div>
         </div>
       </div>
-      <div class="layout-canvas-box">
-        <canvas id="layoutCanvas" width="1000" height="500"></canvas>
+      <div style="flex:1;min-width:320px;display:flex;flex-direction:column;gap:6px">
+        <div class="layout-canvas-box">
+          <canvas id="layoutCanvas" width="1000" height="500"></canvas>
+        </div>
+        <div class="note no-print" id="layoutStatus" style="margin:0">Bir araç seçin.</div>
       </div>
     </div>
   </div>
@@ -787,17 +801,31 @@ let dragItem = null;
 let pxPerM = 18;
 const MARGIN = 30;
 
+// --- görünüm (zoom/pan) durumu ---
+let viewScale = 1, panX = 0, panY = 0;
+let spaceDown = false;
+let panning = false, panStart = null;
+let lastRaw = null; // {xm,ym} son bilinen fare konumu (metre)
+
+// --- arkaplan cache (grid + duvar) ---
+const bgCanvas = document.createElement('canvas');
+let dirty = true;
+function requestRender(){ dirty = true; }
+function layoutDrawAll(){ requestRender(); } // geriye uyumluluk
+
 function setTool(t){
-  curTool = t; placeItem=null;
+  curTool = t; placeItem=null; curPath=null;
   document.querySelectorAll('.tool-row .tbtn').forEach(b=>b.classList.remove('active'));
   const map = {select:'t_select',pen:'t_pen',line:'t_line',erase:'t_erase'};
   if(map[t]) document.getElementById(map[t]).classList.add('active');
+  updateStatus(); requestRender();
 }
 function setPlaceItem(type){
-  placeItem = type; curTool='place';
+  placeItem = type; curTool='place'; curPath=null;
   document.querySelectorAll('.tool-row .tbtn').forEach(b=>b.classList.remove('active'));
   const map={makine:'i_makine',filtre:'i_filtre',fan:'i_fan',kolon:'i_kolon'};
   if(map[type]) document.getElementById(map[type]).classList.add('active');
+  updateStatus();
 }
 
 document.addEventListener('click', e=>{
@@ -809,6 +837,22 @@ document.addEventListener('click', e=>{
 });
 document.getElementById('lineWidth')?.addEventListener('input', e=>{ curWidth = +e.target.value; });
 
+function updateStatus(){
+  const el = document.getElementById('layoutStatus');
+  if(!el) return;
+  let txt = 'Bir araç seçin.';
+  if(curTool==='select') txt = 'Seç/Taşı: bir öğeye tıklayıp sürükleyin.';
+  else if(curTool==='pen') txt = 'Kalem: sürükleyerek serbest çizim yapın.';
+  else if(curTool==='erase') txt = 'Sil: silinecek öğeye veya boru hattına tıklayın.';
+  else if(curTool==='place') txt = 'Plana tıklayarak öğeyi yerleştirin.';
+  else if(curTool==='line'){
+    txt = curPath
+      ? `Boru Hattı: köşe eklemek için tıklayın · bitirmek için çift tık veya Enter · iptal için Esc (${curPath.points.length} nokta)`
+      : 'Boru Hattı: başlangıç noktasına tıklayın.';
+  }
+  el.textContent = txt;
+}
+
 function layoutResize(){
   layoutState.buildingW = num('ypW')||40;
   layoutState.buildingH = num('ypH')||18;
@@ -819,8 +863,31 @@ function layoutResize(){
   const cv = document.getElementById('layoutCanvas');
   cv.width = layoutState.buildingW*pxPerM + MARGIN*2;
   cv.height = layoutState.buildingH*pxPerM + MARGIN*2;
+  viewScale = 1; panX = 0; panY = 0;
   layoutAutoColumns();
-  layoutDrawAll();
+  rebuildBackground();
+  requestRender();
+}
+
+function rebuildBackground(){
+  const cv = document.getElementById('layoutCanvas');
+  bgCanvas.width = cv.width; bgCanvas.height = cv.height;
+  const bctx = bgCanvas.getContext('2d');
+  bctx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
+  bctx.strokeStyle = '#1c2730'; bctx.lineWidth = 1;
+  bctx.beginPath();
+  for(let x=0;x<=layoutState.buildingW;x+=0.5){
+    const p1=m2px(x,0), p2=m2px(x,layoutState.buildingH);
+    bctx.moveTo(p1.x,p1.y); bctx.lineTo(p2.x,p2.y);
+  }
+  for(let y=0;y<=layoutState.buildingH;y+=0.5){
+    const p1=m2px(0,y), p2=m2px(layoutState.buildingW,y);
+    bctx.moveTo(p1.x,p1.y); bctx.lineTo(p2.x,p2.y);
+  }
+  bctx.stroke();
+  bctx.strokeStyle = '#fff'; bctx.lineWidth = 3;
+  const tl=m2px(0,0), br=m2px(layoutState.buildingW,layoutState.buildingH);
+  bctx.strokeRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y);
 }
 
 function layoutAutoColumns(){
@@ -850,28 +917,22 @@ function layoutAutoMachines(){
 function m2px(xm,ym){ return {x: MARGIN+xm*pxPerM, y: MARGIN+ym*pxPerM}; }
 function px2m(x,y){ return {xm:(x-MARGIN)/pxPerM, ym:(y-MARGIN)/pxPerM}; }
 
-function layoutDrawAll(){
+// ekran pikseli -> taban piksel (pan/zoom tersine cevir)
+function screenToBasePx(sx,sy){ return {x:(sx-panX)/viewScale, y:(sy-panY)/viewScale}; }
+
+function paintFrame(){
   const cv = document.getElementById('layoutCanvas');
   if(!cv) return;
   const ctx = cv.getContext('2d');
   ctx.clearRect(0,0,cv.width,cv.height);
-  // grid (0.5m)
-  ctx.strokeStyle = '#1c2730'; ctx.lineWidth=1;
-  for(let x=0;x<=layoutState.buildingW;x+=0.5){
-    const p1=m2px(x,0), p2=m2px(x,layoutState.buildingH);
-    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
-  }
-  for(let y=0;y<=layoutState.buildingH;y+=0.5){
-    const p1=m2px(0,y), p2=m2px(layoutState.buildingW,y);
-    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
-  }
-  // wall
-  ctx.strokeStyle = '#fff'; ctx.lineWidth=3;
-  const tl=m2px(0,0), br=m2px(layoutState.buildingW,layoutState.buildingH);
-  ctx.strokeRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y);
+  ctx.save();
+  ctx.translate(panX,panY);
+  ctx.scale(viewScale,viewScale);
+  ctx.drawImage(bgCanvas,0,0);
 
-  // freehand/line paths (boru hatlari)
+  // boru hatlari (kalem + cizgi)
   layoutState.paths.forEach(p=>{
+    if(p.points.length<2) return;
     ctx.strokeStyle = p.color; ctx.lineWidth = p.width; ctx.lineCap='round'; ctx.lineJoin='round';
     ctx.beginPath();
     p.points.forEach((pt,i)=>{
@@ -881,7 +942,19 @@ function layoutDrawAll(){
     ctx.stroke();
   });
 
-  // items
+  // boru hatti onizleme (aktif polyline + lastik bant)
+  if(curTool==='line' && curPath && lastRaw){
+    const last = curPath.points[curPath.points.length-1];
+    const preview = computeLinePoint(lastRaw);
+    const p1 = m2px(last.x,last.y), p2 = m2px(preview.x,preview.y);
+    ctx.strokeStyle = curColor; ctx.lineWidth = Math.max(1,curWidth/2); ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = curColor;
+    ctx.beginPath(); ctx.arc(p2.x,p2.y,4,0,Math.PI*2); ctx.fill();
+  }
+
+  // ogeler
   layoutState.items.forEach(it=>{
     const sizeMap = {kolon:14, makine:34, filtre:42, fan:42};
     const sz = sizeMap[it.type]||30;
@@ -895,11 +968,74 @@ function layoutDrawAll(){
       ctx.fillText(it.label.slice(0,14), p.x, p.y+sz/2+11);
     }
   });
+  ctx.restore();
+}
+
+function renderLoop(){
+  if(dirty){ paintFrame(); dirty=false; }
+  requestAnimationFrame(renderLoop);
+}
+
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+
+function zoomAt(screenX,screenY,factor){
+  const newScale = clamp(viewScale*factor, 0.3, 6);
+  const wx = (screenX-panX)/viewScale, wy = (screenY-panY)/viewScale;
+  viewScale = newScale;
+  panX = screenX - wx*viewScale;
+  panY = screenY - wy*viewScale;
+  requestRender();
+}
+function layoutZoom(factor){
+  const cv = document.getElementById('layoutCanvas');
+  zoomAt(cv.width/2, cv.height/2, factor);
+}
+function layoutFitView(){
+  viewScale = 1; panX = 0; panY = 0;
+  requestRender();
 }
 
 function snap(xm,ym){
   if(!document.getElementById('snapGrid').checked) return {x:xm,y:ym};
   return {x: Math.round(xm*2)/2, y: Math.round(ym*2)/2};
+}
+
+// mevcut ogelerin merkezine veya boru ucu noktalarina yapis (object snap)
+function findObjectSnap(xm,ym){
+  const radius = 10/(pxPerM*viewScale);
+  let best=null, bd=radius;
+  layoutState.items.forEach(it=>{
+    const d = Math.hypot(it.xm-xm, it.ym-ym);
+    if(d<bd){ bd=d; best={x:it.xm,y:it.ym}; }
+  });
+  layoutState.paths.forEach(p=>p.points.forEach(pt=>{
+    const d = Math.hypot(pt.x-xm, pt.y-ym);
+    if(d<bd){ bd=d; best={x:pt.x,y:pt.y}; }
+  }));
+  return best;
+}
+
+function orthoActive(){
+  return spaceDown ? false : (document.getElementById('orthoLock')?.checked || shiftDown);
+}
+function applyOrtho(last,p){
+  const dx = p.x-last.x, dy = p.y-last.y;
+  const dist = Math.hypot(dx,dy);
+  if(dist<1e-6) return p;
+  const ang = Math.atan2(dy,dx);
+  const snapAng = Math.round(ang/(Math.PI/4))*(Math.PI/4);
+  return {x: last.x+Math.cos(snapAng)*dist, y: last.y+Math.sin(snapAng)*dist};
+}
+
+// boru hatti icin tikla-tikla noktasini hesapla: object snap > grid snap, sonra ortho kilidi
+function computeLinePoint(raw){
+  const obj = findObjectSnap(raw.xm, raw.ym);
+  let p = obj || snap(raw.xm, raw.ym);
+  if(curPath && curPath.points.length && orthoActive()){
+    const last = curPath.points[curPath.points.length-1];
+    p = applyOrtho(last,p);
+  }
+  return p;
 }
 
 function findItemNear(xm,ym,radius=1.2){
@@ -914,9 +1050,31 @@ function findItemNear(xm,ym,radius=1.2){
 function layoutCanvasPos(e){
   const cv = document.getElementById('layoutCanvas');
   const rect = cv.getBoundingClientRect();
-  const x = (e.touches? e.touches[0].clientX : e.clientX) - rect.left;
-  const y = (e.touches? e.touches[0].clientY : e.clientY) - rect.top;
-  return px2m(x,y);
+  const sx = (e.touches? e.touches[0].clientX : e.clientX) - rect.left;
+  const sy = (e.touches? e.touches[0].clientY : e.clientY) - rect.top;
+  const base = screenToBasePx(sx,sy);
+  return px2m(base.x, base.y);
+}
+
+let shiftDown = false;
+let lastPenScreen = null;
+
+function finishLinePath(){
+  if(!curPath) return;
+  const pts = curPath.points;
+  while(pts.length>1){
+    const a=pts[pts.length-2], b=pts[pts.length-1];
+    if(Math.hypot(a.x-b.x,a.y-b.y)<0.03) pts.pop(); else break;
+  }
+  if(pts.length<2) layoutState.paths.splice(layoutState.paths.indexOf(curPath),1);
+  curPath = null;
+  saveState(); updateStatus(); requestRender();
+}
+function cancelLinePath(){
+  if(!curPath) return;
+  layoutState.paths.splice(layoutState.paths.indexOf(curPath),1);
+  curPath = null;
+  updateStatus(); requestRender();
 }
 
 function initCanvasEvents(){
@@ -924,17 +1082,46 @@ function initCanvasEvents(){
   cv.addEventListener('mousedown', onDown);
   cv.addEventListener('mousemove', onMove);
   cv.addEventListener('mouseup', onUp);
+  cv.addEventListener('mouseleave', onUp);
+  cv.addEventListener('click', onClick);
+  cv.addEventListener('dblclick', e=>{ e.preventDefault(); finishLinePath(); });
+  cv.addEventListener('contextmenu', e=>{ if(curTool==='line'){ e.preventDefault(); cancelLinePath(); } });
+  cv.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const rect = cv.getBoundingClientRect();
+    const sx = e.clientX-rect.left, sy = e.clientY-rect.top;
+    zoomAt(sx, sy, e.deltaY<0 ? 1.1 : 0.9);
+  }, {passive:false});
   cv.addEventListener('touchstart', e=>{onDown(e);e.preventDefault();},{passive:false});
   cv.addEventListener('touchmove', e=>{onMove(e);e.preventDefault();},{passive:false});
   cv.addEventListener('touchend', onUp);
+  document.addEventListener('keydown', e=>{
+    const typing = ['INPUT','TEXTAREA'].includes(document.activeElement?.tagName);
+    if(e.code==='Space' && !typing){ spaceDown=true; e.preventDefault(); }
+    if(e.key==='Shift') shiftDown = true;
+    if(curTool==='line'){
+      if(e.key==='Escape') cancelLinePath();
+      if(e.key==='Enter') finishLinePath();
+    }
+  });
+  document.addEventListener('keyup', e=>{
+    if(e.code==='Space') spaceDown=false;
+    if(e.key==='Shift') shiftDown=false;
+  });
+  requestAnimationFrame(renderLoop);
 }
 
 function onDown(e){
+  if(spaceDown || e.button===1){
+    panning = true; panStart = {x:e.clientX ?? e.touches[0].clientX, y:e.clientY ?? e.touches[0].clientY, panX, panY};
+    return;
+  }
+  if(curTool==='line') return; // çizgi tıklamaları 'click' olayında yönetiliyor
   const {xm,ym} = layoutCanvasPos(e);
   if(curTool==='place' && placeItem){
     const s = snap(xm,ym);
     layoutState.items.push({type:placeItem, xm:s.x, ym:s.y});
-    layoutDrawAll(); saveState(); return;
+    requestRender(); saveState(); return;
   }
   if(curTool==='select'){
     dragItem = findItemNear(xm,ym);
@@ -942,60 +1129,65 @@ function onDown(e){
   }
   if(curTool==='erase'){
     const it = findItemNear(xm,ym);
-    if(it){ layoutState.items.splice(layoutState.items.indexOf(it),1); layoutDrawAll(); saveState(); return; }
-    // erase nearest path
+    if(it){ layoutState.items.splice(layoutState.items.indexOf(it),1); requestRender(); saveState(); return; }
     let bestPi=-1,bd=1;
     layoutState.paths.forEach((p,pi)=>p.points.forEach(pt=>{
       const d=Math.hypot(pt.x-xm,pt.y-ym); if(d<bd){bd=d;bestPi=pi;}
     }));
-    if(bestPi>=0){ layoutState.paths.splice(bestPi,1); layoutDrawAll(); saveState(); }
+    if(bestPi>=0){ layoutState.paths.splice(bestPi,1); requestRender(); saveState(); }
     return;
   }
   if(curTool==='pen'){
     drawing = true;
+    lastPenScreen = layoutCanvasPos(e);
     curPath = {points:[snap(xm,ym)], color:curColor, width:curWidth};
     layoutState.paths.push(curPath);
     return;
   }
-  if(curTool==='line'){
-    const s = snap(xm,ym);
-    if(!curPath){
-      curPath = {points:[s], color:curColor, width:curWidth};
-      layoutState.paths.push(curPath);
-    } else {
-      curPath.points.push(s);
-      curPath = null;
-      saveState();
-    }
-    layoutDrawAll();
-    return;
+}
+function onClick(e){
+  if(curTool!=='line' || spaceDown) return;
+  lastRaw = layoutCanvasPos(e);
+  const pt = computeLinePoint(lastRaw);
+  if(!curPath){
+    curPath = {points:[pt], color:curColor, width:curWidth};
+    layoutState.paths.push(curPath);
+  } else {
+    curPath.points.push(pt);
   }
+  updateStatus(); requestRender();
 }
 function onMove(e){
+  if(panning){
+    const cx = e.clientX ?? (e.touches&&e.touches[0].clientX), cy = e.clientY ?? (e.touches&&e.touches[0].clientY);
+    panX = panStart.panX + (cx-panStart.x);
+    panY = panStart.panY + (cy-panStart.y);
+    requestRender();
+    return;
+  }
   const {xm,ym} = layoutCanvasPos(e);
+  lastRaw = {xm,ym};
   if(curTool==='select' && dragItem){
     const s = snap(xm,ym);
     dragItem.xm = s.x; dragItem.ym = s.y;
-    layoutDrawAll();
+    requestRender();
     return;
   }
   if(curTool==='pen' && drawing && curPath){
+    const dx = xm-(lastPenScreen?.xm??xm), dy = ym-(lastPenScreen?.ym??ym);
+    const minDist = 4/(pxPerM*viewScale); // ekranda ~4px esik degeri
+    if(Math.hypot(dx,dy) < minDist) return;
+    lastPenScreen = {xm,ym};
     curPath.points.push(snap(xm,ym));
-    layoutDrawAll();
+    requestRender();
     return;
   }
   if(curTool==='line' && curPath){
-    // preview: temporarily show line to cursor
-    layoutDrawAll();
-    const ctx = document.getElementById('layoutCanvas').getContext('2d');
-    const last = curPath.points[curPath.points.length-1];
-    const p1 = m2px(last.x,last.y), p2=m2px(xm,ym);
-    ctx.strokeStyle = curColor; ctx.lineWidth=curWidth; ctx.setLineDash([5,4]);
-    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
-    ctx.setLineDash([]);
+    requestRender();
   }
 }
 function onUp(){
+  if(panning){ panning=false; return; }
   if(curTool==='select' && dragItem){ dragItem=null; saveState(); }
   if(curTool==='pen' && drawing){ drawing=false; curPath=null; saveState(); }
 }
@@ -1032,6 +1224,7 @@ window.addEventListener('load', ()=>{
   if(!layoutState.items.length){ layoutAutoColumns(); layoutAutoMachines(); }
   calcAll();
   layoutResize();
+  updateStatus();
 });
 </script>
 </body>
