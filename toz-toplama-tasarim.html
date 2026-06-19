@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Toz Emme Sistemi Tasarım Aracı</title>
+<style>
+:root{
+  --blue:#535DDC; --navy:#141E23; --bg:#0D1418; --card:#1A2530; --border:#2A3540;
+  --text:#E3E6FF; --muted:#8899AA; --green:#22C55E; --amber:#F59E0B; --red:#EF4444; --cyan:#06B6D4;
+  --r:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+button{font-family:inherit;cursor:pointer;color:inherit}
+body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+::-webkit-scrollbar{height:8px;width:8px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px}
+::-webkit-scrollbar-track{background:transparent}
+
+.topbar{display:flex;align-items:center;gap:14px;padding:10px 18px;background:linear-gradient(180deg,var(--navy),#0F171C);
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+.topbar h1{font-size:1.05rem;font-weight:800;letter-spacing:.3px}
+.topbar .sub{color:var(--muted);font-size:.75rem}
+.topbar .grow{flex:1}
+.btn{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-weight:600;font-size:.8rem;color:var(--text)}
+.btn:hover{border-color:var(--blue)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+
+.tabbar{display:flex;gap:2px;overflow-x:auto;background:var(--navy);border-bottom:1px solid var(--border);
+  padding:0 8px;position:sticky;top:53px;z-index:40;scrollbar-width:none}
+.tabbar::-webkit-scrollbar{display:none}
+.tab{flex:none;background:none;border:none;padding:0 14px;height:42px;color:var(--muted);font-weight:600;
+  font-size:.8rem;border-bottom:3px solid transparent;white-space:nowrap}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+.page{display:none;padding:16px;max-width:1500px;margin:0 auto}
+.page.active{display:block}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px}
+.card h2{font-size:1rem;font-weight:800;margin-bottom:10px;color:var(--blue)}
+.card h3{font-size:.85rem;font-weight:700;margin:10px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.note{font-size:.78rem;color:var(--muted);background:#101a20;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:10px}
+.note.warn{color:#ffd9a0;border-color:#5a4222}
+.note.danger{color:#ffb3b3;border-color:#5a2222}
+
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th,td{border:1px solid var(--border);padding:6px 7px;text-align:center}
+th{background:#10181d;color:var(--muted);font-weight:700;font-size:.7rem;text-transform:uppercase}
+td input,td select{width:100%;background:#0e161b;border:1px solid var(--border);border-radius:5px;color:var(--text);
+  padding:4px 5px;font-size:.78rem;text-align:center}
+tr:nth-child(even) td{background:#161f27}
+.tbl-wrap{overflow-x:auto}
+.tot-row td{background:#1c2c20!important;font-weight:800;color:var(--green)}
+.row-err td{background:#2c1c1c!important}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:800px){.grid2,.grid3{grid-template-columns:1fr}}
+
+.field{margin-bottom:10px}
+.field label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:4px;font-weight:600}
+.field input,.field select{width:100%;background:#0e161b;border:1px solid var(--border);border-radius:8px;
+  color:var(--text);padding:8px 10px;font-size:.85rem}
+.field input:focus,.field select:focus{outline:none;border-color:var(--blue)}
+
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px dashed var(--border);font-size:.82rem}
+.kv:last-child{border-bottom:none}
+.kv b{color:var(--text)}
+.kv .val{font-weight:800;color:var(--blue)}
+.kv .val.ok{color:var(--green)}
+.kv .val.bad{color:var(--red)}
+.kv .val.warn{color:var(--amber)}
+.big{font-size:1.5rem!important}
+
+.badge{display:inline-block;font-size:.65rem;padding:2px 8px;border-radius:20px;background:#535ddc33;color:var(--blue);font-weight:700}
+.badge.green{background:#22c55e33;color:var(--green)}
+.badge.red{background:#ef444433;color:var(--red)}
+
+/* ---- Layout / canvas tool ---- */
+.layout-wrap{display:flex;gap:12px;flex-wrap:wrap}
+.layout-tools{flex:0 0 230px;display:flex;flex-direction:column;gap:8px}
+.layout-canvas-box{flex:1;min-width:320px;background:#0a1014;border:1px solid var(--border);border-radius:var(--r);
+  overflow:auto;position:relative}
+#layoutCanvas{display:block;background:#0a1014;cursor:crosshair}
+.tool-grp{background:#10181d;border:1px solid var(--border);border-radius:8px;padding:8px}
+.tool-grp h4{font-size:.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px;letter-spacing:.4px}
+.tool-row{display:flex;gap:6px;flex-wrap:wrap}
+.tbtn{flex:1;background:#0e161b;border:1px solid var(--border);border-radius:6px;padding:7px 6px;font-size:.72rem;
+  font-weight:700;color:var(--text);min-width:60px}
+.tbtn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.tbtn img{height:18px;display:block;margin:0 auto 3px}
+.swatch{width:22px;height:22px;border-radius:5px;border:2px solid transparent;cursor:pointer}
+.swatch.active{border-color:#fff}
+.legend-mini{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--muted);margin-top:2px}
+.legend-mini img{height:16px}
+
+footer{text-align:center;color:var(--muted);font-size:.7rem;padding:20px 10px}
+.flexend{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.addrow-btn{background:#10181d;border:1px dashed var(--border);border-radius:8px;padding:6px 12px;font-size:.75rem;color:var(--muted);margin-top:6px}
+.addrow-btn:hover{border-color:var(--blue);color:var(--blue)}
+.delrow{background:var(--red);color:#fff;border:none;border-radius:5px;width:22px;height:22px;font-weight:800}
+
+@media print{
+  .topbar,.tabbar,.no-print{display:none!important}
+  .page{display:block!important}
+  body{background:#fff;color:#000}
+  .card{background:#fff;border-color:#999}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>🏭 Toz Emme Sistemi Tasarım Aracı</h1>
+  <span class="sub">SMT Europe · Siloma · Saf Teknik</span>
+  <div class="grow"></div>
+  <button class="btn no-print" onclick="resetAll()">Sıfırla</button>
+  <button class="btn primary no-print" onclick="window.print()">Yazdır / PDF</button>
+</div>
+
+<div class="tabbar no-print">
+  <button class="tab active" data-page="makine" onclick="showPage('makine')">1· Makine Giriş</button>
+  <button class="tab" data-page="boru" onclick="showPage('boru')">2· Borulama</button>
+  <button class="tab" data-page="caplar" onclick="showPage('caplar')">3· Boru Çapı Tablosu</button>
+  <button class="tab" data-page="filtre" onclick="showPage('filtre')">4· Filtre Seçimi</button>
+  <button class="tab" data-page="fan" onclick="showPage('fan')">5· Fan Seçimi</button>
+  <button class="tab" data-page="db" onclick="showPage('db')">6· Ürün Veritabanı</button>
+  <button class="tab" data-page="teklif" onclick="showPage('teklif')">7· Teklif Özeti</button>
+  <button class="tab" data-page="yerlesim" onclick="showPage('yerlesim')">8· Fabrika Yerleşim Planı</button>
+</div>
+
+<!-- ============== 1) MAKINE GIRIS ============== -->
+<div class="page active" id="page-makine">
+  <div class="card">
+    <h2>Proje Bilgileri</h2>
+    <div class="grid3">
+      <div class="field"><label>Proje Adı</label><input id="projeAdi" oninput="saveState()"></div>
+      <div class="field"><label>Tarih</label><input id="projeTarih" type="date" oninput="saveState()"></div>
+      <div class="field"><label>Hazırlayan</label><input id="projeHazirlayan" oninput="saveState()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Makine Giriş Sayfası</h2>
+    <div class="note">Her makine için emiş noktası sayısı, makine hava debisi ve eşzamanlı çalışma katsayısını girin. Toplam hava debisi otomatik hesaplanır ve tüm sonraki sayfalara aktarılır.</div>
+    <div class="tbl-wrap">
+      <table id="mgTable">
+        <thead><tr>
+          <th>No</th><th>Makine Adı</th><th>Makine Tipi</th><th>Adet</th><th>Emiş Noktası<br>Sayısı</th>
+          <th>Emiş Noktası<br>Çapı (mm)</th><th>Makine Hava<br>Debisi (m³/h)</th><th>Eşzamanlı<br>Çalışma K.(%)</th>
+          <th>Çalışma Süresi<br>(sa/gün)</th><th>Toplam Debi<br>(m³/h)</th><th>Günlük Tüketim<br>(m³/gün)</th>
+          <th>Durum</th><th></th>
+        </tr></thead>
+        <tbody id="mgBody"></tbody>
+        <tfoot><tr class="tot-row">
+          <td colspan="9">TOPLAM</td><td id="mgTotalDebi">0</td><td id="mgTotalGunluk">0</td><td colspan="2"></td>
+        </tr></tfoot>
+      </table>
+    </div>
+    <button class="addrow-btn" onclick="addMachineRow()">+ Makine Ekle</button>
+  </div>
+</div>
+
+<!-- ============== 2) BORULAMA ============== -->
+<div class="page" id="page-boru">
+  <div class="grid2">
+    <div class="card">
+      <h2>Giriş Verileri</h2>
+      <div class="field"><label>Ana Hat Uzunluğu (m)</label><input id="bAna" type="number" value="60" oninput="calcAll()"></div>
+      <div class="field"><label>Branşman (Dal Hattı) Uzunluğu (m)</label><input id="bBrn" type="number" value="25" oninput="calcAll()"></div>
+      <div class="grid3">
+        <div class="field"><label>45° Dirsek Sayısı</label><input id="bD45" type="number" value="4" oninput="calcAll()"></div>
+        <div class="field"><label>90° Dirsek Sayısı</label><input id="bD90" type="number" value="6" oninput="calcAll()"></div>
+        <div class="field"><label>T Bağlantı Sayısı</label><input id="bTbag" type="number" value="5" oninput="calcAll()"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Redüksiyon Sayısı</label><input id="bRed" type="number" value="3" oninput="calcAll()"></div>
+        <div class="field"><label>Boru Malzemesi</label>
+          <select id="bMalz" onchange="calcAll()">
+            <option value="0.020">Galvanizli Sac</option>
+            <option value="0.018">Paslanmaz Çelik</option>
+            <option value="0.022">Spiral Sac</option>
+            <option value="0.025">PVC</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Hedef Taşıma Hızı (m/s)</label><input id="bHiz" type="number" value="22" oninput="calcAll()"></div>
+        <div class="field"><label>Güvenlik Payı (%)</label><input id="bGuv" type="number" value="15" oninput="calcAll()"></div>
+      </div>
+      <h3>Malzeme Sürtünme Katsayısı (λ) Referans</h3>
+      <table><tr><th>Malzeme</th><th>λ</th></tr>
+        <tr><td>Galvanizli Sac</td><td>0.020</td></tr><tr><td>Paslanmaz Çelik</td><td>0.018</td></tr>
+        <tr><td>Spiral Sac</td><td>0.022</td></tr><tr><td>PVC</td><td>0.025</td></tr></table>
+      <h3>Yerel Direnç (ζ) Katsayıları</h3>
+      <table><tr><th>Eleman</th><th>ζ</th></tr>
+        <tr><td>45° Dirsek</td><td>0.15</td></tr><tr><td>90° Dirsek</td><td>0.30</td></tr>
+        <tr><td>T Bağlantı</td><td>1.00</td></tr><tr><td>Redüksiyon</td><td>0.20</td></tr></table>
+    </div>
+
+    <div class="card">
+      <h2>Hesap Sonuçları</h2>
+      <div class="kv"><span>Toplam Hava Debisi</span><b class="val" id="r_debiH">0 m³/h</b></div>
+      <div class="kv"><span>Toplam Hava Debisi</span><b class="val" id="r_debiS">0 m³/s</b></div>
+      <div class="kv"><span>Gerekli Boru Kesit Alanı</span><b class="val" id="r_alan">0 m²</b></div>
+      <div class="kv"><span>Gerekli Boru Çapı</span><b class="val" id="r_dgerek">0 mm</b></div>
+      <div class="kv"><span>Önerilen Standart Çap</span><b class="val big" id="r_dstd">0 mm</b></div>
+      <div class="kv"><span>Seçilen Borunun Kesit Alanı</span><b class="val" id="r_astd">0 m²</b></div>
+      <div class="kv"><span>Gerçek Hava Hızı</span><b class="val big" id="r_v">0 m/s</b></div>
+      <div class="kv"><span>Hız Kontrolü</span><b class="val" id="r_vdurum">-</b></div>
+      <div class="kv"><span>Sürtünme Katsayısı (λ)</span><b class="val" id="r_lambda">0</b></div>
+      <div class="kv"><span>Statik (Sürtünme) Basınç Kaybı</span><b class="val" id="r_statik">0 Pa</b></div>
+      <div class="kv"><span>Σζ (Yerel Direnç Toplamı)</span><b class="val" id="r_zeta">0</b></div>
+      <div class="kv"><span>Dinamik (Yerel) Basınç Kaybı</span><b class="val" id="r_dinamik">0 Pa</b></div>
+      <div class="kv"><span>Ara Toplam Basınç Kaybı</span><b class="val" id="r_aratoplam">0 Pa</b></div>
+      <div class="kv"><span>Güvenlik Payı Eklenmiş Toplam</span><b class="val" id="r_guvtoplam">0 Pa</b></div>
+      <div class="kv" style="border-top:2px solid var(--blue);margin-top:6px;padding-top:10px">
+        <span><b>TOPLAM SİSTEM BASINÇ KAYBI</b></span><b class="val big" id="r_toplamPa">0 Pa</b></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== 3) BORU CAPI TABLOSU ============== -->
+<div class="page" id="page-caplar">
+  <div class="card">
+    <h2>Standart Boru Çapı Seçim Tablosu</h2>
+    <div class="note">Sistemde kullanılan standart spiral/düz dikiş boru çapı serisi. Hesap sayfaları bu listeden bir üst standart çapı otomatik seçer.</div>
+    <div class="tbl-wrap"><table id="capTable">
+      <thead><tr><th>Sıra</th><th>Standart Çap (mm)</th><th>Kesit Alanı (m²)</th><th>Tavsiye Edilen Hız Aralığı</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ============== 4) FILTRE SECIMI ============== -->
+<div class="page" id="page-filtre">
+  <div class="grid2">
+    <div class="card">
+      <h2>Sistem Gereksinimi</h2>
+      <div class="kv"><span>Toplam Hava Debisi</span><b class="val" id="f_debi">0 m³/h</b></div>
+      <div class="kv"><span>Uygun Minimum Filtre Debisi</span><b class="val" id="f_mindebi">-</b></div>
+      <div class="kv"><span>Uygun Filtre Bulundu mu?</span><b class="val" id="f_bulundu">-</b></div>
+    </div>
+    <div class="card">
+      <h2>Seçilen Filtre Özellikleri</h2>
+      <div class="kv"><span>Marka</span><b class="val" id="f_marka">-</b></div>
+      <div class="kv"><span>Filtre Modeli</span><b class="val big" id="f_model">-</b></div>
+      <div class="kv"><span>Nominal Debi</span><b class="val" id="f_ndebi">-</b></div>
+      <div class="kv"><span>Filtre Alanı</span><b class="val" id="f_alan">-</b></div>
+      <div class="kv"><span>Fan Gücü (kendi fanı)</span><b class="val" id="f_fanguc">-</b></div>
+      <div class="kv"><span>Hava Tankı Hacmi</span><b class="val" id="f_tank">-</b></div>
+      <div class="kv"><span>Temizlik Sistemi</span><b class="val" id="f_temiz">-</b></div>
+      <h3>Filtre Yüzey Hızı (Air-to-Cloth Ratio)</h3>
+      <div class="kv"><span>Filtre Yüzey Hızı</span><b class="val" id="f_yuzeyhiz">0 m/s</b></div>
+      <div class="kv"><span>Kontrol (Tavsiye: 0.020–0.045 m/s)</span><b class="val" id="f_yuzeydurum">-</b></div>
+      <div class="kv"><span>Filtre Basınç Kaybı (Fan seçimine eklenir)</span><b class="val" id="f_basinc">0 Pa</b></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== 5) FAN SECIMI ============== -->
+<div class="page" id="page-fan">
+  <div class="grid2">
+    <div class="card">
+      <h2>Sistem Gereksinimi</h2>
+      <div class="kv"><span>Toplam Hava Debisi</span><b class="val" id="n_debi">0 m³/h</b></div>
+      <div class="kv"><span>Borulama Basınç Kaybı</span><b class="val" id="n_boruPa">0 Pa</b></div>
+      <div class="kv"><span>Filtre Basınç Kaybı</span><b class="val" id="n_filtrePa">0 Pa</b></div>
+      <div class="kv" style="border-top:2px solid var(--blue);margin-top:6px;padding-top:10px">
+        <span><b>TOPLAM SİSTEM BASINCI</b></span><b class="val big" id="n_toplamPa">0 Pa</b></div>
+      <div class="kv"><span>Uygun Minimum Fan Debisi</span><b class="val" id="n_mindebi">-</b></div>
+      <div class="kv"><span>Uygun Fan Bulundu mu?</span><b class="val" id="n_bulundu">-</b></div>
+    </div>
+    <div class="card">
+      <h2>Seçilen Fan Özellikleri</h2>
+      <div class="kv"><span>Marka</span><b class="val" id="n_marka">-</b></div>
+      <div class="kv"><span>Fan Modeli</span><b class="val big" id="n_model">-</b></div>
+      <div class="kv"><span>Çap</span><b class="val" id="n_cap">-</b></div>
+      <div class="kv"><span>Basınç Kapasitesi</span><b class="val" id="n_basinc">-</b></div>
+      <div class="kv"><span>Veritabanı Motor Gücü</span><b class="val" id="n_motordb">-</b></div>
+      <div class="kv"><span>Fan Devri</span><b class="val" id="n_devri">-</b></div>
+      <div class="kv"><span>Fan Verimi</span><b class="val" id="n_verim">-</b></div>
+      <h3>Teorik Motor Gücü Hesabı ve Kontrol</h3>
+      <div class="kv"><span>Teorik Motor Gücü</span><b class="val" id="n_teorik">0 kW</b></div>
+      <div class="kv"><span>Kontrol</span><b class="val" id="n_kontrol">-</b></div>
+      <h3>Enerji Tüketimi</h3>
+      <div class="grid2">
+        <div class="field"><label>Sistem Çalışma Süresi (sa/gün)</label><input id="n_saatgun" type="number" value="8" oninput="calcAll()"></div>
+        <div class="field"><label>Yıllık Çalışma Günü (gün/yıl)</label><input id="n_gunyil" type="number" value="250" oninput="calcAll()"></div>
+      </div>
+      <div class="kv"><span>Motor Gücü (Kullanılan)</span><b class="val" id="n_kullanilan">0 kW</b></div>
+      <div class="kv"><span>Enerji Tüketimi</span><b class="val" id="n_enerjigun">0 kWh/gün</b></div>
+      <div class="kv"><span>Enerji Tüketimi</span><b class="val big" id="n_enerjiyil">0 kWh/yıl</b></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== 6) URUN VERITABANI ============== -->
+<div class="page" id="page-db">
+  <div class="card">
+    <h2>Ürün Veritabanı — SMT Europe / Siloma / Saf Teknik</h2>
+    <div class="note danger">NOT: Aşağıdaki teknik değerler (debi, basınç, güç, alan) ilgili marka model serileri esas alınarak mühendislik tahmini olarak oluşturulmuştur. Kataloğun genel ürün sayfalarında detaylı teknik değer (m³/h, Pa, kW) yayınlanmadığından, kesin teklif öncesi ilgili marka yetkili satış/teknik servisinden güncel datasheet değerleri ile bu tablo doğrulanmalıdır.</div>
+    <h3>Filtre Ürünleri</h3>
+    <div class="tbl-wrap"><table id="dbFiltreTable">
+      <thead><tr><th>Marka</th><th>Ürün Kodu</th><th>Debi (m³/h)</th><th>Basınç (Pa)</th><th>Motor Gücü (kW)</th>
+        <th>Filtre Alanı (m²)</th><th>Tank Hacmi (m³)</th><th>Temizlik Sistemi</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <h3>Fan (Transfer Fanı) Ürünleri</h3>
+    <div class="tbl-wrap"><table id="dbFanTable">
+      <thead><tr><th>Marka</th><th>Ürün Kodu</th><th>Çap (mm)</th><th>Debi (m³/h)</th><th>Basınç (Pa)</th>
+        <th>Motor Gücü (kW)</th><th>Devir (rpm)</th><th>Verim (%)</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ============== 7) TEKLIF OZETI ============== -->
+<div class="page" id="page-teklif">
+  <div class="card">
+    <h2>Toz Emme Sistemi — Teklif Özeti</h2>
+    <div class="grid3">
+      <div class="field"><label>Müşteri / Firma Adı</label><input id="tkMusteri" oninput="saveState()"></div>
+      <div class="field"><label>Teklif No</label><input id="tkNo" oninput="saveState()"></div>
+      <div class="field"><label>Proje</label><input id="tkProje" readonly></div>
+    </div>
+    <h3>Sistem Özeti</h3>
+    <div class="kv"><span>Toplam Hava Debisi</span><b class="val" id="tk_debi">-</b></div>
+    <div class="kv"><span>Ana Boru Çapı</span><b class="val" id="tk_cap">-</b></div>
+    <div class="kv"><span>Gerçek Hava Hızı</span><b class="val" id="tk_hiz">-</b></div>
+    <div class="kv"><span>Toplam Sistem Basınç Kaybı</span><b class="val" id="tk_pa">-</b></div>
+    <div class="kv"><span>Seçilen Filtre Modeli</span><b class="val" id="tk_filtre">-</b></div>
+    <div class="kv"><span>Filtre Alanı</span><b class="val" id="tk_alan">-</b></div>
+    <div class="kv"><span>Seçilen Fan Modeli</span><b class="val" id="tk_fan">-</b></div>
+    <div class="kv"><span>Fan Motor Gücü</span><b class="val" id="tk_motor">-</b></div>
+    <div class="kv"><span>Tahmini Enerji Tüketimi</span><b class="val" id="tk_enerjigun">-</b></div>
+    <div class="kv"><span>Tahmini Enerji Tüketimi</span><b class="val" id="tk_enerjiyil">-</b></div>
+    <h3>Kullanılan Ekipman Listesi (BOM)</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>No</th><th>Ekipman / Kalem</th><th>Özellik</th><th>Miktar</th><th>Birim</th></tr></thead>
+      <tbody id="bomBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ============== 8) FABRIKA YERLESIM PLANI ============== -->
+<div class="page" id="page-yerlesim">
+  <div class="card">
+    <h2>Fabrika Yerleşim Planı ve Boru Güzergahı</h2>
+    <div class="note">Bina ölçülerini girin, kolonlar otomatik yerleşir. Makine ikonları "Makine Giriş" sayfasındaki kayıtlardan otomatik gelir, sürükleyerek konumlandırabilirsiniz. Kalem / Düz Hat araçlarıyla serbest borulama çizimi yapabilirsiniz.</div>
+    <div class="grid3 no-print">
+      <div class="field"><label>Bina Genişliği (m)</label><input id="ypW" type="number" value="40" oninput="layoutResize()"></div>
+      <div class="field"><label>Bina Derinliği (m)</label><input id="ypH" type="number" value="18" oninput="layoutResize()"></div>
+      <div class="field"><label>Kolon Aralığı (m)</label><input id="ypSpacing" type="number" value="6" oninput="layoutResize()"></div>
+    </div>
+
+    <div class="layout-wrap">
+      <div class="layout-tools no-print">
+        <div class="tool-grp">
+          <h4>Araçlar</h4>
+          <div class="tool-row">
+            <button class="tbtn active" id="t_select" onclick="setTool('select')">🖱 Seç/Taşı</button>
+            <button class="tbtn" id="t_pen" onclick="setTool('pen')">✏ Kalem</button>
+            <button class="tbtn" id="t_line" onclick="setTool('line')">📏 Düz Boru</button>
+            <button class="tbtn" id="t_erase" onclick="setTool('erase')">🧹 Sil</button>
+          </div>
+        </div>
+        <div class="tool-grp">
+          <h4>Eklenecek Öğe (tıkla, sonra plana tıkla)</h4>
+          <div class="tool-row">
+            <button class="tbtn" id="i_makine" onclick="setPlaceItem('makine')"><img src="icons/makine.png">Makine</button>
+            <button class="tbtn" id="i_filtre" onclick="setPlaceItem('filtre')"><img src="icons/filtre.png">Filtre</button>
+            <button class="tbtn" id="i_fan" onclick="setPlaceItem('fan')"><img src="icons/fan.png">Fan</button>
+            <button class="tbtn" id="i_kolon" onclick="setPlaceItem('kolon')"><img src="icons/kolon.png">Kolon</button>
+          </div>
+        </div>
+        <div class="tool-grp">
+          <h4>Boru Rengi / Kalınlığı</h4>
+          <div class="tool-row" id="colorRow">
+            <span class="swatch active" style="background:#1F3864" data-c="#1F3864"></span>
+            <span class="swatch" style="background:#2E5395" data-c="#2E5395"></span>
+            <span class="swatch" style="background:#22C55E" data-c="#22C55E"></span>
+            <span class="swatch" style="background:#EF4444" data-c="#EF4444"></span>
+            <span class="swatch" style="background:#F59E0B" data-c="#F59E0B"></span>
+          </div>
+          <div style="margin-top:8px"><input type="range" id="lineWidth" min="1" max="10" value="4" style="width:100%"></div>
+          <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:.75rem;color:var(--muted)">
+            <input type="checkbox" id="snapGrid" checked> Izgaraya Hizala (Snap)
+          </label>
+        </div>
+        <div class="tool-grp">
+          <h4>İşlemler</h4>
+          <div class="tool-row">
+            <button class="tbtn" onclick="layoutUndo()">↶ Geri Al</button>
+            <button class="tbtn" onclick="layoutClearDraw()">Çizimi Temizle</button>
+            <button class="tbtn" onclick="layoutAutoMachines()">Makineleri Otomatik Yerleştir</button>
+            <button class="tbtn" onclick="layoutExportPNG()">PNG İndir</button>
+          </div>
+        </div>
+        <div class="tool-grp">
+          <h4>Sembol Lejandı</h4>
+          <div class="legend-mini"><img src="icons/kolon.png">Yapı Kolonu</div>
+          <div class="legend-mini"><img src="icons/filtre.png">Filtre Ünitesi</div>
+          <div class="legend-mini"><img src="icons/fan.png">Fan (Aspiratör)</div>
+          <div class="legend-mini"><img src="icons/makine.png">Makine / Emiş Noktası</div>
+          <div class="legend-mini"><img src="icons/dirsek.png">90° Dirsek</div>
+        </div>
+      </div>
+      <div class="layout-canvas-box">
+        <canvas id="layoutCanvas" width="1000" height="500"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Toz Emme Sistemi Tasarım Aracı — Mühendislik tahmini değerler içerir, kesin teklif öncesi katalog doğrulaması gereklidir.</footer>
+
+<script>
+/* =========================================================================
+   ÜRÜN VERİTABANI (SMT Europe / Siloma / Saf Teknik) - muhendislik tahmini
+   ========================================================================= */
+const FILTRE_DB = [
+  {marka:'Saf Teknik',kod:'SF-312',debi:3000,basinc:1444,motor:2.2,alan:33.3,tank:0,temiz:'Mekanik Sarsma'},
+  {marka:'Saf Teknik',kod:'SF-315',debi:4500,basinc:1465,motor:4,alan:50.0,tank:0,temiz:'Mekanik Sarsma'},
+  {marka:'Saf Teknik',kod:'SF-318',debi:6000,basinc:1487,motor:5.5,alan:66.7,tank:0,temiz:'Mekanik Sarsma'},
+  {marka:'Saf Teknik',kod:'SF-321',debi:8000,basinc:1516,motor:7.5,alan:88.9,tank:0,temiz:'Mekanik Sarsma'},
+  {marka:'Saf Teknik',kod:'SF-324',debi:10000,basinc:1545,motor:7.5,alan:111.1,tank:0,temiz:'Mekanik Sarsma'},
+  {marka:'Saf Teknik',kod:'KP-12',debi:1200,basinc:1417,motor:1.1,alan:13.3,tank:0,temiz:'Mekanik Sarsma'},
+  {marka:'Saf Teknik',kod:'KP-20',debi:2000,basinc:1429,motor:1.5,alan:22.2,tank:0,temiz:'Mekanik Sarsma'},
+  {marka:'Saf Teknik',kod:'KP-30',debi:3000,basinc:1444,motor:2.2,alan:33.3,tank:0,temiz:'Mekanik Sarsma'},
+  {marka:'Saf Teknik',kod:'KP-40',debi:4000,basinc:1458,motor:3,alan:44.4,tank:0,temiz:'Mekanik Sarsma'},
+  {marka:'Saf Teknik',kod:'KP-50',debi:5000,basinc:1473,motor:4,alan:55.6,tank:0,temiz:'Mekanik Sarsma'},
+  {marka:'Saf Teknik',kod:'KP-60',debi:6000,basinc:1487,motor:5.5,alan:66.7,tank:0,temiz:'Mekanik Sarsma'},
+  {marka:'Saf Teknik',kod:'BB-1521',debi:15000,basinc:1618,motor:15,alan:109.6,tank:0.7,temiz:'Jet Pulse (Basınçlı Hava)'},
+  {marka:'Saf Teknik',kod:'BB-1524',debi:20000,basinc:1691,motor:18.5,alan:146.2,tank:0.8,temiz:'Jet Pulse (Basınçlı Hava)'},
+  {marka:'Saf Teknik',kod:'BB-1526',debi:26000,basinc:1778,motor:22,alan:190.1,tank:0.9,temiz:'Jet Pulse (Basınçlı Hava)'},
+  {marka:'Siloma',kod:'SPE-30000',debi:30000,basinc:1836,motor:30,alan:219.3,tank:1.1,temiz:'Jet Pulse (Basınçlı Hava)'},
+  {marka:'Siloma',kod:'SPE-40000',debi:40000,basinc:1982,motor:37,alan:292.4,tank:1.3,temiz:'Jet Pulse (Basınçlı Hava)'},
+  {marka:'Siloma',kod:'SPE-55000',debi:55000,basinc:2200,motor:75,alan:402.0,tank:1.7,temiz:'Jet Pulse (Basınçlı Hava)'},
+  {marka:'SMT Europe',kod:'SNF-10',debi:4000,basinc:1458,motor:3,alan:37.0,tank:0,temiz:'Titreşimli (Vibrasyon)'},
+  {marka:'SMT Europe',kod:'MS-15',debi:5000,basinc:1473,motor:4,alan:46.3,tank:0,temiz:'Titreşimli (Vibrasyon)'},
+  {marka:'SMT Europe',kod:'MS-25',debi:8000,basinc:1516,motor:7.5,alan:74.1,tank:0,temiz:'Titreşimli (Vibrasyon)'},
+  {marka:'SMT Europe',kod:'MSP-20',debi:7000,basinc:1502,motor:5.5,alan:51.2,tank:0.5,temiz:'Jet Pulse (Basınçlı Hava)'},
+  {marka:'SMT Europe',kod:'MSP-35',debi:12000,basinc:1575,motor:11,alan:87.7,tank:0.6,temiz:'Jet Pulse (Basınçlı Hava)'},
+  {marka:'SMT Europe',kod:'SWF-30',debi:10000,basinc:1545,motor:7.5,alan:73.1,tank:0.6,temiz:'Jet Pulse (Basınçlı Hava)'},
+];
+const FAN_DB = [
+  {marka:'Saf Teknik',kod:'SF-213',debi:2000,basinc:1551,motor:1.5,cap:190,devri:2900,verim:66},
+  {marka:'Saf Teknik',kod:'SF-214',debi:3000,basinc:1577,motor:2.2,cap:230,devri:2900,verim:66},
+  {marka:'Saf Teknik',kod:'SF-215',debi:4000,basinc:1603,motor:3,cap:270,devri:2900,verim:66},
+  {marka:'Saf Teknik',kod:'SF-216',debi:5500,basinc:1641,motor:4,cap:310,devri:2900,verim:66},
+  {marka:'Saf Teknik',kod:'SF-217',debi:7000,basinc:1680,motor:5.5,cap:350,devri:2900,verim:67},
+  {marka:'Saf Teknik',kod:'SF-218',debi:9000,basinc:1731,motor:7.5,cap:400,devri:1450,verim:67},
+  {marka:'Saf Teknik',kod:'SF-219',debi:12000,basinc:1809,motor:11,cap:460,devri:1450,verim:68},
+  {marka:'Saf Teknik',kod:'SF-2110',debi:16000,basinc:1911,motor:15,cap:530,devri:1450,verim:69},
+  {marka:'Saf Teknik',kod:'SF-2111',debi:20000,basinc:2014,motor:18.5,cap:590,devri:1450,verim:70},
+  {marka:'Saf Teknik',kod:'SF-2112',debi:26000,basinc:2169,motor:22,cap:680,devri:1450,verim:72},
+  {marka:'Siloma',kod:'STF-218',debi:9000,basinc:1731,motor:7.5,cap:400,devri:1450,verim:67},
+  {marka:'Siloma',kod:'STF-2110',debi:16000,basinc:1911,motor:15,cap:530,devri:1450,verim:69},
+  {marka:'Siloma',kod:'STF-2112',debi:26000,basinc:2169,motor:22,cap:680,devri:1450,verim:72},
+  {marka:'Siloma',kod:'STF-2115',debi:35000,basinc:2400,motor:37,cap:790,devri:1450,verim:74},
+  {marka:'SMT Europe',kod:'SMT-TF-10',debi:5000,basinc:1629,motor:4,cap:300,devri:2900,verim:66},
+  {marka:'SMT Europe',kod:'SMT-TF-20',debi:10000,basinc:1757,motor:7.5,cap:420,devri:1450,verim:68},
+  {marka:'SMT Europe',kod:'SMT-TF-30',debi:18000,basinc:1963,motor:15,cap:560,devri:1450,verim:70},
+];
+const STD_CAPLAR = [80,100,120,125,140,150,160,180,200,220,250,280,300,315,350,400,450,500,560,600,630,710,800];
+const MAKINE_TIPLERI = ['Planya','Kalınlık Makinesi','Şerit Testere','Daire Testere (Panel)','CNC Router',
+  'Zımpara Makinesi','Freze','Delik Makinesi','Edge Bander (Kenar Bantlama)','Diğer'];
+
+/* =========================================================================
+   STATE
+   ========================================================================= */
+let machines = [];
+const LS_KEY = 'tozEmmeTasarimState_v1';
+
+function defaultMachines(){
+  return [
+    {ad:'Şerit Testere 1', tip:'Şerit Testere', adet:1, nokta:1, cap:150, debi:2200, esz:80, sure:8},
+    {ad:'CNC Router 1', tip:'CNC Router', adet:1, nokta:2, cap:120, debi:3000, esz:60, sure:8},
+    {ad:'Zımpara Makinesi 1', tip:'Zımpara Makinesi', adet:1, nokta:1, cap:100, debi:1500, esz:70, sure:8},
+  ];
+}
+
+function saveState(){
+  const s = {
+    machines, proje:{ad:val('projeAdi'),tarih:val('projeTarih'),haz:val('projeHazirlayan')},
+    boru:{ana:val('bAna'),brn:val('bBrn'),d45:val('bD45'),d90:val('bD90'),tbag:val('bTbag'),red:val('bRed'),
+      malz:val('bMalz'),hiz:val('bHiz'),guv:val('bGuv')},
+    fan:{saatgun:val('n_saatgun'),gunyil:val('n_gunyil')},
+    teklif:{musteri:val('tkMusteri'),no:val('tkNo')},
+    layout: layoutState
+  };
+  localStorage.setItem(LS_KEY, JSON.stringify(s));
+}
+function val(id){const e=document.getElementById(id); return e? e.value : '';}
+function setval(id,v){const e=document.getElementById(id); if(e) e.value=v;}
+
+function loadState(){
+  const raw = localStorage.getItem(LS_KEY);
+  if(!raw){ machines = defaultMachines(); return; }
+  try{
+    const s = JSON.parse(raw);
+    machines = s.machines && s.machines.length ? s.machines : defaultMachines();
+    if(s.proje){setval('projeAdi',s.proje.ad);setval('projeTarih',s.proje.tarih);setval('projeHazirlayan',s.proje.haz);}
+    if(s.boru){setval('bAna',s.boru.ana);setval('bBrn',s.boru.brn);setval('bD45',s.boru.d45);setval('bD90',s.boru.d90);
+      setval('bTbag',s.boru.tbag);setval('bRed',s.boru.red);setval('bMalz',s.boru.malz);setval('bHiz',s.boru.hiz);setval('bGuv',s.boru.guv);}
+    if(s.fan){setval('n_saatgun',s.fan.saatgun);setval('n_gunyil',s.fan.gunyil);}
+    if(s.teklif){setval('tkMusteri',s.teklif.musteri);setval('tkNo',s.teklif.no);}
+    if(s.layout) Object.assign(layoutState, s.layout);
+  }catch(e){ machines = defaultMachines(); }
+}
+
+function resetAll(){
+  if(!confirm('Tüm veriler sıfırlanacak. Onaylıyor musunuz?')) return;
+  localStorage.removeItem(LS_KEY);
+  location.reload();
+}
+
+/* =========================================================================
+   TAB NAV
+   ========================================================================= */
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelector('.tab[data-page="'+name+'"]').classList.add('active');
+  if(name==='yerlesim') setTimeout(layoutResize,30);
+}
+
+/* =========================================================================
+   1) MAKINE GIRIS
+   ========================================================================= */
+function addMachineRow(){
+  machines.push({ad:'Yeni Makine', tip:MAKINE_TIPLERI[0], adet:1, nokta:1, cap:100, debi:1000, esz:70, sure:8});
+  renderMachines(); calcAll();
+}
+function delMachineRow(i){ machines.splice(i,1); renderMachines(); calcAll(); }
+
+function renderMachines(){
+  const body = document.getElementById('mgBody');
+  body.innerHTML = '';
+  machines.forEach((m,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i+1}</td>
+      <td><input value="${esc(m.ad)}" oninput="machines[${i}].ad=this.value;calcAll()"></td>
+      <td><select onchange="machines[${i}].tip=this.value;calcAll()">
+          ${MAKINE_TIPLERI.map(t=>`<option ${t===m.tip?'selected':''}>${t}</option>`).join('')}
+        </select></td>
+      <td><input type="number" min="0" value="${m.adet}" oninput="machines[${i}].adet=+this.value;calcAll()"></td>
+      <td><input type="number" min="0" value="${m.nokta}" oninput="machines[${i}].nokta=+this.value;calcAll()"></td>
+      <td><input type="number" min="0" value="${m.cap}" oninput="machines[${i}].cap=+this.value;calcAll()"></td>
+      <td><input type="number" min="0" value="${m.debi}" oninput="machines[${i}].debi=+this.value;calcAll()"></td>
+      <td><input type="number" min="0" max="100" value="${m.esz}" oninput="machines[${i}].esz=+this.value;calcAll()"></td>
+      <td><input type="number" min="0" max="24" value="${m.sure}" oninput="machines[${i}].sure=+this.value;calcAll()"></td>
+      <td class="m-toplam">0</td>
+      <td class="m-gunluk">0</td>
+      <td class="m-durum">-</td>
+      <td><button class="delrow" onclick="delMachineRow(${i})">×</button></td>`;
+    body.appendChild(tr);
+  });
+}
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* =========================================================================
+   ANA HESAP MOTORU (Excel formullerinin JS karsiligi)
+   ========================================================================= */
+let RESULT = {};
+
+function calcAll(){
+  // ---- Makine Giris ----
+  let toplamDebi = 0, toplamGunluk = 0;
+  const rows = document.querySelectorAll('#mgBody tr');
+  machines.forEach((m,i)=>{
+    const j = (m.adet||0) * (m.debi||0) * ((m.esz||0)/100); // ToplamDebi(m3/h) = adet*debi*esz%
+    const k = j * (m.sure||0); // Gunluk tuketim (m3/gun)
+    toplamDebi += j; toplamGunluk += k;
+    const tr = rows[i];
+    if(tr){
+      tr.querySelector('.m-toplam').textContent = fmt(j,0);
+      tr.querySelector('.m-gunluk').textContent = fmt(k,0);
+      const durumOk = m.ad && m.cap>0 && m.debi>0 && m.esz>0 && m.esz<=100;
+      tr.querySelector('.m-durum').textContent = durumOk? 'OK' : 'HATA: Kontrol Et';
+      tr.classList.toggle('row-err', !durumOk);
+    }
+  });
+  document.getElementById('mgTotalDebi').textContent = fmt(toplamDebi,0);
+  document.getElementById('mgTotalGunluk').textContent = fmt(toplamGunluk,0);
+
+  // ---- Borulama Hesaplari ----
+  const ana = num('bAna'), brn = num('bBrn'), d45=num('bD45'), d90=num('bD90'),
+        tbag=num('bTbag'), red=num('bRed'), lambda=num('bMalz'), hedefHiz=num('bHiz'), guv=num('bGuv');
+
+  const debiH = toplamDebi;
+  const debiS = debiH/3600;
+  const alanGerek = hedefHiz>0 ? debiS/hedefHiz : 0;
+  const dGerek = Math.sqrt(4*alanGerek/Math.PI)*1000;
+  const dStd = STD_CAPLAR.find(d=>d>=dGerek) || STD_CAPLAR[STD_CAPLAR.length-1];
+  const aStd = Math.PI/4*Math.pow(dStd/1000,2);
+  const v = aStd>0 ? debiS/aStd : 0;
+  const rho = 1.2;
+  const statik = lambda*((ana+brn)/(dStd/1000))*(rho*v*v/2);
+  const zetaSum = d45*0.15 + d90*0.3 + tbag*1 + red*0.2;
+  const dinamik = zetaSum*(rho*v*v/2);
+  const araToplam = statik+dinamik;
+  const guvToplam = araToplam*(1+guv/100);
+  const toplamPa = guvToplam;
+  let vDurum, vClass;
+  if(v<18){vDurum='UYARI: Hız düşük - boru içinde toz çökebilir'; vClass='bad';}
+  else if(v>30){vDurum='UYARI: Hız yüksek - aşınma/enerji kaybı riski'; vClass='bad';}
+  else if(v>28){vDurum='Hız sınırda (28-30 m/s)'; vClass='warn';}
+  else {vDurum='Hız uygun (18-28 m/s)'; vClass='ok';}
+
+  setText('r_debiH', fmt(debiH,0)+' m³/h');
+  setText('r_debiS', fmt(debiS,3)+' m³/s');
+  setText('r_alan', fmt(alanGerek,4)+' m²');
+  setText('r_dgerek', fmt(dGerek,1)+' mm');
+  setText('r_dstd', fmt(dStd,0)+' mm');
+  setText('r_astd', fmt(aStd,4)+' m²');
+  setText('r_v', fmt(v,2)+' m/s', vClass);
+  setText('r_vdurum', vDurum, vClass);
+  setText('r_lambda', lambda.toFixed(3));
+  setText('r_statik', fmt(statik,0)+' Pa');
+  setText('r_zeta', zetaSum.toFixed(2));
+  setText('r_dinamik', fmt(dinamik,0)+' Pa');
+  setText('r_aratoplam', fmt(araToplam,0)+' Pa');
+  setText('r_guvtoplam', fmt(guvToplam,0)+' Pa');
+  setText('r_toplamPa', fmt(toplamPa,0)+' Pa');
+
+  // ---- Filtre Secimi ----
+  const SENTINEL = 999999999;
+  let minFiltre = SENTINEL, filtreObj = null;
+  FILTRE_DB.forEach(f=>{ if(f.debi>=debiH && f.debi<minFiltre){minFiltre=f.debi; filtreObj=f;} });
+  const filtreBulundu = minFiltre < SENTINEL;
+  setText('f_debi', fmt(debiH,0)+' m³/h');
+  setText('f_mindebi', filtreBulundu? fmt(minFiltre,0)+' m³/h' : 'BULUNAMADI');
+  setText('f_bulundu', filtreBulundu? 'EVET':'HAYIR - Veritabanını genişletin', filtreBulundu?'ok':'bad');
+  let filtreBasinc = 0, filtreAlan = 0;
+  if(filtreObj){
+    setText('f_marka', filtreObj.marka);
+    setText('f_model', filtreObj.kod);
+    setText('f_ndebi', fmt(filtreObj.debi,0)+' m³/h');
+    setText('f_alan', fmt(filtreObj.alan,1)+' m²');
+    setText('f_fanguc', fmt(filtreObj.motor,1)+' kW');
+    setText('f_tank', fmt(filtreObj.tank,1)+' m³');
+    setText('f_temiz', filtreObj.temiz);
+    filtreBasinc = filtreObj.basinc; filtreAlan = filtreObj.alan;
+    const yuzeyHiz = (filtreObj.debi/3600)/filtreObj.alan;
+    let yDurum, yClass;
+    if(yuzeyHiz<0.02){yDurum='Filtre alanı fazla büyük (verimsiz)';yClass='warn';}
+    else if(yuzeyHiz>0.045){yDurum='UYARI: Filtre alanı yetersiz olabilir';yClass='bad';}
+    else {yDurum='Uygun';yClass='ok';}
+    setText('f_yuzeyhiz', yuzeyHiz.toFixed(3)+' m/s');
+    setText('f_yuzeydurum', yDurum, yClass);
+    setText('f_basinc', fmt(filtreBasinc,0)+' Pa');
+  } else {
+    ['f_marka','f_model','f_ndebi','f_alan','f_fanguc','f_tank','f_temiz','f_yuzeyhiz','f_yuzeydurum'].forEach(id=>setText(id,'-'));
+    setText('f_basinc','0 Pa');
+  }
+
+  // ---- Fan Secimi ----
+  const toplamSistemPa = toplamPa + filtreBasinc;
+  setText('n_debi', fmt(debiH,0)+' m³/h');
+  setText('n_boruPa', fmt(toplamPa,0)+' Pa');
+  setText('n_filtrePa', fmt(filtreBasinc,0)+' Pa');
+  setText('n_toplamPa', fmt(toplamSistemPa,0)+' Pa');
+
+  let minFan = SENTINEL, fanObj = null;
+  FAN_DB.forEach(f=>{ if(f.debi>=debiH && f.basinc>=toplamSistemPa && f.debi<minFan){minFan=f.debi; fanObj=f;} });
+  const fanBulundu = minFan < SENTINEL;
+  setText('n_mindebi', fanBulundu? fmt(minFan,0)+' m³/h':'BULUNAMADI');
+  setText('n_bulundu', fanBulundu? 'EVET':'HAYIR - Veritabanını genişletin', fanBulundu?'ok':'bad');
+
+  let motorKW = 0, fanMotorDB = 0;
+  if(fanObj){
+    setText('n_marka', fanObj.marka);
+    setText('n_model', fanObj.kod);
+    setText('n_cap', fanObj.cap+' mm');
+    setText('n_basinc', fmt(fanObj.basinc,0)+' Pa');
+    setText('n_motordb', fanObj.motor+' kW');
+    setText('n_devri', fanObj.devri+' rpm');
+    setText('n_verim', fanObj.verim+' %');
+    fanMotorDB = fanObj.motor;
+    const teorik = (debiH/3600)*toplamSistemPa/(1000*(fanObj.verim/100));
+    const kontrolOk = teorik <= fanMotorDB*1.1;
+    setText('n_teorik', teorik.toFixed(2)+' kW');
+    setText('n_kontrol', kontrolOk?'Uygun':'UYARI: Motor gücü yetersiz olabilir', kontrolOk?'ok':'bad');
+    motorKW = Math.max(teorik, fanMotorDB);
+  } else {
+    ['n_marka','n_model','n_cap','n_basinc','n_motordb','n_devri','n_verim','n_teorik','n_kontrol'].forEach(id=>setText(id,'-'));
+  }
+  const saatGun = num('n_saatgun'), gunYil = num('n_gunyil');
+  const enerjiGun = motorKW*saatGun;
+  const enerjiYil = enerjiGun*gunYil;
+  setText('n_kullanilan', fmt(motorKW,2)+' kW');
+  setText('n_enerjigun', fmt(enerjiGun,1)+' kWh/gün');
+  setText('n_enerjiyil', fmt(enerjiYil,0)+' kWh/yıl');
+
+  // ---- Teklif Ozeti ----
+  setText('tk_debi', fmt(debiH,0)+' m³/h');
+  setText('tk_cap', fmt(dStd,0)+' mm');
+  setText('tk_hiz', fmt(v,1)+' m/s');
+  setText('tk_pa', fmt(toplamSistemPa,0)+' Pa');
+  setText('tk_filtre', filtreObj? (filtreObj.marka+' - '+filtreObj.kod) : '-');
+  setText('tk_alan', filtreObj? fmt(filtreObj.alan,1)+' m²':'-');
+  setText('tk_fan', fanObj? (fanObj.marka+' - '+fanObj.kod) : '-');
+  setText('tk_motor', fmt(motorKW,1)+' kW');
+  setText('tk_enerjigun', fmt(enerjiGun,1)+' kWh/gün');
+  setText('tk_enerjiyil', fmt(enerjiYil,0)+' kWh/yıl');
+  setval('tkProje', val('projeAdi'));
+  renderBOM({ana,brn,d45,d90,tbag,red,malz:document.getElementById('bMalz').selectedOptions[0].text,dStd,filtreObj,fanObj});
+
+  RESULT = {debiH,debiS,dStd,v,toplamPa,filtreObj,fanObj,toplamSistemPa,motorKW,enerjiGun,enerjiYil};
+  layoutDrawAll();
+  saveState();
+}
+
+function renderBOM(p){
+  const rows = [
+    ['Ana Boru Hattı', p.dStd+' mm Çap', p.ana, 'm'],
+    ['Branşman Hatları', p.dStd+' mm Çap', p.brn, 'm'],
+    ['45° Dirsek', p.malz, p.d45, 'adet'],
+    ['90° Dirsek', p.malz, p.d90, 'adet'],
+    ['T Bağlantı', p.malz, p.tbag, 'adet'],
+    ['Redüksiyon', p.malz, p.red, 'adet'],
+    ['Filtre Ünitesi', p.filtreObj? (p.filtreObj.marka+' '+p.filtreObj.kod):'-', 1, 'adet'],
+    ['Fan (Aspiratör)', p.fanObj? (p.fanObj.marka+' '+p.fanObj.kod):'-', 1, 'adet'],
+  ];
+  const body = document.getElementById('bomBody');
+  body.innerHTML = rows.map((r,i)=>`<tr><td>${i+1}</td><td style="text-align:left">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+}
+
+function num(id){ const v = parseFloat(val(id)); return isNaN(v)?0:v; }
+function fmt(n,d){ return Number(n||0).toLocaleString('tr-TR',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function setText(id,text,cls){
+  const e = document.getElementById(id);
+  if(!e) return;
+  e.textContent = text;
+  e.classList.remove('ok','bad','warn');
+  if(cls) e.classList.add(cls);
+}
+
+/* =========================================================================
+   3) BORU CAPI TABLOSU (statik)
+   ========================================================================= */
+function renderCapTable(){
+  const body = document.querySelector('#capTable tbody');
+  body.innerHTML = STD_CAPLAR.map((d,i)=>{
+    const alan = Math.PI/4*Math.pow(d/1000,2);
+    return `<tr><td>${i+1}</td><td><b>${d}</b></td><td>${alan.toFixed(4)}</td><td>18 - 28 m/s (ahşap tozu taşıma)</td></tr>`;
+  }).join('');
+}
+
+/* =========================================================================
+   6) URUN VERITABANI TABLOSU (statik render)
+   ========================================================================= */
+function renderDBTables(){
+  document.querySelector('#dbFiltreTable tbody').innerHTML = FILTRE_DB.map(f=>
+    `<tr><td>${f.marka}</td><td><b>${f.kod}</b></td><td>${fmt(f.debi,0)}</td><td>${fmt(f.basinc,0)}</td>
+     <td>${f.motor}</td><td>${f.alan}</td><td>${f.tank}</td><td>${f.temiz}</td></tr>`).join('');
+  document.querySelector('#dbFanTable tbody').innerHTML = FAN_DB.map(f=>
+    `<tr><td>${f.marka}</td><td><b>${f.kod}</b></td><td>${f.cap}</td><td>${fmt(f.debi,0)}</td>
+     <td>${fmt(f.basinc,0)}</td><td>${f.motor}</td><td>${f.devri}</td><td>${f.verim}</td></tr>`).join('');
+}
+
+/* =========================================================================
+   8) FABRIKA YERLESIM PLANI (canvas tabanli serbest cizim + ikonlar)
+   ========================================================================= */
+const ICONS = {};
+['makine','filtre','fan','kolon','dirsek'].forEach(n=>{
+  const img = new Image(); img.src = 'icons/'+n+'.png'; ICONS[n] = img;
+});
+
+let layoutState = {
+  items: [],   // {type, xm, ym} konum metre cinsinden (bina ici koordinat)
+  paths: [],   // {points:[{x,y}...], color, width} - metre cinsinden
+  buildingW: 40, buildingH: 18, spacing: 6,
+};
+let curTool = 'select';
+let placeItem = null;
+let curColor = '#1F3864';
+let curWidth = 4;
+let drawing = false;
+let curPath = null;
+let dragItem = null;
+let pxPerM = 18;
+const MARGIN = 30;
+
+function setTool(t){
+  curTool = t; placeItem=null;
+  document.querySelectorAll('.tool-row .tbtn').forEach(b=>b.classList.remove('active'));
+  const map = {select:'t_select',pen:'t_pen',line:'t_line',erase:'t_erase'};
+  if(map[t]) document.getElementById(map[t]).classList.add('active');
+}
+function setPlaceItem(type){
+  placeItem = type; curTool='place';
+  document.querySelectorAll('.tool-row .tbtn').forEach(b=>b.classList.remove('active'));
+  const map={makine:'i_makine',filtre:'i_filtre',fan:'i_fan',kolon:'i_kolon'};
+  if(map[type]) document.getElementById(map[type]).classList.add('active');
+}
+
+document.addEventListener('click', e=>{
+  const sw = e.target.closest('.swatch');
+  if(sw){
+    document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
+    sw.classList.add('active'); curColor = sw.dataset.c;
+  }
+});
+document.getElementById('lineWidth')?.addEventListener('input', e=>{ curWidth = +e.target.value; });
+
+function layoutResize(){
+  layoutState.buildingW = num('ypW')||40;
+  layoutState.buildingH = num('ypH')||18;
+  layoutState.spacing = num('ypSpacing')||6;
+  const box = document.querySelector('.layout-canvas-box');
+  const availW = Math.max(600, box.clientWidth - 4);
+  pxPerM = Math.max(8, (availW - MARGIN*2) / layoutState.buildingW);
+  const cv = document.getElementById('layoutCanvas');
+  cv.width = layoutState.buildingW*pxPerM + MARGIN*2;
+  cv.height = layoutState.buildingH*pxPerM + MARGIN*2;
+  layoutAutoColumns();
+  layoutDrawAll();
+}
+
+function layoutAutoColumns(){
+  layoutState.items = layoutState.items.filter(it=>it.type!=='kolon');
+  const sp = layoutState.spacing;
+  for(let x=sp/2; x<layoutState.buildingW; x+=sp){
+    for(let y=sp/2; y<layoutState.buildingH; y+=sp){
+      layoutState.items.push({type:'kolon', xm:x, ym:y, auto:true});
+    }
+  }
+}
+
+function layoutAutoMachines(){
+  layoutState.items = layoutState.items.filter(it=>it.type!=='makine' && it.type!=='filtre' && it.type!=='fan');
+  const n = machines.length;
+  const usableW = layoutState.buildingW - 6;
+  const step = n>0 ? usableW/(n+1) : usableW;
+  machines.forEach((m,i)=>{
+    layoutState.items.push({type:'makine', xm: 3+step*(i+1), ym: layoutState.buildingH*0.65, label:m.ad, idx:i});
+  });
+  layoutState.items.push({type:'filtre', xm: 2.5, ym: 2.5});
+  layoutState.items.push({type:'fan', xm: layoutState.buildingW-2.5, ym: 2.5});
+  layoutDrawAll();
+  saveState();
+}
+
+function m2px(xm,ym){ return {x: MARGIN+xm*pxPerM, y: MARGIN+ym*pxPerM}; }
+function px2m(x,y){ return {xm:(x-MARGIN)/pxPerM, ym:(y-MARGIN)/pxPerM}; }
+
+function layoutDrawAll(){
+  const cv = document.getElementById('layoutCanvas');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // grid (0.5m)
+  ctx.strokeStyle = '#1c2730'; ctx.lineWidth=1;
+  for(let x=0;x<=layoutState.buildingW;x+=0.5){
+    const p1=m2px(x,0), p2=m2px(x,layoutState.buildingH);
+    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
+  }
+  for(let y=0;y<=layoutState.buildingH;y+=0.5){
+    const p1=m2px(0,y), p2=m2px(layoutState.buildingW,y);
+    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
+  }
+  // wall
+  ctx.strokeStyle = '#fff'; ctx.lineWidth=3;
+  const tl=m2px(0,0), br=m2px(layoutState.buildingW,layoutState.buildingH);
+  ctx.strokeRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y);
+
+  // freehand/line paths (boru hatlari)
+  layoutState.paths.forEach(p=>{
+    ctx.strokeStyle = p.color; ctx.lineWidth = p.width; ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.beginPath();
+    p.points.forEach((pt,i)=>{
+      const px = m2px(pt.x,pt.y);
+      if(i===0) ctx.moveTo(px.x,px.y); else ctx.lineTo(px.x,px.y);
+    });
+    ctx.stroke();
+  });
+
+  // items
+  layoutState.items.forEach(it=>{
+    const sizeMap = {kolon:14, makine:34, filtre:42, fan:42};
+    const sz = sizeMap[it.type]||30;
+    const p = m2px(it.xm, it.ym);
+    const img = ICONS[it.type];
+    if(img && img.complete){
+      ctx.drawImage(img, p.x-sz/2, p.y-sz/2, sz, sz);
+    }
+    if(it.label){
+      ctx.fillStyle = '#1F3864'; ctx.font = 'bold 9px sans-serif'; ctx.textAlign='center';
+      ctx.fillText(it.label.slice(0,14), p.x, p.y+sz/2+11);
+    }
+  });
+}
+
+function snap(xm,ym){
+  if(!document.getElementById('snapGrid').checked) return {x:xm,y:ym};
+  return {x: Math.round(xm*2)/2, y: Math.round(ym*2)/2};
+}
+
+function findItemNear(xm,ym,radius=1.2){
+  let best=null,bd=radius;
+  layoutState.items.forEach(it=>{
+    const d = Math.hypot(it.xm-xm, it.ym-ym);
+    if(d<bd){bd=d;best=it;}
+  });
+  return best;
+}
+
+function layoutCanvasPos(e){
+  const cv = document.getElementById('layoutCanvas');
+  const rect = cv.getBoundingClientRect();
+  const x = (e.touches? e.touches[0].clientX : e.clientX) - rect.left;
+  const y = (e.touches? e.touches[0].clientY : e.clientY) - rect.top;
+  return px2m(x,y);
+}
+
+function initCanvasEvents(){
+  const cv = document.getElementById('layoutCanvas');
+  cv.addEventListener('mousedown', onDown);
+  cv.addEventListener('mousemove', onMove);
+  cv.addEventListener('mouseup', onUp);
+  cv.addEventListener('touchstart', e=>{onDown(e);e.preventDefault();},{passive:false});
+  cv.addEventListener('touchmove', e=>{onMove(e);e.preventDefault();},{passive:false});
+  cv.addEventListener('touchend', onUp);
+}
+
+function onDown(e){
+  const {xm,ym} = layoutCanvasPos(e);
+  if(curTool==='place' && placeItem){
+    const s = snap(xm,ym);
+    layoutState.items.push({type:placeItem, xm:s.x, ym:s.y});
+    layoutDrawAll(); saveState(); return;
+  }
+  if(curTool==='select'){
+    dragItem = findItemNear(xm,ym);
+    return;
+  }
+  if(curTool==='erase'){
+    const it = findItemNear(xm,ym);
+    if(it){ layoutState.items.splice(layoutState.items.indexOf(it),1); layoutDrawAll(); saveState(); return; }
+    // erase nearest path
+    let bestPi=-1,bd=1;
+    layoutState.paths.forEach((p,pi)=>p.points.forEach(pt=>{
+      const d=Math.hypot(pt.x-xm,pt.y-ym); if(d<bd){bd=d;bestPi=pi;}
+    }));
+    if(bestPi>=0){ layoutState.paths.splice(bestPi,1); layoutDrawAll(); saveState(); }
+    return;
+  }
+  if(curTool==='pen'){
+    drawing = true;
+    curPath = {points:[snap(xm,ym)], color:curColor, width:curWidth};
+    layoutState.paths.push(curPath);
+    return;
+  }
+  if(curTool==='line'){
+    const s = snap(xm,ym);
+    if(!curPath){
+      curPath = {points:[s], color:curColor, width:curWidth};
+      layoutState.paths.push(curPath);
+    } else {
+      curPath.points.push(s);
+      curPath = null;
+      saveState();
+    }
+    layoutDrawAll();
+    return;
+  }
+}
+function onMove(e){
+  const {xm,ym} = layoutCanvasPos(e);
+  if(curTool==='select' && dragItem){
+    const s = snap(xm,ym);
+    dragItem.xm = s.x; dragItem.ym = s.y;
+    layoutDrawAll();
+    return;
+  }
+  if(curTool==='pen' && drawing && curPath){
+    curPath.points.push(snap(xm,ym));
+    layoutDrawAll();
+    return;
+  }
+  if(curTool==='line' && curPath){
+    // preview: temporarily show line to cursor
+    layoutDrawAll();
+    const ctx = document.getElementById('layoutCanvas').getContext('2d');
+    const last = curPath.points[curPath.points.length-1];
+    const p1 = m2px(last.x,last.y), p2=m2px(xm,ym);
+    ctx.strokeStyle = curColor; ctx.lineWidth=curWidth; ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+function onUp(){
+  if(curTool==='select' && dragItem){ dragItem=null; saveState(); }
+  if(curTool==='pen' && drawing){ drawing=false; curPath=null; saveState(); }
+}
+
+function layoutUndo(){
+  if(layoutState.paths.length){ layoutState.paths.pop(); layoutDrawAll(); saveState(); }
+}
+function layoutClearDraw(){
+  if(!confirm('Tüm boru çizimleri silinsin mi?')) return;
+  layoutState.paths = [];
+  layoutDrawAll(); saveState();
+}
+function layoutExportPNG(){
+  const cv = document.getElementById('layoutCanvas');
+  const link = document.createElement('a');
+  link.download = 'fabrika-yerlesim-plani.png';
+  link.href = cv.toDataURL('image/png');
+  link.click();
+}
+
+/* =========================================================================
+   INIT
+   ========================================================================= */
+window.addEventListener('resize', layoutResize);
+window.addEventListener('load', ()=>{
+  loadState();
+  renderMachines();
+  renderCapTable();
+  renderDBTables();
+  setval('ypW', layoutState.buildingW);
+  setval('ypH', layoutState.buildingH);
+  setval('ypSpacing', layoutState.spacing);
+  initCanvasEvents();
+  if(!layoutState.items.length){ layoutAutoColumns(); layoutAutoMachines(); }
+  calcAll();
+  layoutResize();
+});
+</script>
+</body>
+</html>
