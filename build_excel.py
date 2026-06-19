@@ -516,10 +516,10 @@ from openpyxl.drawing.image import Image as XLImage
 yp = wb.create_sheet("Fabrika Yerlesim Plani")
 
 GRID_COL0 = 2          # B sutunu
-GRID_COLN = 51          # 50 sutun -> 25 m (1 kare = 0.5 m)
+GRID_COLN = 82          # 80 sutun -> 40 m (1 kare = 0.5 m) - tum makineler icin genisletildi
 GRID_ROW0 = 7
 GRID_ROWN = 42          # 36 satir -> 18 m
-CELL_W = 2.2
+CELL_W = 1.4
 CELL_H = 15
 
 title_bar(yp, 1, "FABRIKA YERLESIM PLANI VE BORU GUZERGAHI (1 kare = 0.5 m)", span=20, height=26)
@@ -535,7 +535,7 @@ n2.alignment = Alignment(wrap_text=True, vertical="center")
 yp.row_dimensions[2].height = 42
 
 yp.cell(row=3, column=1, value="Olcek:").font = label_font
-yp.cell(row=3, column=2, value="1 kare = 0.5 m  |  Plan boyutu (varsayilan): 25 m x 18 m")
+yp.cell(row=3, column=2, value="1 kare = 0.5 m  |  Plan boyutu (varsayilan): 40 m x 18 m")
 
 # Izgara hucre boyutlari (kareye yakin gorunum icin)
 for col in range(GRID_COL0, GRID_COLN + 1):
@@ -582,9 +582,13 @@ for col in range(GRID_COL0 + 6, GRID_COLN - 5):
     b = c.border
     c.border = Border(left=b.left, right=b.right, top=b.top, bottom=navy_thick)
 
-# Bransman hatlari (orta kalinlikta mavi kenarlik) - ana hattan asagiya inen 3 dal
+# Bransman hatlari (orta kalinlikta mavi kenarlik) - ana hattan asagiya inen, Makine Giris'teki
+# TUM makinelere (MG_START..MG_END, 20 satir) karsilik gelen bransmanlar
 blue_med = Side(style="medium", color="2E5395")
-branch_cols = [GRID_COL0 + 10, GRID_COL0 + 22, GRID_COL0 + 34]
+branch_zone_start = GRID_COL0 + 6
+branch_zone_end = GRID_COLN - 5
+branch_step = max(2, (branch_zone_end - branch_zone_start) // (N_MACHINES + 1))
+branch_cols = [branch_zone_start + (i + 1) * branch_step for i in range(N_MACHINES)]
 branch_end_row = GRID_ROW0 + 14
 for bc in branch_cols:
     for row in range(MAIN_ROW, branch_end_row + 1):
@@ -592,19 +596,19 @@ for bc in branch_cols:
         b = c.border
         c.border = Border(left=b.left, right=blue_med, top=b.top, bottom=b.bottom)
 
-# Makine ikonlari - bransman ucunda, Makine Giris sayfasindaki ilk 3 makineye baglanti
+# Makine ikonlari - her bransman ucunda, Makine Giris sayfasindaki ilgili makineye baglanti
 MAKINE_ICON = "/home/user/St/icons/makine.png"
 for i, bc in enumerate(branch_cols):
     img = XLImage(MAKINE_ICON)
-    img.width = 44
-    img.height = 33
+    img.width = 22
+    img.height = 16
     anchor = f"{get_column_letter(bc - 1)}{branch_end_row + 1}"
     yp.add_image(img, anchor)
-    lbl = yp.cell(row=branch_end_row + 4, column=bc - 2,
-                   value=fx(f"=IFERROR('Makine Giris'!B{MG_START+i},\"Makine {i+1}\")"))
-    yp.merge_cells(start_row=branch_end_row + 4, start_column=bc - 2, end_row=branch_end_row + 4, end_column=bc + 2)
-    lbl.font = Font(size=8, bold=True, color=NAVY)
-    lbl.alignment = Alignment(horizontal="center")
+    lbl = yp.cell(row=branch_end_row + 3, column=bc - 1,
+                   value=fx(f"=IFERROR('Makine Giris'!B{MG_START+i},\"M{i+1}\")"))
+    lbl.font = Font(size=7, bold=True, color=NAVY)
+    lbl.alignment = Alignment(horizontal="center", text_rotation=90)
+    yp.row_dimensions[branch_end_row + 3].height = 60
 
 # Filtre + Fan ikonlari - ana hattin sol ve sag ucunda
 FILTRE_ICON = "/home/user/St/icons/filtre.png"
