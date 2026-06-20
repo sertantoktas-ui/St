@@ -241,6 +241,11 @@ footer{text-align:center;color:var(--muted);font-size:.7rem;padding:20px 10px}
       <div class="kv"><span>Toplam Hava Debisi</span><b class="val" id="f_debi">0 m³/h</b></div>
       <div class="kv"><span>Uygun Minimum Filtre Debisi</span><b class="val" id="f_mindebi">-</b></div>
       <div class="kv"><span>Uygun Filtre Bulundu mu?</span><b class="val" id="f_bulundu">-</b></div>
+      <div class="field" style="margin-top:10px">
+        <label>Filtre Modeli</label>
+        <select id="f_secim" onchange="calcAll()"><option value="auto">Otomatik (Sistem Önerisi)</option></select>
+      </div>
+      <div class="kv"><span>Seçim Uygunluğu</span><b class="val" id="f_secimdurum">-</b></div>
     </div>
     <div class="card">
       <h2>Seçilen Filtre Özellikleri</h2>
@@ -271,6 +276,11 @@ footer{text-align:center;color:var(--muted);font-size:.7rem;padding:20px 10px}
         <span><b>TOPLAM SİSTEM BASINCI</b></span><b class="val big" id="n_toplamPa">0 Pa</b></div>
       <div class="kv"><span>Uygun Minimum Fan Debisi</span><b class="val" id="n_mindebi">-</b></div>
       <div class="kv"><span>Uygun Fan Bulundu mu?</span><b class="val" id="n_bulundu">-</b></div>
+      <div class="field" style="margin-top:10px">
+        <label>Fan Modeli</label>
+        <select id="n_secim" onchange="calcAll()"><option value="auto">Otomatik (Sistem Önerisi)</option></select>
+      </div>
+      <div class="kv"><span>Seçim Uygunluğu</span><b class="val" id="n_secimdurum">-</b></div>
     </div>
     <div class="card">
       <h2>Seçilen Fan Özellikleri</h2>
@@ -364,6 +374,10 @@ footer{text-align:center;color:var(--muted);font-size:.7rem;padding:20px 10px}
             <button class="tbtn" id="t_pen" onclick="setTool('pen')">✏ Kalem</button>
             <button class="tbtn" id="t_line" onclick="setTool('line')">📏 Boru Hattı</button>
             <button class="tbtn" id="t_erase" onclick="setTool('erase')">🧹 Sil</button>
+          </div>
+          <div class="tool-row" id="lineActionRow" style="display:none;margin-top:6px">
+            <button class="tbtn" onclick="finishLinePath()">✔ Hattı Bitir</button>
+            <button class="tbtn" onclick="cancelLinePath()">✖ İptal</button>
           </div>
         </div>
         <div class="tool-grp">
@@ -486,6 +500,7 @@ const MAKINE_TIPLERI = ['Planya','Kalınlık Makinesi','Şerit Testere','Daire T
    STATE
    ========================================================================= */
 let machines = [];
+let savedFiltreSecim = 'auto', savedFanSecim = 'auto';
 const LS_KEY = 'tozEmmeTasarimState_v1';
 
 function defaultMachines(){
@@ -503,6 +518,7 @@ function saveState(){
       malz:val('bMalz'),hiz:val('bHiz'),guv:val('bGuv')},
     fan:{saatgun:val('n_saatgun'),gunyil:val('n_gunyil')},
     teklif:{musteri:val('tkMusteri'),no:val('tkNo')},
+    filtreSecim: val('f_secim'), fanSecim: val('n_secim'),
     layout: layoutState
   };
   localStorage.setItem(LS_KEY, JSON.stringify(s));
@@ -521,6 +537,8 @@ function loadState(){
       setval('bTbag',s.boru.tbag);setval('bRed',s.boru.red);setval('bMalz',s.boru.malz);setval('bHiz',s.boru.hiz);setval('bGuv',s.boru.guv);}
     if(s.fan){setval('n_saatgun',s.fan.saatgun);setval('n_gunyil',s.fan.gunyil);}
     if(s.teklif){setval('tkMusteri',s.teklif.musteri);setval('tkNo',s.teklif.no);}
+    savedFiltreSecim = s.filtreSecim || 'auto';
+    savedFanSecim = s.fanSecim || 'auto';
     if(s.layout) Object.assign(layoutState, s.layout);
   }catch(e){ machines = defaultMachines(); }
 }
@@ -650,6 +668,19 @@ function calcAll(){
   setText('f_debi', fmt(debiH,0)+' m³/h');
   setText('f_mindebi', filtreBulundu? fmt(minFiltre,0)+' m³/h' : 'BULUNAMADI');
   setText('f_bulundu', filtreBulundu? 'EVET':'HAYIR - Veritabanını genişletin', filtreBulundu?'ok':'bad');
+
+  const filtreSecimVal = val('f_secim');
+  if(filtreSecimVal && filtreSecimVal!=='auto'){
+    const manuel = FILTRE_DB.find(f=>f.kod===filtreSecimVal);
+    if(manuel){
+      filtreObj = manuel;
+      const yeterli = manuel.debi >= debiH;
+      setText('f_secimdurum', yeterli? 'Uygun (manuel seçim)' : 'UYARI: Bu model debiyi karşılamıyor', yeterli?'ok':'bad');
+    }
+  } else {
+    setText('f_secimdurum', filtreBulundu? 'Otomatik seçim uygun' : '-', filtreBulundu?'ok':'bad');
+  }
+
   let filtreBasinc = 0, filtreAlan = 0;
   if(filtreObj){
     setText('f_marka', filtreObj.marka);
@@ -685,6 +716,18 @@ function calcAll(){
   const fanBulundu = minFan < SENTINEL;
   setText('n_mindebi', fanBulundu? fmt(minFan,0)+' m³/h':'BULUNAMADI');
   setText('n_bulundu', fanBulundu? 'EVET':'HAYIR - Veritabanını genişletin', fanBulundu?'ok':'bad');
+
+  const fanSecimVal = val('n_secim');
+  if(fanSecimVal && fanSecimVal!=='auto'){
+    const manuel = FAN_DB.find(f=>f.kod===fanSecimVal);
+    if(manuel){
+      fanObj = manuel;
+      const yeterli = manuel.debi>=debiH && manuel.basinc>=toplamSistemPa;
+      setText('n_secimdurum', yeterli? 'Uygun (manuel seçim)' : 'UYARI: Bu model debi/basıncı karşılamıyor', yeterli?'ok':'bad');
+    }
+  } else {
+    setText('n_secimdurum', fanBulundu? 'Otomatik seçim uygun' : '-', fanBulundu?'ok':'bad');
+  }
 
   let motorKW = 0, fanMotorDB = 0;
   if(fanObj){
@@ -776,6 +819,17 @@ function renderDBTables(){
   document.querySelector('#dbFanTable tbody').innerHTML = FAN_DB.map(f=>
     `<tr><td>${f.marka}</td><td><b>${f.kod}</b></td><td>${f.cap}</td><td>${fmt(f.debi,0)}</td>
      <td>${fmt(f.basinc,0)}</td><td>${f.motor}</td><td>${f.devri}</td><td>${f.verim}</td></tr>`).join('');
+
+  const fSel = document.getElementById('f_secim');
+  if(fSel){
+    fSel.innerHTML = '<option value="auto">Otomatik (Sistem Önerisi)</option>' +
+      FILTRE_DB.map(f=>`<option value="${f.kod}">${f.marka} - ${f.kod} (${fmt(f.debi,0)} m³/h)</option>`).join('');
+  }
+  const nSel = document.getElementById('n_secim');
+  if(nSel){
+    nSel.innerHTML = '<option value="auto">Otomatik (Sistem Önerisi)</option>' +
+      FAN_DB.map(f=>`<option value="${f.kod}">${f.marka} - ${f.kod} (${fmt(f.debi,0)} m³/h, ${fmt(f.basinc,0)} Pa)</option>`).join('');
+  }
 }
 
 /* =========================================================================
@@ -806,6 +860,7 @@ let viewScale = 1, panX = 0, panY = 0;
 let spaceDown = false;
 let panning = false, panStart = null;
 let lastRaw = null; // {xm,ym} son bilinen fare konumu (metre)
+let touchStartXY = null; // dokunmatik cihazlarda tıklama (tap) algılamak için
 
 // --- arkaplan cache (grid + duvar) ---
 const bgCanvas = document.createElement('canvas');
@@ -818,6 +873,7 @@ function setTool(t){
   document.querySelectorAll('.tool-row .tbtn').forEach(b=>b.classList.remove('active'));
   const map = {select:'t_select',pen:'t_pen',line:'t_line',erase:'t_erase'};
   if(map[t]) document.getElementById(map[t]).classList.add('active');
+  document.getElementById('lineActionRow').style.display = (t==='line') ? '' : 'none';
   updateStatus(); requestRender();
 }
 function setPlaceItem(type){
@@ -825,6 +881,7 @@ function setPlaceItem(type){
   document.querySelectorAll('.tool-row .tbtn').forEach(b=>b.classList.remove('active'));
   const map={makine:'i_makine',filtre:'i_filtre',fan:'i_fan',kolon:'i_kolon'};
   if(map[type]) document.getElementById(map[type]).classList.add('active');
+  document.getElementById('lineActionRow').style.display = 'none';
   updateStatus();
 }
 
@@ -1092,9 +1149,23 @@ function initCanvasEvents(){
     const sx = e.clientX-rect.left, sy = e.clientY-rect.top;
     zoomAt(sx, sy, e.deltaY<0 ? 1.1 : 0.9);
   }, {passive:false});
-  cv.addEventListener('touchstart', e=>{onDown(e);e.preventDefault();},{passive:false});
+  cv.addEventListener('touchstart', e=>{
+    const t = e.touches[0];
+    touchStartXY = t ? {x:t.clientX, y:t.clientY} : null;
+    onDown(e);e.preventDefault();
+  },{passive:false});
   cv.addEventListener('touchmove', e=>{onMove(e);e.preventDefault();},{passive:false});
-  cv.addEventListener('touchend', onUp);
+  cv.addEventListener('touchend', e=>{
+    onUp();
+    if(curTool==='line' && !spaceDown && touchStartXY){
+      const t = e.changedTouches[0];
+      if(t){
+        const dist = Math.hypot(t.clientX-touchStartXY.x, t.clientY-touchStartXY.y);
+        if(dist < 10) onClick({clientX:t.clientX, clientY:t.clientY});
+      }
+    }
+    touchStartXY = null;
+  });
   document.addEventListener('keydown', e=>{
     const typing = ['INPUT','TEXTAREA'].includes(document.activeElement?.tagName);
     if(e.code==='Space' && !typing){ spaceDown=true; e.preventDefault(); }
@@ -1217,6 +1288,8 @@ window.addEventListener('load', ()=>{
   renderMachines();
   renderCapTable();
   renderDBTables();
+  setval('f_secim', savedFiltreSecim);
+  setval('n_secim', savedFanSecim);
   setval('ypW', layoutState.buildingW);
   setval('ypH', layoutState.buildingH);
   setval('ypSpacing', layoutState.spacing);
