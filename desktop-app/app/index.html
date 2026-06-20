@@ -346,9 +346,13 @@ footer{text-align:center;color:var(--muted);font-size:.7rem;padding:20px 10px}
     <div class="kv"><span>Fan Motor Gücü</span><b class="val" id="tk_motor">-</b></div>
     <div class="kv"><span>Tahmini Enerji Tüketimi</span><b class="val" id="tk_enerjigun">-</b></div>
     <div class="kv"><span>Tahmini Enerji Tüketimi</span><b class="val" id="tk_enerjiyil">-</b></div>
+    <h3>Maliyet Hesabı</h3>
+    <div class="note">Aşağıdaki fiyatlar, ekipman ve malzeme tiplerine göre yapılmış mühendislik tahminidir; kesin teklif için ilgili tedarikçilerden güncel fiyat teyidi alınmalıdır.</div>
+    <div class="kv" style="border-top:2px solid var(--blue);margin-top:6px;padding-top:10px">
+      <span><b>TOPLAM TAHMİNİ SİSTEM MALİYETİ</b></span><b class="val big" id="tk_toplammaliyet">-</b></div>
     <h3>Kullanılan Ekipman Listesi (BOM)</h3>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>No</th><th>Ekipman / Kalem</th><th>Özellik</th><th>Miktar</th><th>Birim</th></tr></thead>
+      <thead><tr><th>No</th><th>Ekipman / Kalem</th><th>Özellik</th><th>Miktar</th><th>Birim</th><th>Birim Fiyat</th><th>Tutar</th></tr></thead>
       <tbody id="bomBody"></tbody>
     </table></div>
   </div>
@@ -387,6 +391,14 @@ footer{text-align:center;color:var(--muted);font-size:.7rem;padding:20px 10px}
             <button class="tbtn" id="i_filtre" onclick="setPlaceItem('filtre')">🌀 Filtre</button>
             <button class="tbtn" id="i_fan" onclick="setPlaceItem('fan')">💨 Fan</button>
             <button class="tbtn" id="i_kolon" onclick="setPlaceItem('kolon')">▦ Kolon</button>
+          </div>
+          <div class="tool-row" id="i_filtreModelRow" style="display:none;margin-top:6px">
+            <select id="i_filtreModel" style="width:100%" onchange="placeItemKod=this.value">
+            </select>
+          </div>
+          <div class="tool-row" id="i_fanModelRow" style="display:none;margin-top:6px">
+            <select id="i_fanModel" style="width:100%" onchange="placeItemKod=this.value">
+            </select>
           </div>
         </div>
         <div class="tool-grp">
@@ -449,50 +461,65 @@ footer{text-align:center;color:var(--muted);font-size:.7rem;padding:20px 10px}
    ÜRÜN VERİTABANI (SMT Europe / Siloma / Saf Teknik) - muhendislik tahmini
    ========================================================================= */
 const FILTRE_DB = [
-  {marka:'Saf Teknik',kod:'SF-312',debi:3000,basinc:1444,motor:2.2,alan:33.3,tank:0,temiz:'Mekanik Sarsma'},
-  {marka:'Saf Teknik',kod:'SF-315',debi:4500,basinc:1465,motor:4,alan:50.0,tank:0,temiz:'Mekanik Sarsma'},
-  {marka:'Saf Teknik',kod:'SF-318',debi:6000,basinc:1487,motor:5.5,alan:66.7,tank:0,temiz:'Mekanik Sarsma'},
-  {marka:'Saf Teknik',kod:'SF-321',debi:8000,basinc:1516,motor:7.5,alan:88.9,tank:0,temiz:'Mekanik Sarsma'},
-  {marka:'Saf Teknik',kod:'SF-324',debi:10000,basinc:1545,motor:7.5,alan:111.1,tank:0,temiz:'Mekanik Sarsma'},
-  {marka:'Saf Teknik',kod:'KP-12',debi:1200,basinc:1417,motor:1.1,alan:13.3,tank:0,temiz:'Mekanik Sarsma'},
-  {marka:'Saf Teknik',kod:'KP-20',debi:2000,basinc:1429,motor:1.5,alan:22.2,tank:0,temiz:'Mekanik Sarsma'},
-  {marka:'Saf Teknik',kod:'KP-30',debi:3000,basinc:1444,motor:2.2,alan:33.3,tank:0,temiz:'Mekanik Sarsma'},
-  {marka:'Saf Teknik',kod:'KP-40',debi:4000,basinc:1458,motor:3,alan:44.4,tank:0,temiz:'Mekanik Sarsma'},
-  {marka:'Saf Teknik',kod:'KP-50',debi:5000,basinc:1473,motor:4,alan:55.6,tank:0,temiz:'Mekanik Sarsma'},
-  {marka:'Saf Teknik',kod:'KP-60',debi:6000,basinc:1487,motor:5.5,alan:66.7,tank:0,temiz:'Mekanik Sarsma'},
-  {marka:'Saf Teknik',kod:'BB-1521',debi:15000,basinc:1618,motor:15,alan:109.6,tank:0.7,temiz:'Jet Pulse (Basınçlı Hava)'},
-  {marka:'Saf Teknik',kod:'BB-1524',debi:20000,basinc:1691,motor:18.5,alan:146.2,tank:0.8,temiz:'Jet Pulse (Basınçlı Hava)'},
-  {marka:'Saf Teknik',kod:'BB-1526',debi:26000,basinc:1778,motor:22,alan:190.1,tank:0.9,temiz:'Jet Pulse (Basınçlı Hava)'},
-  {marka:'Siloma',kod:'SPE-30000',debi:30000,basinc:1836,motor:30,alan:219.3,tank:1.1,temiz:'Jet Pulse (Basınçlı Hava)'},
-  {marka:'Siloma',kod:'SPE-40000',debi:40000,basinc:1982,motor:37,alan:292.4,tank:1.3,temiz:'Jet Pulse (Basınçlı Hava)'},
-  {marka:'Siloma',kod:'SPE-55000',debi:55000,basinc:2200,motor:75,alan:402.0,tank:1.7,temiz:'Jet Pulse (Basınçlı Hava)'},
-  {marka:'SMT Europe',kod:'SNF-10',debi:4000,basinc:1458,motor:3,alan:37.0,tank:0,temiz:'Titreşimli (Vibrasyon)'},
-  {marka:'SMT Europe',kod:'MS-15',debi:5000,basinc:1473,motor:4,alan:46.3,tank:0,temiz:'Titreşimli (Vibrasyon)'},
-  {marka:'SMT Europe',kod:'MS-25',debi:8000,basinc:1516,motor:7.5,alan:74.1,tank:0,temiz:'Titreşimli (Vibrasyon)'},
-  {marka:'SMT Europe',kod:'MSP-20',debi:7000,basinc:1502,motor:5.5,alan:51.2,tank:0.5,temiz:'Jet Pulse (Basınçlı Hava)'},
-  {marka:'SMT Europe',kod:'MSP-35',debi:12000,basinc:1575,motor:11,alan:87.7,tank:0.6,temiz:'Jet Pulse (Basınçlı Hava)'},
-  {marka:'SMT Europe',kod:'SWF-30',debi:10000,basinc:1545,motor:7.5,alan:73.1,tank:0.6,temiz:'Jet Pulse (Basınçlı Hava)'},
+  {marka:"Saf Teknik",kod:"SF-312",debi:3000,basinc:1444,motor:2.2,alan:33.3,tank:0,temiz:"Mekanik Sarsma",fiyat:37500},
+  {marka:"Saf Teknik",kod:"SF-315",debi:4500,basinc:1465,motor:4,alan:50,tank:0,temiz:"Mekanik Sarsma",fiyat:51500},
+  {marka:"Saf Teknik",kod:"SF-318",debi:6000,basinc:1487,motor:5.5,alan:66.7,tank:0,temiz:"Mekanik Sarsma",fiyat:64500},
+  {marka:"Saf Teknik",kod:"SF-321",debi:8000,basinc:1516,motor:7.5,alan:88.9,tank:0,temiz:"Mekanik Sarsma",fiyat:81500},
+  {marka:"Saf Teknik",kod:"SF-324",debi:10000,basinc:1545,motor:7.5,alan:111.1,tank:0,temiz:"Mekanik Sarsma",fiyat:91000},
+  {marka:"Saf Teknik",kod:"KP-12",debi:1200,basinc:1417,motor:1.1,alan:13.3,tank:0,temiz:"Mekanik Sarsma",fiyat:25000},
+  {marka:"Saf Teknik",kod:"KP-20",debi:2000,basinc:1429,motor:1.5,alan:22.2,tank:0,temiz:"Mekanik Sarsma",fiyat:30000},
+  {marka:"Saf Teknik",kod:"KP-30",debi:3000,basinc:1444,motor:2.2,alan:33.3,tank:0,temiz:"Mekanik Sarsma",fiyat:37500},
+  {marka:"Saf Teknik",kod:"KP-40",debi:4000,basinc:1458,motor:3,alan:44.4,tank:0,temiz:"Mekanik Sarsma",fiyat:45500},
+  {marka:"Saf Teknik",kod:"KP-50",debi:5000,basinc:1473,motor:4,alan:55.6,tank:0,temiz:"Mekanik Sarsma",fiyat:54000},
+  {marka:"Saf Teknik",kod:"KP-60",debi:6000,basinc:1487,motor:5.5,alan:66.7,tank:0,temiz:"Mekanik Sarsma",fiyat:64500},
+  {marka:"Saf Teknik",kod:"BB-1521",debi:15000,basinc:1618,motor:15,alan:109.6,tank:0.7,temiz:"Jet Pulse (Basınçlı Hava)",fiyat:144500},
+  {marka:"Saf Teknik",kod:"BB-1524",debi:20000,basinc:1691,motor:18.5,alan:146.2,tank:0.8,temiz:"Jet Pulse (Basınçlı Hava)",fiyat:179500},
+  {marka:"Saf Teknik",kod:"BB-1526",debi:26000,basinc:1778,motor:22,alan:190.1,tank:0.9,temiz:"Jet Pulse (Basınçlı Hava)",fiyat:218000},
+  {marka:"Siloma",kod:"SPE-30000",debi:30000,basinc:1836,motor:30,alan:219.3,tank:1.1,temiz:"Jet Pulse (Basınçlı Hava)",fiyat:268500},
+  {marka:"Siloma",kod:"SPE-40000",debi:40000,basinc:1982,motor:37,alan:292.4,tank:1.3,temiz:"Jet Pulse (Basınçlı Hava)",fiyat:338000},
+  {marka:"Siloma",kod:"SPE-55000",debi:55000,basinc:2200,motor:75,alan:402,tank:1.7,temiz:"Jet Pulse (Basınçlı Hava)",fiyat:557000},
+  {marka:"SMT Europe",kod:"SNF-10",debi:4000,basinc:1458,motor:3,alan:37,tank:0,temiz:"Titreşimli (Vibrasyon)",fiyat:42000},
+  {marka:"SMT Europe",kod:"MS-15",debi:5000,basinc:1473,motor:4,alan:46.3,tank:0,temiz:"Titreşimli (Vibrasyon)",fiyat:50000},
+  {marka:"SMT Europe",kod:"MS-25",debi:8000,basinc:1516,motor:7.5,alan:74.1,tank:0,temiz:"Titreşimli (Vibrasyon)",fiyat:74500},
+  {marka:"SMT Europe",kod:"MSP-20",debi:7000,basinc:1502,motor:5.5,alan:51.2,tank:0.5,temiz:"Jet Pulse (Basınçlı Hava)",fiyat:72500},
+  {marka:"SMT Europe",kod:"MSP-35",debi:12000,basinc:1575,motor:11,alan:87.7,tank:0.6,temiz:"Jet Pulse (Basınçlı Hava)",fiyat:115500},
+  {marka:"SMT Europe",kod:"SWF-30",debi:10000,basinc:1545,motor:7.5,alan:73.1,tank:0.6,temiz:"Jet Pulse (Basınçlı Hava)",fiyat:93000},
 ];
 const FAN_DB = [
-  {marka:'Saf Teknik',kod:'SF-213',debi:2000,basinc:1551,motor:1.5,cap:190,devri:2900,verim:66},
-  {marka:'Saf Teknik',kod:'SF-214',debi:3000,basinc:1577,motor:2.2,cap:230,devri:2900,verim:66},
-  {marka:'Saf Teknik',kod:'SF-215',debi:4000,basinc:1603,motor:3,cap:270,devri:2900,verim:66},
-  {marka:'Saf Teknik',kod:'SF-216',debi:5500,basinc:1641,motor:4,cap:310,devri:2900,verim:66},
-  {marka:'Saf Teknik',kod:'SF-217',debi:7000,basinc:1680,motor:5.5,cap:350,devri:2900,verim:67},
-  {marka:'Saf Teknik',kod:'SF-218',debi:9000,basinc:1731,motor:7.5,cap:400,devri:1450,verim:67},
-  {marka:'Saf Teknik',kod:'SF-219',debi:12000,basinc:1809,motor:11,cap:460,devri:1450,verim:68},
-  {marka:'Saf Teknik',kod:'SF-2110',debi:16000,basinc:1911,motor:15,cap:530,devri:1450,verim:69},
-  {marka:'Saf Teknik',kod:'SF-2111',debi:20000,basinc:2014,motor:18.5,cap:590,devri:1450,verim:70},
-  {marka:'Saf Teknik',kod:'SF-2112',debi:26000,basinc:2169,motor:22,cap:680,devri:1450,verim:72},
-  {marka:'Siloma',kod:'STF-218',debi:9000,basinc:1731,motor:7.5,cap:400,devri:1450,verim:67},
-  {marka:'Siloma',kod:'STF-2110',debi:16000,basinc:1911,motor:15,cap:530,devri:1450,verim:69},
-  {marka:'Siloma',kod:'STF-2112',debi:26000,basinc:2169,motor:22,cap:680,devri:1450,verim:72},
-  {marka:'Siloma',kod:'STF-2115',debi:35000,basinc:2400,motor:37,cap:790,devri:1450,verim:74},
-  {marka:'SMT Europe',kod:'SMT-TF-10',debi:5000,basinc:1629,motor:4,cap:300,devri:2900,verim:66},
-  {marka:'SMT Europe',kod:'SMT-TF-20',debi:10000,basinc:1757,motor:7.5,cap:420,devri:1450,verim:68},
-  {marka:'SMT Europe',kod:'SMT-TF-30',debi:18000,basinc:1963,motor:15,cap:560,devri:1450,verim:70},
+  {marka:"Saf Teknik",kod:"SF-213",debi:2000,basinc:1551,motor:1.5,cap:190,devri:2900,verim:66,fiyat:17000},
+  {marka:"Saf Teknik",kod:"SF-214",debi:3000,basinc:1577,motor:2.2,cap:230,devri:2900,verim:66,fiyat:20500},
+  {marka:"Saf Teknik",kod:"SF-215",debi:4000,basinc:1603,motor:3,cap:270,devri:2900,verim:66,fiyat:24500},
+  {marka:"Saf Teknik",kod:"SF-216",debi:5500,basinc:1641,motor:4,cap:310,devri:2900,verim:66,fiyat:29500},
+  {marka:"Saf Teknik",kod:"SF-217",debi:7000,basinc:1680,motor:5.5,cap:350,devri:2900,verim:67,fiyat:36500},
+  {marka:"Saf Teknik",kod:"SF-218",debi:9000,basinc:1731,motor:7.5,cap:400,devri:1450,verim:67,fiyat:45500},
+  {marka:"Saf Teknik",kod:"SF-219",debi:12000,basinc:1809,motor:11,cap:460,devri:1450,verim:68,fiyat:61000},
+  {marka:"Saf Teknik",kod:"SF-2110",debi:16000,basinc:1911,motor:15,cap:530,devri:1450,verim:69,fiyat:79000},
+  {marka:"Saf Teknik",kod:"SF-2111",debi:20000,basinc:2014,motor:18.5,cap:590,devri:1450,verim:70,fiyat:94500},
+  {marka:"Saf Teknik",kod:"SF-2112",debi:26000,basinc:2169,motor:22,cap:680,devri:1450,verim:72,fiyat:110500},
+  {marka:"Siloma",kod:"STF-218",debi:9000,basinc:1731,motor:7.5,cap:400,devri:1450,verim:67,fiyat:45500},
+  {marka:"Siloma",kod:"STF-2110",debi:16000,basinc:1911,motor:15,cap:530,devri:1450,verim:69,fiyat:79000},
+  {marka:"Siloma",kod:"STF-2112",debi:26000,basinc:2169,motor:22,cap:680,devri:1450,verim:72,fiyat:110500},
+  {marka:"Siloma",kod:"STF-2115",debi:35000,basinc:2400,motor:37,cap:790,devri:1450,verim:74,fiyat:175500},
+  {marka:"SMT Europe",kod:"SMT-TF-10",debi:5000,basinc:1629,motor:4,cap:300,devri:2900,verim:66,fiyat:29500},
+  {marka:"SMT Europe",kod:"SMT-TF-20",debi:10000,basinc:1757,motor:7.5,cap:420,devri:1450,verim:68,fiyat:46000},
+  {marka:"SMT Europe",kod:"SMT-TF-30",debi:18000,basinc:1963,motor:15,cap:560,devri:1450,verim:70,fiyat:79500},
 ];
 const STD_CAPLAR = [80,100,120,125,140,150,160,180,200,220,250,280,300,315,350,400,450,500,560,600,630,710,800];
+// Boru/ek parça birim fiyatları (₺) - malzeme tipine göre, çapla orantılı mühendislik tahmini
+const BORU_MALZEME_FIYAT = {
+  'Galvanizli Sac': {metre:1.05, parca:1.0},
+  'Paslanmaz Çelik': {metre:2.6, parca:2.4},
+  'Spiral Sac': {metre:0.95, parca:0.9},
+  'PVC': {metre:0.55, parca:0.5},
+};
+function boruMetreFiyat(dStd, malzAdi){
+  const f = BORU_MALZEME_FIYAT[malzAdi] || BORU_MALZEME_FIYAT['Galvanizli Sac'];
+  return Math.round((dStd*1.8) * f.metre);
+}
+function boruParcaFiyat(dStd, malzAdi){
+  const f = BORU_MALZEME_FIYAT[malzAdi] || BORU_MALZEME_FIYAT['Galvanizli Sac'];
+  return Math.round((dStd*5.5) * f.parca);
+}
 const MAKINE_TIPLERI = ['Planya','Kalınlık Makinesi','Şerit Testere','Daire Testere (Panel)','CNC Router',
   'Zımpara Makinesi','Freze','Delik Makinesi','Edge Bander (Kenar Bantlama)','Diğer'];
 // Gerçek piyasa model kodları (tip bazında öneri listesi)
@@ -785,18 +812,27 @@ function calcAll(){
 }
 
 function renderBOM(p){
+  const metreFiyat = boruMetreFiyat(p.dStd, p.malz);
+  const parcaFiyat = boruParcaFiyat(p.dStd, p.malz);
   const rows = [
-    ['Ana Boru Hattı', p.dStd+' mm Çap', p.ana, 'm'],
-    ['Branşman Hatları', p.dStd+' mm Çap', p.brn, 'm'],
-    ['45° Dirsek', p.malz, p.d45, 'adet'],
-    ['90° Dirsek', p.malz, p.d90, 'adet'],
-    ['T Bağlantı', p.malz, p.tbag, 'adet'],
-    ['Redüksiyon', p.malz, p.red, 'adet'],
-    ['Filtre Ünitesi', p.filtreObj? (p.filtreObj.marka+' '+p.filtreObj.kod):'-', 1, 'adet'],
-    ['Fan (Aspiratör)', p.fanObj? (p.fanObj.marka+' '+p.fanObj.kod):'-', 1, 'adet'],
+    ['Ana Boru Hattı', p.dStd+' mm Çap', p.ana, 'm', metreFiyat],
+    ['Branşman Hatları', p.dStd+' mm Çap', p.brn, 'm', metreFiyat],
+    ['45° Dirsek', p.malz, p.d45, 'adet', parcaFiyat],
+    ['90° Dirsek', p.malz, p.d90, 'adet', parcaFiyat*1.2],
+    ['T Bağlantı', p.malz, p.tbag, 'adet', parcaFiyat*1.6],
+    ['Redüksiyon', p.malz, p.red, 'adet', parcaFiyat*1.3],
+    ['Filtre Ünitesi', p.filtreObj? (p.filtreObj.marka+' '+p.filtreObj.kod):'-', 1, 'adet', p.filtreObj? p.filtreObj.fiyat : 0],
+    ['Fan (Aspiratör)', p.fanObj? (p.fanObj.marka+' '+p.fanObj.kod):'-', 1, 'adet', p.fanObj? p.fanObj.fiyat : 0],
   ];
+  let toplam = 0;
   const body = document.getElementById('bomBody');
-  body.innerHTML = rows.map((r,i)=>`<tr><td>${i+1}</td><td style="text-align:left">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+  body.innerHTML = rows.map((r,i)=>{
+    const tutar = Math.round(r[4]*r[2]);
+    toplam += tutar;
+    return `<tr><td>${i+1}</td><td style="text-align:left">${esc(r[0])}</td><td>${esc(r[1])}</td><td>${fmt(r[2],r[3]==='m'?0:0)}</td><td>${r[3]}</td><td>${fmt(r[4],0)} ₺</td><td>${fmt(tutar,0)} ₺</td></tr>`;
+  }).join('');
+  setText('tk_toplammaliyet', fmt(toplam,0)+' ₺');
+  return toplam;
 }
 
 function num(id){ const v = parseFloat(val(id)); return isNaN(v)?0:v; }
@@ -984,6 +1020,7 @@ let layoutState = {
 };
 let curTool = 'select';
 let placeItem = null;
+let placeItemKod = null;
 let curColor = '#1F3864';
 let curWidth = 4;
 let drawing = false;
@@ -1014,11 +1051,23 @@ function setTool(t){
   updateStatus(); requestRender();
 }
 function setPlaceItem(type){
-  placeItem = type; curTool='place'; curPath=null;
+  placeItem = type; curTool='place'; curPath=null; placeItemKod=null;
   document.querySelectorAll('.tool-row .tbtn').forEach(b=>b.classList.remove('active'));
   const map={makine:'i_makine',filtre:'i_filtre',fan:'i_fan',kolon:'i_kolon'};
   if(map[type]) document.getElementById(map[type]).classList.add('active');
   document.getElementById('lineActionRow').style.display = 'none';
+  document.getElementById('i_filtreModelRow').style.display = (type==='filtre') ? '' : 'none';
+  document.getElementById('i_fanModelRow').style.display = (type==='fan') ? '' : 'none';
+  if(type==='filtre'){
+    const sel = document.getElementById('i_filtreModel');
+    sel.innerHTML = FILTRE_DB.map(f=>`<option value="${esc(f.kod)}">${esc(f.marka)} ${esc(f.kod)} (${fmt(f.debi,0)} m³/h)</option>`).join('');
+    placeItemKod = sel.value || null;
+  }
+  if(type==='fan'){
+    const sel = document.getElementById('i_fanModel');
+    sel.innerHTML = FAN_DB.map(f=>`<option value="${esc(f.kod)}">${esc(f.marka)} ${esc(f.kod)} (${fmt(f.debi,0)} m³/h)</option>`).join('');
+    placeItemKod = sel.value || null;
+  }
   updateStatus();
 }
 
@@ -1349,7 +1398,14 @@ function onDown(e){
   const {xm,ym} = layoutCanvasPos(e);
   if(curTool==='place' && placeItem){
     const s = snap(xm,ym);
-    layoutState.items.push({type:placeItem, xm:s.x, ym:s.y});
+    const it = {type:placeItem, xm:s.x, ym:s.y};
+    if((placeItem==='filtre' || placeItem==='fan') && placeItemKod){
+      it.kod = placeItemKod;
+      const db = placeItem==='filtre' ? FILTRE_DB : FAN_DB;
+      const obj = db.find(o=>o.kod===placeItemKod);
+      if(obj) it.label = obj.marka+' '+obj.kod;
+    }
+    layoutState.items.push(it);
     requestRender(); saveState(); return;
   }
   if(curTool==='select'){
