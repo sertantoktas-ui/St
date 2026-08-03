@@ -15,12 +15,14 @@ from dotenv import load_dotenv
 from database import AssistantDatabase
 from email_service import EmailService
 from pdf_generator import PDFReportGenerator
+from notebooklm_integration import NotebookLMIntegration
 
 load_dotenv()
 
 client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 db = AssistantDatabase()
 pdf_gen = PDFReportGenerator()
+notebooklm = NotebookLMIntegration()
 
 # Email servisi (opsiyonel - .env'de ayarlanmışsa)
 try:
@@ -81,6 +83,65 @@ TOOLS = [
             "type": "object",
             "properties": {}
         }
+    },
+    {
+        "name": "add_document_notebooklm",
+        "description": "NotebookLM benzeri analiz için belge ekle",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "doc_id": {
+                    "type": "string",
+                    "description": "Belge için benzersiz kimlik"
+                },
+                "content": {
+                    "type": "string",
+                    "description": "Analiz edilecek belge içeriği"
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Belge başlığı"
+                }
+            },
+            "required": ["doc_id", "content", "title"]
+        }
+    },
+    {
+        "name": "analyze_document",
+        "description": "Belgeyi analiz et (özet, anahat)",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "doc_id": {
+                    "type": "string",
+                    "description": "Belge kimliği"
+                },
+                "analysis_type": {
+                    "type": "string",
+                    "enum": ["summary", "outline"],
+                    "description": "Analiz türü"
+                }
+            },
+            "required": ["doc_id", "analysis_type"]
+        }
+    },
+    {
+        "name": "ask_document",
+        "description": "Belge hakkında sorular sor",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "doc_id": {
+                    "type": "string",
+                    "description": "Belge kimliği"
+                },
+                "question": {
+                    "type": "string",
+                    "description": "Belge hakkında soru"
+                }
+            },
+            "required": ["doc_id", "question"]
+        }
     }
 ]
 
@@ -98,6 +159,15 @@ def execute_tool(tool_name: str, tool_input: dict) -> str:
 
     elif tool_name == "get_statistics":
         return get_statistics()
+
+    elif tool_name == "add_document_notebooklm":
+        return add_document_notebooklm(tool_input)
+
+    elif tool_name == "analyze_document":
+        return analyze_document_notebooklm(tool_input)
+
+    elif tool_name == "ask_document":
+        return ask_document_notebooklm(tool_input)
 
     return f"Bilinmeyen araç: {tool_name}"
 
@@ -232,6 +302,37 @@ def get_statistics() -> str:
 
     return result
 
+def add_document_notebooklm(tool_input: dict) -> str:
+    """NotebookLM'e belge ekle"""
+    doc_id = tool_input["doc_id"]
+    content = tool_input["content"]
+    title = tool_input["title"]
+
+    result = notebooklm.add_document(doc_id, content, title)
+    return f"📚 NotebookLM: {result}"
+
+def analyze_document_notebooklm(tool_input: dict) -> str:
+    """Belgeyi analiz et"""
+    doc_id = tool_input["doc_id"]
+    analysis_type = tool_input["analysis_type"]
+
+    if analysis_type == "summary":
+        result = notebooklm.generate_summary(doc_id)
+        return f"📋 ÖZET\n{'=' * 40}\n{result}"
+    elif analysis_type == "outline":
+        result = notebooklm.generate_outline(doc_id)
+        return f"📍 ANAHAT\n{'=' * 40}\n{result}"
+
+    return "❌ Bilinmeyen analiz türü"
+
+def ask_document_notebooklm(tool_input: dict) -> str:
+    """Belge hakkında soru sor"""
+    doc_id = tool_input["doc_id"]
+    question = tool_input["question"]
+
+    result = notebooklm.ask_document(doc_id, question)
+    return f"💬 CEVAP\n{'=' * 40}\n{result}"
+
 def run_full_assistant():
     """Tam özellikli asistanı çalıştır"""
     conversation_history = []
@@ -243,13 +344,17 @@ def run_full_assistant():
     2. RAPOR OLUŞTURMA: create_report aracını kullanarak PDF raporları oluştur
     3. GÖREV YÖNETİMİ: manage_task aracını kullanarak görevleri yönet
     4. İSTATİSTİKLER: get_statistics aracını kullanarak istatistikleri göster
+    5. NOTEBOOKLM BENZERİ BELGE ANALİZİ:
+       - add_document_notebooklm: Analiz için belge ekle
+       - analyze_document: Belgelerin özetini veya anhatını oluştur
+       - ask_document: Belge hakkında sorular sor
 
     Her işlem için uygun aracı kullan ve sonuçları açıkla.
     Veritabanında kalıcı olarak bilgiler depolanır.
     """
 
     print("=" * 60)
-    print("🤖 Tam Özellikli Personal Asistan")
+    print("🤖 Tam Özellikli Personal Asistan + NotebookLM")
     print("=" * 60)
     print("\n✨ Özellikler:")
     print("  📧 Email yazma ve gönderme")
@@ -257,6 +362,7 @@ def run_full_assistant():
     print("  ✅ Görev yönetimi (veritabanı)")
     print("  📊 İstatistikler")
     print("  💾 Kalıcı depolama")
+    print("  📚 NotebookLM benzeri belge analizi")
 
     if email_available:
         print("  📮 Email gönderme: ✅ Aktif")
@@ -268,6 +374,9 @@ def run_full_assistant():
     print("  'Email yaz: Müşteriye proje tamamlandı'")
     print("  'Rapor yap: 2024 Satış Özeti'")
     print("  'Görev ekle: Sunum hazırla'")
+    print("  'Belge ekle: [başlık] [içerik]'")
+    print("  'Belgeyi analiz et'")
+    print("  'Belge hakkında soru sor'")
     print("  'İstatistikleri göster'")
     print("  'Görevleri listele'")
     print("  'cikis' - Çıkış")
