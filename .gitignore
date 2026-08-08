@@ -9,3 +9,5 @@ venv/
 *.egg-info/
 dist/
 .DS_Store
+notebook-lm-exports/
+notebook-lm-imports/
